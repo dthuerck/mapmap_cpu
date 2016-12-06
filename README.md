@@ -8,7 +8,7 @@ of a large class of MRF problems.
 mapMAP's algorithmic foundation and parallelization concept has been presented
 at *High Performance Graphics 2016* in Dublin, Ireland. For a reprint and
 further information, please refer to our project page (see
-[below](further-material)). 
+below]). 
 
 Currently, this code implements the following modules and features:
 
@@ -30,8 +30,7 @@ Currently, this code implements the following modules and features:
 In the future, we will add:
 - [ ] Capability to process label costs as outlined in the paper
 
-For the license and terms of usage, please see
-[the corresponding section](license-terms-of-usage-reference).
+For the license and terms of usage, please see "License, Terms of usage & Reference".
 
 Prerequisites
 ------
@@ -59,31 +58,32 @@ The following instructions are provided for linux; the Windows workflow
 should be somewhat similar, though GUI-based.
 
 *Step-by-step* instructions:
-1. ```git clone https://gitlab.gcc.informatik.tu-darmstadt.de/dthuerck/mapmap_cpu```
-2. ```cd mapmap_cpu && mkdir build &&  cd build && cmake ..``` 
-3. ```ccmake .``` and configure the following options (if you want to...):
-	* ```CMAKE_C_COMPILER``` - command for your C-compiler, e.g. ```gcc-5```
-	* ```CMAKE_CXX_COMPILER``` - command for your C++-compiler, 
-		e.g. ```g++-5```
-	* ```TBB_INCLUDE_DIRS``` - path containing the ```tbb/``` folder with 
-		include files, e.g. ```/usr/include```
-	* ```TBB_LIBRARY``` - path containing the TBB library files, e.g.
-		```/lib```
-	* ```GTEST_ROOT``` - path containing the Google Test library files,
-		e.g. ```/lib```
-	* ```BUILD_MEMSAVE``` - determines if the dynamic programming should
-		allocate memory as needed (```ON```), saving memory but causing
-		slightly longer execution times or preallocate the whole table
-		(```OFF```)
-	* ```BUILD_DEMO``` - decides whether the demo from the
-		wiki is built as ```mapmap_demo```
-	* ```BUILD_TEST``` - decides whether the test suite is built as
-		```mapmap_test```
-4. Configure and generate the Makefile (press ```c``` and ```g``` from 
-	```ccmake```).
-5. Build the project using ```make``` (or ```make -j``` for parallel build).
-6. Depending on yout configuration, you can now run ```mapmap_test``` and/or
-	```mapmap_demo```.
+
+1. `git clone https://gitlab.gcc.informatik.tu-darmstadt.de/dthuerck/mapmap_cpu`
+2. `cd mapmap_cpu && mkdir build &&  cd build && cmake ..` 
+3. `ccmake .` and configure the following options (if you want to...):
+  * `CMAKE_C_COMPILER` - command for your C-compiler, e.g. `gcc-5`
+  * `CMAKE_CXX_COMPILER` - command for your C++-compiler, 
+    e.g. `g++-5`
+  * `TBB_INCLUDE_DIRS` - path containing the `tbb/` folder with 
+    include files, e.g. `/usr/include`
+  * `TBB_LIBRARY` - path containing the TBB library files, e.g.
+    `/lib`
+  * `GTEST_ROOT` - path containing the Google Test library files, 
+    e.g. `/lib`
+  * `BUILD_MEMSAVE` - determines if the dynamic programming should
+    allocate memory as needed (`ON`), saving memory but causing
+    slightly longer execution times or preallocate the whole table
+    (`OFF`)
+  * `BUILD_DEMO` - decides whether the demo from the
+    wiki is built as `mapmap_demo`
+  * `BUILD_TEST` - decides whether the test suite is built as
+    `mapmap_test`
+4. Configure and generate the Makefile (press `c` and `g` from 
+   `ccmake`).
+5. Build the project using `make` (or `make -j` for parallel build).
+6. Depending on your configuration, you can now run `mapmap_test` and/or
+   `mapmap_demo`.
 
 Using mapMAP as a library in your own projects
 ------
@@ -108,7 +108,7 @@ Documentation
 
 For extended documentation on building, using and extending mapMAP, please
 see the
-[integrated wiki](https://gitlab.gcc.informatik.tu-darmstadt.de/dthuerck/mapmap_cpu/wikis/home).
+[integrated wiki](https://github.com/dthuerck/mapmap_cpu/wiki).
 
 License, Terms of Usage & Reference
 ------
@@ -137,7 +137,7 @@ the project's intergated issue tracker. We'll be happy to help you there or
 discuss feature requests.
 
 For requests not matching the above, please contact the developer team and
-maintainer at mapmap[[at]]gris.tu-darmstadt.de.
+maintainer at mapmap(at)gris.tu-darmstadt.de.
 
 Developers and Maintainers
 ------
