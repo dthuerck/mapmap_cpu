@@ -1,0 +1,70 @@
+/**
+ * Copyright (C) 2016, Daniel Thuerck
+ * TU Darmstadt - Graphics, Capture and Massively Parallel Computing
+ * All rights reserved.
+ *
+ * This software may be modified and distributed under the terms
+ * of the BSD license. See the LICENSE file for details.
+ */
+
+#ifndef __MAPMAP_GRAPH_H_
+#define __MAPMAP_GRAPH_H_
+
+#include <vector>
+#include <memory>
+
+#include "header/defines.h"
+#include "header/vector_types.h"
+
+NS_MAPMAP_BEGIN
+
+struct GraphNode
+{
+    std::vector<luint_t> incident_edges;
+};
+
+template<typename WEIGHTTYPE>
+struct GraphEdge
+{
+    luint_t node_a;
+    luint_t node_b;
+    scalar_t<WEIGHTTYPE> weight;
+};                                                                             
+
+template<typename COSTTYPE>
+class Graph
+{
+public:
+    Graph();
+    ~Graph();
+
+    void add_edge(const luint_t node_a, const luint_t node_b, 
+        const scalar_t<COSTTYPE> weight);
+    const std::vector<GraphNode>& nodes() const;
+    const std::vector<luint_t>& inc_edges(const luint_t node) const;
+    const std::vector<GraphEdge<COSTTYPE>>& edges() const;
+
+    void update_components();
+    const std::vector<luint_t>& components() const;
+    const luint_t num_components() const;
+
+
+protected:
+#ifdef BUILD_FOR_TEST
+    #include <gtest/gtest_prod.h>
+
+    FRIEND_TEST(mapMAPTestGraph, TestInternalValues);
+    FRIEND_TEST(mapMAPTestGraph, TestComponentSearch);
+#endif
+
+    std::vector<GraphNode> m_nodes;
+    std::vector<GraphEdge<scalar_t<COSTTYPE>>> m_edges;
+    std::vector<luint_t> m_components;
+    luint_t m_num_components;
+};
+
+NS_MAPMAP_END
+
+#include "source/graph.impl.h"
+
+#endif /* __MAPMAP_GRAPH_H_ */
