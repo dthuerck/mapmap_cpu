@@ -40,7 +40,7 @@ main(
     /* path to dataset */
     uint32_t num_nodes, num_edges, num_labels, num_label_sets,
         use_label_costs, use_ptx;
-    const char * mrf_path = "../demo/planesweep_1280_1022_96.bin";
+    const char * mrf_path = "../demo/planesweep_320_256_96.bin";
 
     /* pointer to data structures */
     std::unique_ptr<Graph<cost_t>> graph;
@@ -49,6 +49,10 @@ main(
     std::unique_ptr<unary_t> unaries;
     std::unique_ptr<pairwise_t> pairwise;
 
+    /* termination criterion */
+    std::unique_ptr<TerminationCriterion<cost_t, simd_w>> terminate;
+
+    /* solver instance */
     mapMAP<cost_t, simd_w, unary_t, pairwise_t> mapmap;
 
     /* read packed dataset */
@@ -161,11 +165,16 @@ main(
         /* skip extensions and PTX files */
         io.close();
 
+        /* create termination criterion */
+        terminate = std::unique_ptr<TerminationCriterion<cost_t, simd_w>>(
+            new StopWhenReturnsDiminish<cost_t, simd_w>(5, 0.0001));
+
         /* construct optimizer */
         mapmap.set_graph(graph.get());
         mapmap.set_label_set(label_set.get());
         mapmap.set_unaries(unaries.get());
         mapmap.set_pairwise(pairwise.get());
+        mapmap.set_termination_criterion(terminate.get());
 
         std::cout << "Finished loading dataset." << std::endl;
     }

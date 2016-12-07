@@ -36,6 +36,7 @@
 #include "header/termination_instances/stop_after_iterations.h"
 #include "header/termination_instances/stop_after_time.h"
 #include "header/termination_instances/stop_when_flat.h"
+#include "header/termination_instances/stop_when_returns_diminish.h"
 
 /* node grouping criteria */
 #include "header/multilevel_instances/group_same_label.h"
