@@ -34,6 +34,7 @@ mapMAP()
   m_set_pairwise(false),
   m_set_multilevel_criterion(false),
   m_set_termination_criterion(false),
+  m_hist_energy(),
   m_hist_acyclic_iterations(0),
   m_hist_spanningtree_iterations(0),
   m_hist_multilevel_iterations(0)
@@ -60,6 +61,7 @@ mapMAP(
   m_num_labels(num_labels),
   m_graph(new Graph<COSTTYPE>),
   m_label_set(new LabelSet<COSTTYPE, SIMDWIDTH>(num_nodes, true)),
+  m_hist_energy(),
   m_hist_acyclic_iterations(0),
   m_hist_spanningtree_iterations(0),
   m_hist_multilevel_iterations(0)
@@ -448,8 +450,10 @@ initial_labelling()
 
     /* optimize! */
     opt.optimize(m_solution);
+    m_objective = opt.objective(m_solution);
+    m_hist_energy.push_back(m_objective);
 
-    return opt.objective(m_solution);
+    return m_objective;
 }
 
 /* ************************************************************************** */
@@ -480,10 +484,12 @@ opt_step_spanning_tree()
 
     /* optimize! */
     opt.optimize(m_solution);
+    m_objective = opt.objective(m_solution);
     ++m_hist_spanningtree_iterations;
     m_hist_mode.push_back(SolverMode::SOLVER_SPANNINGTREE);
+    m_hist_energy.push_back(m_objective);
 
-    return opt.objective(m_solution);
+    return m_objective;
 }
 
 /* ************************************************************************** */
@@ -572,6 +578,8 @@ opt_step_multilevel()
     /* delete all levels */
     while(m_multilevel->prev_level());
 
+    m_hist_energy.push_back(m_objective);
+
     return m_objective;
 }
 
@@ -615,6 +623,8 @@ opt_step_acyclic()
         m_objective = ac_opt;
         m_solution = ac_solution;
     }
+
+    m_hist_energy.push_back(m_objective);
 
     return m_objective;
 }

@@ -53,7 +53,7 @@ include_directories(
 set(header_dir "mapmap/header")
 set(impl_dir "mapmap/source")
 set(test_dir "test")
-set(demo_dir "test")
+set(demo_dir "demo")
 
 # base files
 set(header_base
@@ -109,12 +109,14 @@ set(impl_multilevel_instances
 set(header_termination_instances
 	${header_dir}/termination_instances/stop_after_iterations.h
 	${header_dir}/termination_instances/stop_after_time.h
-	${header_dir}/termination_instances/stop_when_flat.h)
+	${header_dir}/termination_instances/stop_when_flat.h
+	${header_dir}/termination_instances/stop_when_returns_diminish.h)
 
 set(impl_termination_instances
 	${impl_dir}/termination_instances/stop_after_iterations.impl.h
 	${impl_dir}/termination_instances/stop_after_time.impl.h
-	${impl_dir}/termination_instances/stop_when_flat.impl.h)
+	${impl_dir}/termination_instances/stop_when_flat.impl.h
+	${impl_dir}/termination_instances/stop_when_returns_diminish.impl.h)
 	
 # test files
 set(header_test
