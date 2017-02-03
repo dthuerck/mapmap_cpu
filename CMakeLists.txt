@@ -20,10 +20,10 @@ set(TBB_LIBRARY "/usr/lib" CACHE PATH "Path to where the TBB library files (libt
 set(GTEST_ROOT "/usr/lib" CACHE PATH "Path to GoogleTest's root folder")
 
 # set optimization options for GCC on unixoid systems
-# uses -march=native to make the compiler set __SSE3__, __AVX__ and 
+# uses -march=native to make the compiler set __SSE4_2__, __AVX__ and 
 # __AVX2__ to fit the binary to the computer
 set(CMAKE_BUILD_TYPE "Release")
-set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -march=native -O2 -flto -mfpmath=sse -funroll-loops")
+set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -march=native -O2 -flto -funroll-loops")
 
 # augment build parameters for optional builds
 if(BUILD_TEST)
@@ -150,6 +150,9 @@ source_group("Multilevel" FILES
 source_group("Termination" FILES
 	${header_termination_instances}
 	${impl_termination_instances})
+source_group("Coloring" FILES
+	${header_coloring_instances}
+	${impl_coloring_instances})
 source_group("Test" FILES 
     ${header_test} 
     ${impl_test}
@@ -161,7 +164,8 @@ add_executable(mapmap_test
     ${src_test})
 target_link_libraries(mapmap_test 
     ${TBB_LIBRARIES}
-    ${GTEST_BOTH_LIBRARIES})
+    ${GTEST_BOTH_LIBRARIES}
+    pthread)
 endif(BUILD_TEST)
 
 # build demo executable solver

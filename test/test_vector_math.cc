@@ -549,12 +549,20 @@ REGISTER_TYPED_TEST_CASE_P(mapMAPTestVectorMath,
 
 /* instantiate tests */
 typedef ::testing::Types<
-    TestTuple<float, 1>,
+    #ifdef __SSE4_2__
     TestTuple<float, 4>,
+    #endif /* __SSE4_2__ */
+    #ifdef __AVX__
     TestTuple<float, 8>,
-    TestTuple<double, 1>,
+    #endif /* __AVX__ */
+    #ifdef __SSE4_2__
     TestTuple<double, 2>,
-    TestTuple<double, 4>
+    #endif /* __SSE4_2__ */
+    #ifdef __AVX__
+    TestTuple<double, 4>,
+    #endif /* __AVX__ */
+    TestTuple<float, 1>,
+    TestTuple<double, 1>
     > TestTupleInstances;
 INSTANTIATE_TYPED_TEST_CASE_P(VectorMathTest, mapMAPTestVectorMath, 
     TestTupleInstances);

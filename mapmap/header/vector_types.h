@@ -14,7 +14,7 @@
  
 #include "header/defines.h" 
  
-#ifdef __SSE3__
+#ifdef __SSE4_2__
     #include <smmintrin.h>
 #endif
 
@@ -60,20 +60,20 @@ struct _vector_traits<float, 1>
     typedef float type;
     unsigned int mask = 0x4;
 };
-#ifdef __SSE3__
+#if defined(__SSE4_2__)
 template<> 
 struct _vector_traits<float, 4>
 {
     typedef __m128 type;
     unsigned int mask = 0xF;
-};
-#ifdef __AVX__
+}; /* __SSE4_2__ */
+#if defined(__AVX__)
 template<> 
 struct _vector_traits<float, 8>
 {
     typedef __m256 type;
     unsigned int mask = 0x1F;
-};
+}; /* __AVX__ */
 #endif
 #endif
 
@@ -83,20 +83,20 @@ struct _vector_traits<double, 1>
     typedef double type;
     unsigned int mask = 0x8;
 };
-#ifdef __SSE3__
+#if defined(__SSE4_2__)
 template<> 
 struct _vector_traits<double, 2>
 {
     typedef __m128d type;
     unsigned int mask = 0xF;
-};
+}; /* __SSE4_2__ */
 #ifdef __AVX__
 template<> 
 struct _vector_traits<double, 4>
 {
     typedef __m256d type;
     unsigned int mask = 0x1F;
-};
+}; /* __AVX__ */
 #endif
 #endif
 
@@ -134,7 +134,7 @@ struct _i_vector_traits<float, 1>
     typedef int32_t type;
     unsigned int mask = 0x4;
 };
-#ifdef __SSE3__
+#if defined(__SSE4_2__)
 template<> 
 struct _i_vector_traits<float, 4>
 {
@@ -142,8 +142,9 @@ struct _i_vector_traits<float, 4>
     typedef int32_t itype;
     typedef __m128i type;
     unsigned int mask = 0xF;
-};
-#ifdef __AVX__
+}; 
+#endif /* __SSE4_2__ */
+#if defined(__AVX__)
 template<> 
 struct _i_vector_traits<float, 8>
 {
@@ -151,8 +152,7 @@ struct _i_vector_traits<float, 8>
     typedef int32_t itype;
     typedef __m256i type;
     unsigned int mask = 0x1F;
-};
-#endif
+}; /* __AVX__ */
 #endif
 
 template<> 
@@ -163,7 +163,7 @@ struct _i_vector_traits<double, 1>
     typedef int64_t type;
     unsigned int mask = 0x4;
 };
-#ifdef __SSE3__
+#if defined(__SSE4_2__)
 template<> 
 struct _i_vector_traits<double, 2>
 {
@@ -171,8 +171,9 @@ struct _i_vector_traits<double, 2>
     typedef int64_t itype;
     typedef __m128i type;
     unsigned int mask = 0xF;
-};
-#ifdef __AVX__
+}; 
+#endif /* __SSE3 */
+#if defined(__AVX__)
 template<> 
 struct _i_vector_traits<double, 4>
 {
@@ -180,8 +181,7 @@ struct _i_vector_traits<double, 4>
     typedef int64_t itype;
     typedef __m256i type;
     unsigned int mask = 0x1F;
-};
-#endif
+}; /* __AVX__ */
 #endif
 
 template<typename COSTTYPE, uint_t SIMDWIDTH>
