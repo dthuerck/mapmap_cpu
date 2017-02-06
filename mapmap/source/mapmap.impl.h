@@ -264,7 +264,8 @@ throw()
     /* take spanning tree steps until no more improvements occur */
     luint_t sp_it = 0;
 
-    while(sp_it < 20)
+    _s_t<COSTTYPE, SIMDWIDTH> old_objective = m_objective;
+    while(true)
     {
         ++sp_it;
 
@@ -281,8 +282,8 @@ throw()
         obj = opt_step_spanning_tree();
         record_time_from_start();
 
-        if(obj < m_objective)
-            m_objective = obj;
+        if(obj < old_objective)
+            old_objective = obj;
         else
             break;
 

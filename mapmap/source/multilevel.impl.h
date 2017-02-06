@@ -276,7 +276,6 @@ reproject_solution(
     }
 
     /* export solution on original graph */
-    original_solution.clear();
     original_solution.assign(upper_solution->begin(), upper_solution->end());
 }
 
