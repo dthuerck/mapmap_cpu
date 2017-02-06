@@ -182,12 +182,13 @@ add_edge(
 
     const lint_t new_edge_id = m_edges.size() - 1;
 
-    while(m_nodes.size() <= (std::max)(node_a, node_b))
+    const luint_t max_new_node = (std::max)(node_a, node_b);
+    if(max_new_node >= m_nodes.size())
     {
-        m_nodes.push_back(GraphNode());
-        m_components.push_back(0);
+        m_nodes.resize(max_new_node + 1, GraphNode());
+        m_components.resize(max_new_node + 1, 0);
     }
-
+   
     m_nodes[node_a].incident_edges.push_back(new_edge_id);
     m_nodes[node_b].incident_edges.push_back(new_edge_id);
 }
