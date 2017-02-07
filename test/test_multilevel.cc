@@ -891,16 +891,16 @@ REGISTER_TYPED_TEST_CASE_P(mapMAPTestMultilevel,
 
 /* instantiate tests */
 typedef ::testing::Types<
-    #ifdef __SSE4_2__
+    #if defined(__SSE4_2__)
     TestTuple<float, 4>,
     #endif /* __SSE4_2__ */
-    #ifdef __AVX__
+    #if defined(__AVX__)
     TestTuple<float, 8>,
     #endif /* __AVX__ */
-    #ifdef __SSE4_2__
+    #if defined(__SSE4_2__)
     TestTuple<double, 2>,
     #endif /* __SSE4_2__ */
-    #ifdef __AVX__
+    #if defined(__AVX__)
     TestTuple<double, 4>,
     #endif /* __AVX__ */
     TestTuple<float, 1>,

@@ -14,11 +14,11 @@
  
 #include "header/defines.h" 
  
-#ifdef __SSE4_2__
+#if defined(__SSE4_2__)
     #include <smmintrin.h>
 #endif
 
-#ifdef __AVX__
+#if defined(__AVX__)
     #include <immintrin.h>
 #endif
 
@@ -90,7 +90,7 @@ struct _vector_traits<double, 2>
     typedef __m128d type;
     unsigned int mask = 0xF;
 }; /* __SSE4_2__ */
-#ifdef __AVX__
+#if defined(__AVX__)
 template<> 
 struct _vector_traits<double, 4>
 {

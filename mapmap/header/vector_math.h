@@ -35,6 +35,15 @@ template<typename A, uint_t B>
 using _s_t = scalar_t<A, B>;
 
 /**
+ * Utility: get maximum supported vector size
+ */
+template<typename COSTTYPE>
+FORCEINLINE
+constexpr
+uint_t
+sys_max_simd_width();
+
+/**
  * Constructors
  */
 

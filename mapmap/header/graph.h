@@ -50,7 +50,7 @@ public:
 
 
 protected:
-#ifdef BUILD_FOR_TEST
+#if defined(BUILD_FOR_TEST)
     #include <gtest/gtest_prod.h>
 
     FRIEND_TEST(mapMAPTestGraph, TestInternalValues);

@@ -323,7 +323,7 @@ CombinatorialDynamicProgramming<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
 ~CombinatorialDynamicProgramming()
 {
     /* free all node optimization spaces */
-#ifdef BUILD_MEMORY_SAVE
+#if defined(BUILD_MEMORY_SAVE)
     for(const luint_t r : m_root_ids)
         m_value_allocator->deallocate(m_opt_value_nodes[r],
             m_opt_value_sizes[r]);
@@ -550,7 +550,7 @@ bottom_up_opt()
         [&](const luint_t n, tbb::parallel_do_feeder<luint_t>& feeder)
         {
                 /* allocate memory */
-#ifdef BUILD_MEMORY_SAVE
+#if defined(BUILD_MEMORY_SAVE)
                 node_memory_allocate(n);
 #endif 
 
@@ -572,7 +572,7 @@ bottom_up_opt()
                 }
 
                 /* free children's memory */
-#ifdef BUILD_MEMORY_SAVE
+#if defined(BUILD_MEMORY_SAVE)
                 node_memory_clean_children(n);
 #endif
 

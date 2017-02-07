@@ -25,7 +25,7 @@
  * ************************** OS-dependent brainfuck ***************************
  * *****************************************************************************
  */
-#ifdef WIN32
+#if defined(WIN32)
     #define FORCEINLINE __forceinline
 #else
     #define FORCEINLINE __always_inline

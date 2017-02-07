@@ -40,7 +40,7 @@ if(BUILD_DEMO)
 endif(BUILD_DEMO)
 
 # find location to Google Test and TBB and set variables
-find_package(TBB COMPONENTS tbbmalloc tbbmalloc_proxy REQUIRED)
+find_package(TBB REQUIRED)
 find_package(GTest REQUIRED)
 
 # include headers

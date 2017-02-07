@@ -31,13 +31,8 @@ main(
 {
     /* mapMAP template parameters */
     using cost_t = float;
-    #if defined(__AVX__)
-    const uint_t simd_w = 8u;
-    #elif defined(__SSE3__)
-    const uint_t simd_w = 4u;
-    #else
-    const uint_t simd_w = 1u;
-    #endif
+    const uint_t simd_w = sys_max_simd_width<cost_t>();
+    std::cout << "Using SIMD width = " << simd_w << std::endl;
 
     /* cost types */
     using unary_t = UnaryTable<cost_t, simd_w>;

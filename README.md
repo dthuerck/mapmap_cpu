@@ -8,13 +8,14 @@ of a large class of MRF problems.
 mapMAP's algorithmic foundation and parallelization concept has been presented
 at *High Performance Graphics 2016* in Dublin, Ireland. For a reprint and
 further information, please refer to our project page (see
-below]). 
+below). 
 
 Currently, this code implements the following modules and features:
 
 - [x] Customizable (parallel) performance
 	- [x] Change cost type between float and double
 	- [x] Templated SIMD width (1, 4, 8 for float; 1, 2, 4 for double)
+  - [x] Automatically setting SIMD width at compile time
 	- [x] Supports SSE4/AVX/AVX2, autodetected during build
 - [x] Extensible interfaces for all components, providing user hooks
 	- [x] Cost functions (unary and pairwise)
