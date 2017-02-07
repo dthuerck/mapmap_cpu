@@ -697,9 +697,9 @@ compute_level_pairwise()
             &superedge_cost_offsets[0]);
         tbb::parallel_scan(superedge_range, p_scan);
 
-        /* allocate packed label table */
+        /* allocate packed label table with padding */
         const luint_t cost_size = superedge_cost_offsets.back() + 
-            superedge_cost_sizes.back();
+            superedge_cost_sizes.back() + SIMDWIDTH;
         costs.resize(cost_size);
         std::fill(costs.begin(), costs.end(), 0);
         
@@ -825,9 +825,7 @@ compute_level_pairwise()
             std::unique_ptr<PairwiseTable<COSTTYPE, SIMDWIDTH>>(new 
             PairwiseTable<COSTTYPE, SIMDWIDTH>(num_labels, costs)));
         m_current->level_pairwise = m_storage_pairwise.back().get();
-    }
-
-    
+    }   
 }
 
 /* ************************************************************************** */
@@ -974,8 +972,10 @@ compute_level_graph_from_node_groups()
                         
                         /* append edges to list of original edges */
                         for(luint_t i = 0; i < sedge_sizes[e.first]; ++i)
+                        {
                             m_superedge_list.push_back(
                                 loc_list[loc_offsets[sedge_ids[e.first]] + i]);
+                        }
                     }
                 }
             }

@@ -423,9 +423,9 @@ sample_phase_I()
                                 inc_list_ix],
                                 m_adj[m_adj_offsets[in_node] +
                                 m_rem_degrees[in_node] - 1]);
-                            --m_rem_degrees[in_node];
                             m_w_out->push_back(in_node);
                         }
+                        --m_rem_degrees[in_node];
                     }
 
                     /* release lock */
