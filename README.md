@@ -140,12 +140,13 @@ discuss feature requests.
 For requests not matching the above, please contact the developer team and
 maintainer at mapmap(at)gris.tu-darmstadt.de.
 
-Developers and Maintainers
+Contributors (including preceding project)
 ------
 
 * Daniel Thuerck ([Homepage](http://www.gcc.tu-darmstadt.de/home/we/daniel_thuerck/index.en.jsp))
 * Max von Buelow
 * Patrick Seemann
+* Nils Moehrle
 
 </a>Further material
 ------

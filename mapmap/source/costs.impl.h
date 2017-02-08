@@ -38,6 +38,7 @@ LabelSet(
   m_label_sets(),
   m_label_set_ids(m_graph_num_nodes),
   m_label_set_hashes(),
+  m_is_ordered(),
   m_compress(compress)
 {
 
@@ -150,18 +151,30 @@ const
     if(node_id >= m_graph_num_nodes)
         return (uint_t) 0;
 
-    /* determine label set for node and calculate pointer */
+    /* determine label set for node */
     const luint_t label_set_id = m_label_set_ids[node_id];
-    const _iv_st<COSTTYPE, SIMDWIDTH> label_set_size = 
-        m_label_set_sizes[label_set_id];
-    const _iv_st<COSTTYPE, SIMDWIDTH>* ptr = (_iv_st<COSTTYPE, SIMDWIDTH>*) 
-        (&m_label_sets[label_set_id][0]);
 
-    /* find label in label set */
-    _iv_st<COSTTYPE, SIMDWIDTH> i;
-    for(i = 0; i < label_set_size; ++i)
-        if(ptr[i] == label)
-            return i;
+    /* find label in label set - binary search is sorted, otherwise linear */
+    if(m_is_ordered[label_set_id])
+    {
+        /* binary search */
+        const auto it = std::lower_bound(m_label_sets[label_set_id].begin(),
+            m_label_sets[label_set_id].end(), label);
+
+        if(it != m_label_sets[label_set_id].end() && !(label < *it))
+            return (const _iv_st<COSTTYPE, SIMDWIDTH>)
+                (it - m_label_sets[label_set_id].begin());
+    }
+    else
+    {
+        /* linear search */
+        const auto it = std::find(m_label_sets[label_set_id].begin(), 
+            m_label_sets[label_set_id].end(), label);
+
+        if(it != m_label_sets[label_set_id].end())
+            return (const _iv_st<COSTTYPE, SIMDWIDTH>)
+                (it - m_label_sets[label_set_id].begin());
+    }
 
     return 0;
 }
@@ -224,6 +237,12 @@ set_label_set_for_node(
     m_label_set_sizes.push_back(label_set.size());
     m_label_set_ids[node_id] = m_label_sets.size();
     m_label_sets.push_back(label_set);
+
+    /* detect whether label set is ordered */
+    bool ordered = true;
+    for(luint_t i = 0; ordered && i < (label_set.size() - 1); ++i)
+        ordered &= (label_set[i] < label_set[i + 1]);
+    m_is_ordered.push_back(ordered);
 
     /* expand label set to facilitate vectorized DP */
     m_label_sets.back().resize(SIMDWIDTH * DIV_UP(m_label_set_sizes.back(), 

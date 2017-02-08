@@ -15,6 +15,7 @@
 #include <string>
 #include <vector>
 #include <limits>
+#include <algorithm>
 
 #include "header/defines.h"
 #include "header/vector_types.h"
@@ -73,6 +74,7 @@ protected:
     std::vector<luint_t> m_label_set_ids;
     std::vector<uint_t> m_label_set_hashes;
     std::vector<_iv_st<COSTTYPE, SIMDWIDTH>> m_label_set_sizes;
+    std::vector<bool> m_is_ordered;
 
     bool m_compress = false;
     bool m_mutable = true;
