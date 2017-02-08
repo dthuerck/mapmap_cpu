@@ -46,7 +46,7 @@ main(
     /* pointer to data structures */
     std::unique_ptr<Graph<cost_t>> graph;
     std::unique_ptr<LabelSet<cost_t, simd_w>> label_set;
-    
+
     std::unique_ptr<unary_t> unaries;
     std::unique_ptr<pairwise_t> pairwise;
 
@@ -109,11 +109,11 @@ main(
         std::vector<uint32_t> tmp_node_label_offsets(num_nodes);
         std::vector<uint32_t> tmp_node_label_counts(num_nodes);
 
-        io.read((char *) &tmp_label_table[0], tmp_total_label_entries * 
+        io.read((char *) &tmp_label_table[0], tmp_total_label_entries *
             sizeof(uint16_t));
-        io.read((char *) &tmp_node_label_offsets[0], num_nodes * 
+        io.read((char *) &tmp_node_label_offsets[0], num_nodes *
             sizeof(uint32_t));
-        io.read((char *) &tmp_node_label_counts[0], num_nodes * 
+        io.read((char *) &tmp_node_label_counts[0], num_nodes *
             sizeof(uint32_t));
 
         /* construct and compress label set */
@@ -137,9 +137,9 @@ main(
         std::vector<uint32_t> tmp_node_unary_offsets(num_nodes);
         std::vector<float> tmp_unary_table(tmp_total_unary_entries);
 
-        io.read((char *) &tmp_node_unary_offsets[0], num_nodes * 
+        io.read((char *) &tmp_node_unary_offsets[0], num_nodes *
             sizeof(uint32_t));
-        io.read((char *) &tmp_unary_table[0], tmp_total_unary_entries * 
+        io.read((char *) &tmp_unary_table[0], tmp_total_unary_entries *
             sizeof(float));
 
         /* construct unary cost table */
@@ -159,7 +159,7 @@ main(
 
         for(luint_t n = 0; n < num_nodes; ++n)
             tmp_node_unary_offsets[n] = n * num_labels;
-        
+
         /* pairwise costs */
         pairwise = std::unique_ptr<pairwise_t>(new pairwise_t(2));
 
@@ -223,6 +223,13 @@ main(
                   << ", exiting..."
                   << UNIX_COLOR_RESET
                   << std::endl;
+    }
+
+    /* Extract lables from solution (vector of label indices) */
+    std::vector<_iv_st<cost_t, simd_w>> labeling(num_nodes);
+    for(uint32_t n = 0; n < num_nodes; ++n)
+    {
+        labeling[n] = label_set->label_from_offset(n, solution[n]);
     }
 
     return EXIT_SUCCESS;
