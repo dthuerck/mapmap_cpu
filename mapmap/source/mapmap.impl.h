@@ -39,7 +39,7 @@ mapMAP()
   m_hist_spanningtree_iterations(0),
   m_hist_multilevel_iterations(0)
 {
-    
+
 }
 
 /* ************************************************************************** */
@@ -66,7 +66,7 @@ mapMAP(
   m_hist_spanningtree_iterations(0),
   m_hist_multilevel_iterations(0)
 {
-    
+
 }
 
 /* ************************************************************************** */
@@ -76,7 +76,7 @@ FORCEINLINE
 mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
 ~mapMAP()
 {
-    
+
 }
 
 /* ************************************************************************** */
@@ -127,7 +127,7 @@ add_edge(
     const luint_t node_b,
     const _s_t<COSTTYPE, SIMDWIDTH> weight)
 throw()
-{   
+{
     if(!m_construct_graph)
         throw std::runtime_error("Adding edges is only allowed "
             "in construction mode.");
@@ -211,6 +211,20 @@ set_termination_criterion(
 
 template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
 FORCEINLINE
+void
+mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+set_logging_callback(
+    const std::function<void (const luint_t, const _s_t<COSTTYPE, SIMDWIDTH>)>&
+        callback)
+{
+    m_use_callback = true;
+    m_callback = callback;
+}
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+FORCEINLINE
 _s_t<COSTTYPE, SIMDWIDTH>
 mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
 optimize(
@@ -228,11 +242,12 @@ throw()
             "incomplete or not sane.");
 
     /* report on starting the optimization process */
-     std::cout << "[mapMAP] "
-              << UNIX_COLOR_GREEN
-              << "Starting optimization..."
-              << UNIX_COLOR_RESET
-              << std::endl;
+    if(!m_use_callback)
+        std::cout << "[mapMAP] "
+                << UNIX_COLOR_GREEN
+                << "Starting optimization..."
+                << UNIX_COLOR_RESET
+                << std::endl;
 
     /* start timer */
     m_time_start = std::chrono::system_clock::now();
@@ -250,7 +265,6 @@ throw()
     /* check for termination */
     if(check_termination())
     {
-        solution.clear();
         solution.assign(m_solution.begin(), m_solution.end());
 
         return m_objective;
@@ -272,7 +286,6 @@ throw()
         /* check if algorithms needs to terminate */
         if(check_termination())
         {
-            solution.clear();
             solution.assign(m_solution.begin(), m_solution.end());
 
             return m_objective;
@@ -307,8 +320,15 @@ throw()
     }
 
     /* output solution */
-    solution.clear();
     solution.assign(m_solution.begin(), m_solution.end());
+
+    /* report on starting the optimization process */
+    if(!m_use_callback)
+        std::cout << "[mapMAP] "
+                << UNIX_COLOR_GREEN
+                << "Finished optimization."
+                << UNIX_COLOR_RESET
+                << std::endl;
 
     return m_objective;
 }
@@ -345,7 +365,7 @@ create_std_modules()
     }
 
     /* create a multilevel module for the current graph */
-    m_multilevel = std::unique_ptr<Multilevel<COSTTYPE, SIMDWIDTH, 
+    m_multilevel = std::unique_ptr<Multilevel<COSTTYPE, SIMDWIDTH,
         UNARY, PAIRWISE>>(new Multilevel<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>(
         m_graph, m_label_set, m_unaries, m_pairwise, m_multilevel_criterion));
 }
@@ -376,7 +396,7 @@ check_data_complete()
     if(m_construct_graph && m_label_set_check.size() != m_num_nodes)
         return false;
 
-    if(m_construct_graph && (m_label_set->max_label() > 
+    if(m_construct_graph && (m_label_set->max_label() >
         (_iv_st<COSTTYPE, SIMDWIDTH>) m_num_labels))
         return false;
 
@@ -404,31 +424,39 @@ void
 mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
 print_status()
 {
-    std::cout << "[mapMAP] "
-              << UNIX_COLOR_RED
-              << m_hist_time.back() << " ms"
-              << UNIX_COLOR_RESET
-              << ", "
-              << UNIX_COLOR_GREEN
-              << "Objective "
-              << m_objective
-              << UNIX_COLOR_RESET
-              << " (after "
-              << m_hist_multilevel_iterations
-              << " multilevel, "
-              << m_hist_spanningtree_iterations
-              << " spanning tree, "
-              << m_hist_acyclic_iterations
-              << " acyclic iterations)"
-              << std::endl;
+    if(!m_use_callback)
+    {
+        std::cout << "[mapMAP] "
+                << UNIX_COLOR_RED
+                << m_hist_time.back() << " ms"
+                << UNIX_COLOR_RESET
+                << ", "
+                << UNIX_COLOR_GREEN
+                << "Objective "
+                << m_objective
+                << UNIX_COLOR_RESET
+                << " (after "
+                << m_hist_multilevel_iterations
+                << " multilevel, "
+                << m_hist_spanningtree_iterations
+                << " spanning tree, "
+                << m_hist_acyclic_iterations
+                << " acyclic iterations)"
+                << std::endl;
+    }
+    else
+    {
+        /* hand off current time and objective to logging callback */
+        m_callback(m_hist_time.back(), m_objective);
+    }
 }
-    
+
 
 /* ************************************************************************** */
 
 template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
 FORCEINLINE
-_s_t<COSTTYPE, SIMDWIDTH> 
+_s_t<COSTTYPE, SIMDWIDTH>
 mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
 initial_labelling()
 {
@@ -462,7 +490,7 @@ initial_labelling()
 template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
 FORCEINLINE
 _s_t<COSTTYPE, SIMDWIDTH>
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>:: 
+mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
 opt_step_spanning_tree()
 {
     /* sample a tree (forest) without dependencies */
@@ -498,7 +526,7 @@ opt_step_spanning_tree()
 template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
 FORCEINLINE
 _s_t<COSTTYPE, SIMDWIDTH>
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>:: 
+mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
 opt_step_multilevel()
 {
     std::vector<_iv_st<COSTTYPE, SIMDWIDTH>> lvl_solution;
@@ -531,14 +559,14 @@ opt_step_multilevel()
         const Graph<COSTTYPE> * lvl_graph = m_multilevel->get_level_graph();
         const LabelSet<COSTTYPE, SIMDWIDTH> * lvl_label_set = m_multilevel->
             get_level_label_set();
-        const UnaryTable<COSTTYPE, SIMDWIDTH> * lvl_unaries = 
+        const UnaryTable<COSTTYPE, SIMDWIDTH> * lvl_unaries =
             m_multilevel->get_level_unaries();
-        const PairwiseTable<COSTTYPE, SIMDWIDTH> * lvl_pairwise = 
+        const PairwiseTable<COSTTYPE, SIMDWIDTH> * lvl_pairwise =
             m_multilevel->get_level_pairwise();
 
         /* create new optimizer for level graph */
-        CombinatorialDynamicProgramming<COSTTYPE, SIMDWIDTH, 
-            UnaryTable<COSTTYPE, SIMDWIDTH>, PairwiseTable<COSTTYPE, SIMDWIDTH>> 
+        CombinatorialDynamicProgramming<COSTTYPE, SIMDWIDTH,
+            UnaryTable<COSTTYPE, SIMDWIDTH>, PairwiseTable<COSTTYPE, SIMDWIDTH>>
             lvl_opt;
         lvl_opt.set_graph(lvl_graph);
         lvl_opt.set_label_set(lvl_label_set);
@@ -550,10 +578,10 @@ opt_step_multilevel()
 
         roots.clear();
         sampler.select_random_roots(m_num_roots, roots);
-        std::unique_ptr<Tree<COSTTYPE>> lvl_tree = 
+        std::unique_ptr<Tree<COSTTYPE>> lvl_tree =
             sampler.sample(roots, true);
         lvl_opt.set_tree(lvl_tree.get());
-        
+
         /* optimize for level solution */
         lvl_opt.optimize(upper_solution);
 
@@ -588,7 +616,7 @@ opt_step_multilevel()
 
 template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
 FORCEINLINE
-_s_t<COSTTYPE, SIMDWIDTH> 
+_s_t<COSTTYPE, SIMDWIDTH>
 mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
 opt_step_acyclic()
 {
@@ -618,7 +646,7 @@ opt_step_acyclic()
     ++m_hist_acyclic_iterations;
     m_hist_mode.push_back(SolverMode::SOLVER_ACYCLIC);
 
-    const _s_t<COSTTYPE, SIMDWIDTH> ac_opt = opt.objective(ac_solution); 
+    const _s_t<COSTTYPE, SIMDWIDTH> ac_opt = opt.objective(ac_solution);
     if(ac_opt < m_objective)
     {
         m_objective = ac_opt;

@@ -58,15 +58,15 @@ public:
     mapMAP(const luint_t num_nodes, const luint_t num_labels);
     ~mapMAP();
 
-    /* set graph and label set */ 
+    /* set graph and label set */
     void set_graph(const Graph<COSTTYPE> * graph) throw();
     void set_label_set(const LabelSet<COSTTYPE, SIMDWIDTH> * label_set)
         throw();
 
     /* alternatively - construct graph and label set */
-    void add_edge(const luint_t node_a, const luint_t node_b, 
+    void add_edge(const luint_t node_a, const luint_t node_b,
         const _s_t<COSTTYPE, SIMDWIDTH> weight = 1.0) throw();
-    void set_node_label_set(const luint_t node_id, const 
+    void set_node_label_set(const luint_t node_id, const
         std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& label_set) throw();
 
     /* set MRF cost functions */
@@ -74,10 +74,16 @@ public:
     void set_pairwise(const PAIRWISE * pairwise);
 
     /* configuration */
-    void set_multilevel_criterion(MultilevelCriterion<COSTTYPE, SIMDWIDTH> * 
+    void set_multilevel_criterion(MultilevelCriterion<COSTTYPE, SIMDWIDTH> *
         criterion);
     void set_termination_criterion(TerminationCriterion<COSTTYPE,
         SIMDWIDTH> * criterion);
+
+    /**
+     * callback for external logging - outputs time in ms and energy after
+     */
+    void set_logging_callback(const std::function<void (const luint_t,
+        const _s_t<COSTTYPE, SIMDWIDTH>)>& callback);
 
     /* start optimization */
     _s_t<COSTTYPE, SIMDWIDTH> optimize(std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>&
@@ -121,15 +127,15 @@ protected:
     const LabelSet<COSTTYPE, SIMDWIDTH> * m_label_set;
 
     /* configuration */
-    MultilevelCriterion<COSTTYPE, SIMDWIDTH> * 
+    MultilevelCriterion<COSTTYPE, SIMDWIDTH> *
         m_multilevel_criterion;
-    TerminationCriterion<COSTTYPE, SIMDWIDTH> * 
+    TerminationCriterion<COSTTYPE, SIMDWIDTH> *
         m_termination_criterion;
 
     luint_t m_num_roots = 64u;
 
     /* storage for functional modules */
-    std::unique_ptr<Multilevel<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>> 
+    std::unique_ptr<Multilevel<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>>
         m_multilevel;
     std::unique_ptr<MultilevelCriterion<COSTTYPE, SIMDWIDTH>>
         m_storage_multilevel_criterion;
@@ -141,7 +147,7 @@ protected:
     std::chrono::system_clock::time_point m_time_start;
 
     /* current solution */
-    std::vector<_iv_st<COSTTYPE, SIMDWIDTH>> m_solution; 
+    std::vector<_iv_st<COSTTYPE, SIMDWIDTH>> m_solution;
     _s_t<COSTTYPE, SIMDWIDTH> m_objective;
 
     /* solver history data */
@@ -152,6 +158,11 @@ protected:
     luint_t m_hist_acyclic_iterations;
     luint_t m_hist_spanningtree_iterations;
     luint_t m_hist_multilevel_iterations;
+
+    /* callback data */
+    bool m_use_callback;
+    std::function<void (const luint_t, const _s_t<COSTTYPE, SIMDWIDTH>)>
+        m_callback;
 };
 
 NS_MAPMAP_END
