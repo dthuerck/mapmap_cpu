@@ -80,7 +80,7 @@ main(
         std::cout << "Use label costs: " << use_label_costs << std::endl;
 
         /* parse edges and construct graph */
-        graph = std::unique_ptr<Graph<cost_t>>(new Graph<cost_t>);
+        graph = std::unique_ptr<Graph<cost_t>>(new Graph<cost_t>(num_nodes));
 
         uint32_t min_id, max_id;
         float weight;

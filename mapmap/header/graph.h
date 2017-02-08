@@ -12,6 +12,7 @@
 
 #include <vector>
 #include <memory>
+#include <exception>
 
 #include "header/defines.h"
 #include "header/vector_types.h"
@@ -35,12 +36,13 @@ template<typename COSTTYPE>
 class Graph
 {
 public:
-    Graph();
+    Graph(const luint_t num_nodes);
     ~Graph();
 
     void add_edge(const luint_t node_a, const luint_t node_b, 
-        const scalar_t<COSTTYPE> weight);
+        const scalar_t<COSTTYPE> weight) throw();
     const std::vector<GraphNode>& nodes() const;
+    const luint_t num_nodes() const;
     const std::vector<luint_t>& inc_edges(const luint_t node) const;
     const std::vector<GraphEdge<COSTTYPE>>& edges() const;
 
@@ -56,7 +58,7 @@ protected:
     FRIEND_TEST(mapMAPTestGraph, TestInternalValues);
     FRIEND_TEST(mapMAPTestGraph, TestComponentSearch);
 #endif
-
+    luint_t m_num_nodes;
     std::vector<GraphNode> m_nodes;
     std::vector<GraphEdge<scalar_t<COSTTYPE>>> m_edges;
     std::vector<luint_t> m_components;

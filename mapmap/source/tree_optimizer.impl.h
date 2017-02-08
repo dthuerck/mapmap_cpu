@@ -109,7 +109,7 @@ objective(
     const std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& solution)
 {
     _s_t<COSTTYPE, SIMDWIDTH> objective = (COSTTYPE) 0;
-    tbb::blocked_range<luint_t> node_range(0, m_graph->nodes().size());
+    tbb::blocked_range<luint_t> node_range(0, m_graph->num_nodes());
     tbb::blocked_range<luint_t> edge_range(0, m_graph->edges().size());
 
     /* unary costs */

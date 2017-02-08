@@ -28,10 +28,10 @@ UnaryTable(
     const LabelSet<COSTTYPE, SIMDWIDTH> * label_set)
 : m_graph(graph),
   m_labelset(label_set),
-  m_offsets(graph->nodes().size(), 0)
+  m_offsets(graph->num_nodes(), 0)
 {
     /* compute offsets for padded label table rows */
-    const luint_t table_size = align_offsets(graph->nodes().size(), label_set);
+    const luint_t table_size = align_offsets(graph->num_nodes(), label_set);
 
     /* resize table accordingly */
     m_cost_table = std::vector<COSTTYPE>(table_size, 0);

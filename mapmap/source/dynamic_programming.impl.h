@@ -523,7 +523,7 @@ bottom_up_opt()
         this->m_tree->num_graph_nodes(), 0);
 
     /* fill child counter for all node's parents */
-    tbb::blocked_range<luint_t> node_range(0, this->m_graph->nodes().size());
+    tbb::blocked_range<luint_t> node_range(0, this->m_graph->num_nodes());
     tbb::parallel_for(node_range,
         [&](const tbb::blocked_range<luint_t>& r)
         {
@@ -595,7 +595,7 @@ top_down_opt(
 {
     /* find minimum label (index) for each root */
     tbb::concurrent_vector<luint_t> queue;
-    queue.reserve(this->m_graph->nodes().size());
+    queue.reserve(this->m_graph->num_nodes());
     tbb::blocked_range<luint_t> root_range(0, m_root_ids.size());
 
     tbb::parallel_for(root_range,

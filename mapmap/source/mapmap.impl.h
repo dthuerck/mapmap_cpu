@@ -95,7 +95,7 @@ throw()
 
     m_graph = graph;
     m_set_graph = true;
-    m_num_nodes = graph->nodes().size();
+    m_num_nodes = graph->num_nodes();
 }
 
 /* ************************************************************************** */
@@ -238,7 +238,7 @@ throw()
     m_time_start = std::chrono::system_clock::now();
 
     /* initialize current solution */
-    const luint_t num_nodes = m_graph->nodes().size();
+    const luint_t num_nodes = m_graph->num_nodes();
     m_solution.resize(num_nodes);
     std::fill(m_solution.begin(), m_solution.end(), 0);
 

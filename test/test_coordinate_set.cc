@@ -59,7 +59,7 @@ public:
         m_tree = m_sampler->sample(m_roots, true);
 
         /* retrieve tree's nodes */
-        const luint_t num_nodes = m_graph->nodes().size();
+        const luint_t num_nodes = m_graph->num_nodes();
         for(luint_t n = 0; n < num_nodes; ++n)
         {
             const TreeNode<cost_t> node = m_tree->node(n);
@@ -91,7 +91,7 @@ TEST_F(mapMAPTestCoordinateSet, TestIsAcyclic)
      */
 
     /* Phase I : mark all nodes included in the tree */
-    const luint_t num_nodes = m_graph->nodes().size();
+    const luint_t num_nodes = m_graph->num_nodes();
     std::vector<uint_t> in_tree(num_nodes, 0);
     for(luint_t i = 0; i < num_nodes; ++i)
     {
@@ -134,7 +134,7 @@ TEST_F(mapMAPTestCoordinateSet, TestIsAcyclic)
 TEST_F(mapMAPTestCoordinateSet, TestIsMaximal)
 {
     /* Phase I : mark all nodes included in the tree */
-    const luint_t num_nodes = m_graph->nodes().size();
+    const luint_t num_nodes = m_graph->num_nodes();
     std::vector<uint_t> in_tree(num_nodes, 0);
     for(luint_t i = 0; i < num_nodes; ++i)
     {

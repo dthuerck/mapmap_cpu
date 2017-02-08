@@ -54,7 +54,7 @@ Multilevel(
     m_levels.back().prev_node_in_group = std::vector<luint_t>(original_graph->
         nodes().size());
 
-    tbb::blocked_range<luint_t> node_range(0, original_graph->nodes().size());
+    tbb::blocked_range<luint_t> node_range(0, original_graph->num_nodes());
     tbb::parallel_for(node_range,
         [&](const tbb::blocked_range<luint_t>& r)
         {
@@ -214,7 +214,7 @@ next_level(
     projected_solution.resize(m_num_supernodes);
     std::copy(m_labels.begin(), m_labels.end(), projected_solution.begin());
 
-    return (m_levels.back().level_graph->nodes().size() > 1);
+    return (m_levels.back().level_graph->num_nodes() > 1);
 }
 
 /* ************************************************************************** */
@@ -240,14 +240,13 @@ reproject_solution(
     {
         /* determine number of nodes in lower level */
         const luint_t num_nodes_lower = 
-            m_levels[lvl - 1].level_graph->nodes().size();
+            m_levels[lvl - 1].level_graph->num_nodes();
 
         /* resize solution vector */ 
         current_solution->resize(num_nodes_lower);
 
         /* reproject solution to previous level */
         tbb::blocked_range<luint_t> lower_level_range(0, num_nodes_lower);
-
         tbb::parallel_for(lower_level_range,
            [&](const tbb::blocked_range<luint_t>& r)
            {
@@ -292,7 +291,7 @@ Multilevel<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
 compute_contiguous_ids(
     const std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& projected_solution)
 {
-    const luint_t prev_num_nodes = m_previous->level_graph->nodes().size();
+    const luint_t prev_num_nodes = m_previous->level_graph->num_nodes();
     tbb::blocked_range<luint_t> node_range(0, prev_num_nodes);
 
     /* assign ID to representative node's ID per group - in order */
@@ -850,7 +849,7 @@ compute_level_graph_from_node_groups()
 {
     /* create data structure for coarse graph */
     m_storage_graph.push_back(std::unique_ptr<Graph<COSTTYPE>>(
-        new Graph<COSTTYPE>));
+        new Graph<COSTTYPE>(m_num_supernodes)));
 
     /**
      * find superedges and add them to the current graph - similarly, record

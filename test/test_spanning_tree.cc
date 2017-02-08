@@ -59,7 +59,7 @@ public:
         m_tree = m_sampler->sample(m_roots, true);
 
         /* retrieve tree's nodes */
-        const luint_t num_nodes = m_graph->nodes().size();
+        const luint_t num_nodes = m_graph->num_nodes();
         for(luint_t n = 0; n < num_nodes; ++n)
         {
             const TreeNode<cost_t> node = m_tree->node(n);

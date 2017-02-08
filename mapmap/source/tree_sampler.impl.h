@@ -49,13 +49,13 @@ select_random_roots(
     std::vector<luint_t>& roots)
 {
     roots.clear();
-    std::vector<unsigned char> root_marker(m_graph->nodes().size(), 0u);
+    std::vector<unsigned char> root_marker(m_graph->num_nodes(), 0u);
     
     std::mt19937 rnd(m_rnd_dev());
 
     /* make sure that k <= number of nodes */
     const luint_t num_components = m_graph->num_components();
-    luint_t corrected_k = std::max(std::min(k, m_graph->nodes().size()),
+    luint_t corrected_k = std::max(std::min(k, m_graph->num_nodes()),
         num_components);
 
     std::vector<luint_t> component_sizes(num_components, 0);
@@ -167,7 +167,7 @@ sample(
     std::vector<luint_t>& roots,
     const bool record_dependencies)
 {
-    const luint_t num_nodes = m_graph->nodes().size();
+    const luint_t num_nodes = m_graph->num_nodes();
     const luint_t num_edges = m_graph->edges().size();
     m_tree = std::unique_ptr<Tree<COSTTYPE>>(new Tree<COSTTYPE>(num_nodes,
         2 * num_edges));
@@ -286,7 +286,7 @@ void
 TreeSampler<COSTTYPE, ACYCLIC>::
 build_component_lists()
 {
-    const luint_t num_nodes = m_graph->nodes().size();
+    const luint_t num_nodes = m_graph->num_nodes();
     const luint_t num_components = m_graph->num_components();
     const std::vector<luint_t>& components = m_graph->components(); 
 
@@ -308,9 +308,9 @@ TreeSampler<COSTTYPE, ACYCLIC>::
 create_adj_acc()
 {
     /* make private copy of nodes' adjacency list */
-    std::vector<luint_t> m_adj_size(m_graph->nodes().size());
-    m_adj_offsets.resize(m_graph->nodes().size());
-    tbb::blocked_range<luint_t> node_range(0, m_graph->nodes().size(), 128u);
+    std::vector<luint_t> m_adj_size(m_graph->num_nodes());
+    m_adj_offsets.resize(m_graph->num_nodes());
+    tbb::blocked_range<luint_t> node_range(0, m_graph->num_nodes(), 128u);
 
     tbb::parallel_for(node_range,
         [&](const tbb::blocked_range<luint_t>& r)
@@ -590,7 +590,7 @@ sample_rescue()
 
     /* find potential nodes with marker 0 */
     tbb::concurrent_vector<luint_t> candidates;
-    tbb::blocked_range<luint_t> node_range(0, m_graph->nodes().size());
+    tbb::blocked_range<luint_t> node_range(0, m_graph->num_nodes());
     tbb::parallel_for(node_range,
         [&](const tbb::blocked_range<luint_t>& r)
         {

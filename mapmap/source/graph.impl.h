@@ -147,10 +147,12 @@ protected:
 template<typename COSTTYPE>
 FORCEINLINE
 Graph<COSTTYPE>::
-Graph()
-: m_nodes(),
+Graph(
+    const luint_t num_nodes)
+: m_num_nodes(num_nodes),
+  m_nodes(num_nodes),
   m_edges(),
-  m_components(),
+  m_components(num_nodes, 0),
   m_num_components(1)
 {
 
@@ -176,18 +178,16 @@ add_edge(
     const luint_t node_a,
     const luint_t node_b,
     const COSTTYPE weight)
+throw()
 {
+    if(std::max(node_a, node_b) >= m_num_nodes)
+        throw std::runtime_error("Graph::add_edge: "
+                "At least one ID larger than number of nodes in the graph.");
+
     GraphEdge<COSTTYPE> edge = {node_a, node_b, weight};
     m_edges.push_back(edge);
 
     const lint_t new_edge_id = m_edges.size() - 1;
-
-    const luint_t max_new_node = (std::max)(node_a, node_b);
-    if(max_new_node >= m_nodes.size())
-    {
-        m_nodes.resize(max_new_node + 1, GraphNode());
-        m_components.resize(max_new_node + 1, 0);
-    }
    
     m_nodes[node_a].incident_edges.push_back(new_edge_id);
     m_nodes[node_b].incident_edges.push_back(new_edge_id);
@@ -208,7 +208,19 @@ const
 /* ************************************************************************** */
 
 template<typename COSTTYPE>
+FORCEINLINE
+const luint_t
+Graph<COSTTYPE>::
+num_nodes()
+const
+{
+    return m_num_nodes;
+}
 
+/* ************************************************************************** */
+
+template<typename COSTTYPE>
+FORCEINLINE
 const std::vector<luint_t>& 
 Graph<COSTTYPE>::
 inc_edges(

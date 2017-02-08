@@ -312,7 +312,7 @@ TYPED_TEST_P(mapMAPTestMultilevel, TestFirstLevelNumNodes)
 
     const Graph<COSTTYPE> * graph = this->m_multilevel->get_level_graph();
 
-    ASSERT_EQ(graph->nodes().size(), 11);
+    ASSERT_EQ(graph->num_nodes(), 11);
 }
 
 TYPED_TEST_P(mapMAPTestMultilevel, TestFirstLevelNumEdges)
@@ -605,7 +605,7 @@ TYPED_TEST_P(mapMAPTestMultilevel, TestSecondLevelNumNodes)
 
     const Graph<COSTTYPE> * graph = this->m_multilevel->get_level_graph();
 
-    ASSERT_EQ(graph->nodes().size(), 7);
+    ASSERT_EQ(graph->num_nodes(), 7);
 }
 
 TYPED_TEST_P(mapMAPTestMultilevel, TestSecondLevelNumEdges)

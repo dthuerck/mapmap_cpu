@@ -72,7 +72,7 @@ protected:
     create_graph()
     {
         /* graph: 4-layered full binary tree */
-        m_graph = std::unique_ptr<Graph<COSTTYPE>>(new Graph<COSTTYPE>);
+        m_graph = std::unique_ptr<Graph<COSTTYPE>>(new Graph<COSTTYPE>(15));
 
         m_graph->add_edge(0, 1, 1.0);
         m_graph->add_edge(0, 2, 1.0);
@@ -134,7 +134,7 @@ protected:
             all_label_set[i] = i;
 
         m_label_set = std::unique_ptr<LabelSet<COSTTYPE, SIMDWIDTH>>(
-            new LabelSet<COSTTYPE, SIMDWIDTH>(m_graph->nodes().size(), true)); 
+            new LabelSet<COSTTYPE, SIMDWIDTH>(m_graph->num_nodes(), true)); 
         for(luint_t i = 0; i < 15; ++i)
             m_label_set->set_label_set_for_node(i, all_label_set);
     }

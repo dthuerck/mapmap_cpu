@@ -50,7 +50,7 @@ group_nodes(
     std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& projected_solution)
 {
     const Graph<COSTTYPE> * graph = current_level->level_graph;
-    const luint_t num_nodes = graph->nodes().size();
+    const luint_t num_nodes = graph->num_nodes();
 
     tbb::blocked_range<luint_t> node_range(0, num_nodes);
 
@@ -63,6 +63,7 @@ group_nodes(
     std::vector<luint_t> qu(num_nodes);
     std::iota(std::begin(qu), std::end(qu), 0);
     std::random_shuffle(qu.begin(), qu.end());
+
     
     /* do BFSes from randomly selected seeds */
     tbb::parallel_do(qu,
@@ -76,7 +77,7 @@ group_nodes(
             std::queue<luint_t> bfs;
             bfs.push(seed);
 
-            bool skip_neighbors = false;
+            bool skip_neighbors;
             while(!bfs.empty())
             {
                 skip_neighbors = false;
@@ -125,9 +126,7 @@ group_nodes(
         });
 
     /* just copy old solution, all locations are correct, then */
-    projected_solution.resize(num_nodes);
-    std::copy(current_solution.begin(), current_solution.end(),
-        projected_solution.begin());
+    projected_solution.assign(current_solution.begin(), current_solution.end());
 }
 
 NS_MAPMAP_END

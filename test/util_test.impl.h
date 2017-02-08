@@ -22,7 +22,9 @@ createComponentGrid(
 {
     using cost_t = scalar_t<COSTTYPE>;
 
-    std::unique_ptr<Graph<COSTTYPE>> graph(new Graph<COSTTYPE>);
+    const luint_t num_nodes = num_components * (component_dim * 
+        component_dim);
+    std::unique_ptr<Graph<COSTTYPE>> graph(new Graph<COSTTYPE>(num_nodes));
     const cost_t w = (cost_t) 1.0;
 
     uint_t offset = 0;
