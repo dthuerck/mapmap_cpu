@@ -74,7 +74,7 @@ Multilevel<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
 ~Multilevel()
 {
 
-} 
+}
 
 /* ************************************************************************** */
 
@@ -105,7 +105,7 @@ throw()
     if(m_level == 0)
         throw std::logic_error("No coarser level graph computed yet.");
 
-    return (const PairwiseTable<COSTTYPE, SIMDWIDTH>*) 
+    return (const PairwiseTable<COSTTYPE, SIMDWIDTH>*)
         m_current->level_pairwise;
 }
 
@@ -227,23 +227,20 @@ reproject_solution(
     const std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& level_solution,
     std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& original_solution)
 {
-    std::vector<_iv_st<COSTTYPE, SIMDWIDTH>> sol_a;
-    std::vector<_iv_st<COSTTYPE, SIMDWIDTH>> sol_b;
-
-    std::vector<_iv_st<COSTTYPE, SIMDWIDTH>> * upper_solution = &sol_a;
-    std::vector<_iv_st<COSTTYPE, SIMDWIDTH>> * current_solution = &sol_b;
+    std::vector<_iv_st<COSTTYPE, SIMDWIDTH>> upper_solution;
+    std::vector<_iv_st<COSTTYPE, SIMDWIDTH>> current_solution;
 
     /* copy upper level assignment */
-    upper_solution->assign(level_solution.begin(), level_solution.end());
+    upper_solution.assign(level_solution.begin(), level_solution.end());
 
     for(luint_t lvl = m_level; lvl > 0; --lvl)
     {
         /* determine number of nodes in lower level */
-        const luint_t num_nodes_lower = 
+        const luint_t num_nodes_lower =
             m_levels[lvl - 1].level_graph->num_nodes();
 
-        /* resize solution vector */ 
-        current_solution->resize(num_nodes_lower);
+        /* resize solution vector */
+        current_solution.resize(num_nodes_lower);
 
         /* reproject solution to previous level */
         tbb::blocked_range<luint_t> lower_level_range(0, num_nodes_lower);
@@ -252,21 +249,21 @@ reproject_solution(
            {
                 for(luint_t o_n = r.begin(); o_n != r.end(); ++o_n)
                 {
-                    const luint_t upper_node = 
+                    const luint_t upper_node =
                         m_levels[lvl].prev_node_in_group[o_n];
 
                     /* note: solutions are indices, so fetch real label first */
                     const luint_t level_label = m_levels[lvl].level_label_set->
-                        label_from_offset(upper_node, (*upper_solution)
+                        label_from_offset(upper_node, upper_solution
                         [upper_node]);
 
                     /* find label index on lower node */
-                    const _iv_st<COSTTYPE, SIMDWIDTH> lower_offset = 
+                    const _iv_st<COSTTYPE, SIMDWIDTH> lower_offset =
                         m_levels[lvl - 1].level_label_set->offset_for_label(o_n,
                         level_label);
 
                     /* save label index in original solution */
-                    (*current_solution)[o_n] = lower_offset;
+                    current_solution[o_n] = lower_offset;
                 }
            });
 
@@ -275,7 +272,7 @@ reproject_solution(
     }
 
     /* export solution on original graph */
-    original_solution.assign(upper_solution->begin(), upper_solution->end());
+    std::swap(original_solution, upper_solution);
 }
 
 /**
@@ -333,7 +330,7 @@ compute_contiguous_ids(
                         projected_solution[n]);
                     m_labels[new_ids[m_current->prev_node_in_group[n]]] = lbl;
                 }
-                m_current->prev_node_in_group[n] = 
+                m_current->prev_node_in_group[n] =
                     new_ids[m_current->prev_node_in_group[n]];
                 supernode_sizes[m_current->prev_node_in_group[n]]++;
             }
@@ -352,7 +349,7 @@ compute_contiguous_ids(
                 m_supernode_offsets[n] = 0;
             }
         });
-    PlusScan<luint_t, luint_t> p_scan(&m_supernode_sizes[0], 
+    PlusScan<luint_t, luint_t> p_scan(&m_supernode_sizes[0],
         &m_supernode_offsets[0]);
     tbb::parallel_scan(supernode_range, p_scan);
 
@@ -366,9 +363,9 @@ compute_contiguous_ids(
                 const luint_t supernode = m_current->prev_node_in_group[n];
                 const luint_t loc_offset = supernode_sizes[supernode].
                     fetch_and_increment();
-                m_supernode_list[m_supernode_offsets[supernode] + loc_offset] = 
+                m_supernode_list[m_supernode_offsets[supernode] + loc_offset] =
                     n;
-            } 
+            }
         });
 }
 
@@ -382,13 +379,13 @@ compute_level_label_set()
 throw()
 {
     /* collect label staticstics for original graph */
-    const _iv_st<COSTTYPE, SIMDWIDTH> max_label = 
+    const _iv_st<COSTTYPE, SIMDWIDTH> max_label =
         m_previous->level_label_set->max_label();
 
     /* create label set structure for coarse graph (no compression) */
     m_storage_label_set.push_back(std::unique_ptr<LabelSet<COSTTYPE, SIMDWIDTH>>
         (new LabelSet<COSTTYPE, SIMDWIDTH>(m_num_supernodes, false)));
-    
+
     /* determine a set of feasible labels per supernode */
     tbb::blocked_range<luint_t> supernode_range(0, m_num_supernodes);
     luint_t num_empty_label_sets = 0;
@@ -411,10 +408,10 @@ throw()
                         s_n] + i];
 
                     /* compute incidence vector for o_n */
-                    for(_iv_st<COSTTYPE, SIMDWIDTH> l_i = 0; l_i < 
+                    for(_iv_st<COSTTYPE, SIMDWIDTH> l_i = 0; l_i <
                         m_previous->level_label_set->label_set_size(o_n); ++l_i)
                     {
-                        const _iv_st<COSTTYPE, SIMDWIDTH> l = 
+                        const _iv_st<COSTTYPE, SIMDWIDTH> l =
                             m_previous->level_label_set->label_from_offset(o_n,
                             l_i);
                         inc_o_n[l] = true;
@@ -447,7 +444,7 @@ throw()
                 /* create label set from incidence vector - serial access */
                 {
                     tbb::mutex::scoped_lock lock(m_graph_write_mutex);
-                    
+
                     m_storage_label_set.back()->set_label_set_for_node(
                         s_n, lset);
                 }
@@ -476,20 +473,20 @@ compute_level_unaries()
     m_storage_unaries.push_back(std::unique_ptr<UnaryTable<COSTTYPE,
         SIMDWIDTH>>(new UnaryTable<COSTTYPE, SIMDWIDTH>(
         m_current->level_graph, m_current->level_label_set)));
-    UnaryTable<COSTTYPE, SIMDWIDTH> * un_tab = m_storage_unaries.back().get(); 
+    UnaryTable<COSTTYPE, SIMDWIDTH> * un_tab = m_storage_unaries.back().get();
 
     tbb::parallel_for(supernode_range,
         [&](const tbb::blocked_range<luint_t>& r)
         {
             for(luint_t s_n = r.begin(); s_n < r.end(); ++s_n)
             {
-                const _iv_st<COSTTYPE, SIMDWIDTH> max_label = 
+                const _iv_st<COSTTYPE, SIMDWIDTH> max_label =
                     m_current->level_label_set->max_label();
-                const _iv_st<COSTTYPE, SIMDWIDTH> lset_size = 
+                const _iv_st<COSTTYPE, SIMDWIDTH> lset_size =
                     m_current->level_label_set->label_set_size(s_n);
 
                 /* add up costs for labels 0 to max_label */
-                std::vector<_s_t<COSTTYPE, SIMDWIDTH>> costs(max_label + 1, 
+                std::vector<_s_t<COSTTYPE, SIMDWIDTH>> costs(max_label + 1,
                     (_s_t<COSTTYPE, SIMDWIDTH>) 0);
 
                 _iv_st<COSTTYPE, SIMDWIDTH> i_tmp[SIMDWIDTH];
@@ -500,23 +497,23 @@ compute_level_unaries()
                 {
                     const luint_t o_n = m_supernode_list[m_supernode_offsets
                         [s_n] + i];
-                    const _iv_st<COSTTYPE, SIMDWIDTH> lset_size = 
+                    const _iv_st<COSTTYPE, SIMDWIDTH> lset_size =
                         m_previous->level_label_set->label_set_size(o_n);
-                    const _iv_st<COSTTYPE, SIMDWIDTH> lset_chunk = 
+                    const _iv_st<COSTTYPE, SIMDWIDTH> lset_chunk =
                         SIMDWIDTH * DIV_UP(lset_size, SIMDWIDTH);
 
                     /* iterate over labels and costs */
-                    for(_iv_st<COSTTYPE, SIMDWIDTH> o = 0; o < lset_chunk; 
+                    for(_iv_st<COSTTYPE, SIMDWIDTH> o = 0; o < lset_chunk;
                         o += SIMDWIDTH)
                     {
-                        _iv_t<COSTTYPE, SIMDWIDTH> iv_l = 
+                        _iv_t<COSTTYPE, SIMDWIDTH> iv_l =
                             m_previous->level_label_set->labels_from_offset(
                             o_n, o);
                         _v_t<COSTTYPE, SIMDWIDTH> v_c;
 
                         if(m_previous->level_unaries->
                             supports_enumerable_costs())
-                        { 
+                        {
                             v_c = m_previous->level_unaries->
                                 get_unary_costs_enum_offset(o_n, o);
                         }
@@ -538,13 +535,13 @@ compute_level_unaries()
                 /**
                  * apart from the (straightforward) addition of unary costs,
                  * one has to include pairwise costs between nodes of the same
-                 * label, thus count edges and sum up these costs for all 
+                 * label, thus count edges and sum up these costs for all
                  * feasible labels multiplied by their weight
                  */
                 if(m_previous->level_pairwise->node_dependent())
                 {
                     /* must view each edge separately */
-                    const _iv_st<COSTTYPE, SIMDWIDTH> supernode_labels = 
+                    const _iv_st<COSTTYPE, SIMDWIDTH> supernode_labels =
                         m_current->level_label_set->label_set_size(s_n);
                     _iv_st<COSTTYPE, SIMDWIDTH> l_i, l_t;
                     _iv_t<COSTTYPE, SIMDWIDTH> l;
@@ -558,29 +555,29 @@ compute_level_unaries()
                     {
                         const luint_t o_n = m_supernode_list[node_offset + i];
 
-                        for(const luint_t& e_id : 
+                        for(const luint_t& e_id :
                             m_previous->level_graph->inc_edges(o_n))
                         {
-                            const GraphEdge<COSTTYPE>& edge = 
+                            const GraphEdge<COSTTYPE>& edge =
                                 m_previous->level_graph->edges()[e_id];
-                            const luint_t other_node = (edge.node_a == o_n) ? 
+                            const luint_t other_node = (edge.node_a == o_n) ?
                                 edge.node_b : edge.node_a;
-                            const luint_t ep_sn = 
+                            const luint_t ep_sn =
                                 m_current->prev_node_in_group[o_n];
-                            const luint_t ep_so = 
+                            const luint_t ep_so =
                                 m_current->prev_node_in_group[other_node];
 
                             if(ep_sn == ep_so && o_n < other_node)
                             {
-                                /** 
-                                 * add all costs for the edge - labels 
+                                /**
+                                 * add all costs for the edge - labels
                                  * restricted to that label set of the supernode
                                  * in question which was already computed
                                  */
                                 for(l_i = 0; l_i < supernode_labels; ++l_i)
                                 {
                                     l_t = m_current->level_label_set->
-                                        label_from_offset(s_n, l_i); 
+                                        label_from_offset(s_n, l_i);
                                     l = iv_init<COSTTYPE, SIMDWIDTH>(l_t);
                                     c = m_previous->level_pairwise->
                                         get_binary_costs(o_n, l, other_node, l);
@@ -603,16 +600,16 @@ compute_level_unaries()
                     {
                         const luint_t o_n = m_supernode_list[node_offset + i];
 
-                        for(const luint_t& e_id : 
+                        for(const luint_t& e_id :
                             m_previous->level_graph->inc_edges(o_n))
                         {
-                            const GraphEdge<COSTTYPE>& edge = 
+                            const GraphEdge<COSTTYPE>& edge =
                                 m_previous->level_graph->edges()[e_id];
-                            const luint_t other_node = (edge.node_a == o_n) ? 
+                            const luint_t other_node = (edge.node_a == o_n) ?
                                 edge.node_b : edge.node_a;
-                            const luint_t ep_sn = 
+                            const luint_t ep_sn =
                                 m_current->prev_node_in_group[o_n];
-                            const luint_t ep_so = 
+                            const luint_t ep_so =
                                 m_current->prev_node_in_group[other_node];
 
                             if(ep_sn == ep_so && o_n < other_node)
@@ -631,14 +628,14 @@ compute_level_unaries()
                         c = m_previous->level_pairwise->get_binary_costs(l, l);
                         v_store<COSTTYPE, SIMDWIDTH>(c, tmp);
                         costs[l_s] += sum_weight * tmp[0];
-                    } 
+                    }
                 }
 
                 /* compact costs according to common labels */
                 std::vector<_s_t<COSTTYPE, SIMDWIDTH>> sp_costs(lset_size, 0);
                 for(_iv_st<COSTTYPE, SIMDWIDTH> i = 0; i < lset_size; ++i)
                 {
-                    const _iv_st<COSTTYPE, SIMDWIDTH> l = 
+                    const _iv_st<COSTTYPE, SIMDWIDTH> l =
                         m_current->level_label_set->label_from_offset(s_n, i);
                     sp_costs[i] = costs[l];
                 }
@@ -679,11 +676,11 @@ compute_level_pairwise()
             {
                 for(luint_t s_e = r.begin(); s_e != r.end(); ++s_e)
                 {
-                    const GraphEdge<COSTTYPE> e = 
+                    const GraphEdge<COSTTYPE> e =
                         m_current->level_graph->edges()[s_e];
 
                     /* determine number of feasible label pairs */
-                    const luint_t num_label_pairs = 
+                    const luint_t num_label_pairs =
                         m_current->level_label_set->label_set_size(e.node_a) *
                         m_current->level_label_set->label_set_size(e.node_b);
 
@@ -697,12 +694,12 @@ compute_level_pairwise()
         tbb::parallel_scan(superedge_range, p_scan);
 
         /* allocate packed label table with padding */
-        const luint_t cost_size = superedge_cost_offsets.back() + 
+        const luint_t cost_size = superedge_cost_offsets.back() +
             superedge_cost_sizes.back() + SIMDWIDTH;
         costs.resize(cost_size);
         std::fill(costs.begin(), costs.end(), 0);
-        
-        /** 
+
+        /**
          * Having prerecorded the original edges making up superedges,
          * summing up the costs is straightforward now.
          */
@@ -725,25 +722,25 @@ compute_level_pairwise()
                     {
                         const luint_t o_edge_id = m_superedge_list[
                             off_edges + i];
-                        const GraphEdge<COSTTYPE> e = 
+                        const GraphEdge<COSTTYPE> e =
                             m_previous->level_graph->edges()[o_edge_id];
 
-                        const _iv_st<COSTTYPE, SIMDWIDTH> num_l1 = 
+                        const _iv_st<COSTTYPE, SIMDWIDTH> num_l1 =
                             m_current->level_label_set->label_set_size(
                             s_e.node_a);
-                        const _iv_st<COSTTYPE, SIMDWIDTH> num_l2 = 
+                        const _iv_st<COSTTYPE, SIMDWIDTH> num_l2 =
                             m_current->level_label_set->label_set_size(
                             s_e.node_b);
 
-                        /** 
+                        /**
                          * determine if supernode ordering and node ordering
-                         * matches 
+                         * matches
                          */
-                        const bool is_in_order = 
-                            (m_current->prev_node_in_group[e.node_a] == 
-                            s_e.node_a) && 
+                        const bool is_in_order =
+                            (m_current->prev_node_in_group[e.node_a] ==
+                            s_e.node_a) &&
                             (m_current->prev_node_in_group[e.node_b] ==
-                            s_e.node_b);  
+                            s_e.node_b);
 
                         _iv_st<COSTTYPE, SIMDWIDTH> l1_i, l2_i;
                         _iv_t<COSTTYPE, SIMDWIDTH> l1, l2;
@@ -763,20 +760,20 @@ compute_level_pairwise()
                                 /* retrieve costs for original edge */
                                 c = m_previous->level_pairwise->
                                     get_binary_costs(
-                                        e.node_a, 
+                                        e.node_a,
                                         is_in_order ? l1 : l2,
-                                        e.node_b, 
+                                        e.node_b,
                                         is_in_order ? l2 : l1);
 
                                 /* add to costs already in vector */
                                 c_o = v_load<COSTTYPE, SIMDWIDTH>(
-                                    &costs[superedge_cost_offsets[se_id] + 
+                                    &costs[superedge_cost_offsets[se_id] +
                                     l1_i * num_l2 + l2_i]);
                                 c = v_add<COSTTYPE, SIMDWIDTH>(c, c_o);
 
                                 /* store back to vector */
                                 v_store<COSTTYPE, SIMDWIDTH>(c, tmp);
-                                costs[superedge_cost_offsets[se_id] + 
+                                costs[superedge_cost_offsets[se_id] +
                                     l1_i * num_l2 + l2_i] = tmp[0];
                             }
                         }
@@ -786,17 +783,17 @@ compute_level_pairwise()
 
         /* construct node-dependent pairwise table */
         m_storage_pairwise.push_back(
-            std::unique_ptr<PairwiseTable<COSTTYPE, SIMDWIDTH>>(new 
+            std::unique_ptr<PairwiseTable<COSTTYPE, SIMDWIDTH>>(new
             PairwiseTable<COSTTYPE, SIMDWIDTH>(m_current->level_label_set,
             m_current->level_graph, costs)));
         m_current->level_pairwise = m_storage_pairwise.back().get();
     }
     else
     {
-        const _iv_st<COSTTYPE, SIMDWIDTH> max_label = 
+        const _iv_st<COSTTYPE, SIMDWIDTH> max_label =
             m_previous->level_label_set->max_label();
         const _iv_st<COSTTYPE, SIMDWIDTH> num_labels = max_label + 1;
-        const _iv_st<COSTTYPE, SIMDWIDTH> num_labels_chunk = 
+        const _iv_st<COSTTYPE, SIMDWIDTH> num_labels_chunk =
             SIMDWIDTH * DIV_UP(num_labels, SIMDWIDTH);
         costs.resize(num_labels * num_labels_chunk, 0);
 
@@ -816,10 +813,10 @@ compute_level_pairwise()
                 l2 = iv_load<COSTTYPE, SIMDWIDTH>(&labels[j]);
 
                 /* mask out labels in l2 whose position is >= num_labels */
-                const _iv_t<COSTTYPE, SIMDWIDTH> l_i = 
+                const _iv_t<COSTTYPE, SIMDWIDTH> l_i =
                     iv_sequence<COSTTYPE, SIMDWIDTH>(j);
-                const _iv_t<COSTTYPE, SIMDWIDTH> valid_labels = 
-                    iv_le<COSTTYPE, SIMDWIDTH>(l_i, 
+                const _iv_t<COSTTYPE, SIMDWIDTH> valid_labels =
+                    iv_le<COSTTYPE, SIMDWIDTH>(l_i,
                     iv_init<COSTTYPE, SIMDWIDTH>(num_labels - 1));
                 l2 = iv_blend<COSTTYPE, SIMDWIDTH>(
                     iv_init<COSTTYPE, SIMDWIDTH>(), l_i, valid_labels);
@@ -828,15 +825,15 @@ compute_level_pairwise()
                 c = m_previous->level_pairwise->get_binary_costs(l1, l2);
 
                 v_store<COSTTYPE, SIMDWIDTH>(c, &costs[i * num_labels + j]);
-            }   
+            }
         }
 
         /* construct node-independent pairwise table */
         m_storage_pairwise.push_back(
-            std::unique_ptr<PairwiseTable<COSTTYPE, SIMDWIDTH>>(new 
+            std::unique_ptr<PairwiseTable<COSTTYPE, SIMDWIDTH>>(new
             PairwiseTable<COSTTYPE, SIMDWIDTH>(num_labels, costs)));
         m_current->level_pairwise = m_storage_pairwise.back().get();
-    }   
+    }
 }
 
 /* ************************************************************************** */
@@ -875,14 +872,14 @@ compute_level_graph_from_node_groups()
                     const luint_t o_n = m_supernode_list[
                         m_supernode_offsets[s_n] + i];
 
-                    for(const luint_t& e_id : 
+                    for(const luint_t& e_id :
                         m_previous->level_graph->inc_edges(o_n))
                     {
                         const GraphEdge<COSTTYPE>& e = m_previous->level_graph->
                             edges()[e_id];
-                        const luint_t other_n = (e.node_a == o_n) ? 
+                        const luint_t other_n = (e.node_a == o_n) ?
                             e.node_b : e.node_a;
-                        const luint_t o_s_n = 
+                        const luint_t o_s_n =
                             m_current->prev_node_in_group[other_n];
 
                         /* avoid loops and only add superedge once */
@@ -903,7 +900,7 @@ compute_level_graph_from_node_groups()
                 for(const auto& se : sedge_sizes)
                 {
                     sedge_ids[se.first] = counter;
-                    loc_offsets[counter + 1] = loc_offsets[counter] + 
+                    loc_offsets[counter + 1] = loc_offsets[counter] +
                         se.second;
                     ++counter;
                 }
@@ -919,19 +916,19 @@ compute_level_graph_from_node_groups()
                     const luint_t o_n = m_supernode_list[
                         m_supernode_offsets[s_n] + i];
 
-                    for(const luint_t& e_id : 
+                    for(const luint_t& e_id :
                         m_previous->level_graph->inc_edges(o_n))
                     {
                         const GraphEdge<COSTTYPE>& e = m_previous->level_graph->
                             edges()[e_id];
-                        const luint_t other_n = (e.node_a == o_n) ? 
+                        const luint_t other_n = (e.node_a == o_n) ?
                             e.node_b : e.node_a;
-                        const luint_t o_s_n = 
+                        const luint_t o_s_n =
                             m_current->prev_node_in_group[other_n];
 
                         if(o_s_n < s_n)
                             continue;
-                        
+
                         const luint_t off = sedge_sizes[o_s_n];
 
                         /* save original edge ID */
@@ -943,18 +940,18 @@ compute_level_graph_from_node_groups()
 
                 /**
                  * Having computed an indexed list for this supernode,
-                 * add these superedges and the list to the current graph 
+                 * add these superedges and the list to the current graph
                  * (serially).
                  */
                 {
                     tbb::mutex::scoped_lock lock(m_graph_write_mutex);
 
                     /* enlarge storage for edge table */
-                    m_superedge_sizes.reserve(m_superedge_sizes.size() + 
+                    m_superedge_sizes.reserve(m_superedge_sizes.size() +
                         sedge_ids.size());
-                    m_superedge_offsets.reserve(m_superedge_offsets.size() + 
+                    m_superedge_offsets.reserve(m_superedge_offsets.size() +
                         sedge_ids.size());
-                    m_superedge_list.reserve(m_superedge_list.size() + 
+                    m_superedge_list.reserve(m_superedge_list.size() +
                         total);
 
                     for(const auto& e : sedge_ids)
@@ -963,7 +960,7 @@ compute_level_graph_from_node_groups()
                             continue;
 
                         /**
-                         * to preserve validity of pairwise costs in the 
+                         * to preserve validity of pairwise costs in the
                          * optimization, use different weights:
                          * - node-independent: reuse costs, so just add weights
                          *                     of original edges covered
@@ -980,7 +977,7 @@ compute_level_graph_from_node_groups()
 
                         /* record number of covered original edges */
                         m_superedge_sizes.push_back(sedge_sizes[e.first]);
-                        
+
                         /* append edges to list of original edges */
                         for(luint_t i = 0; i < sedge_sizes[e.first]; ++i)
                         {
@@ -993,7 +990,7 @@ compute_level_graph_from_node_groups()
         });
 
     /* compute global offsets for edge table */
-    tbb::blocked_range<luint_t> superedge_range(0, 
+    tbb::blocked_range<luint_t> superedge_range(0,
         m_storage_graph.back()->edges().size());
     m_superedge_offsets.clear();
     m_superedge_offsets.resize(m_storage_graph.back()->edges().size());
