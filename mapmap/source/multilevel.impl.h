@@ -808,12 +808,24 @@ compute_level_pairwise()
         _iv_st<COSTTYPE, SIMDWIDTH> i, j;
         _iv_t<COSTTYPE, SIMDWIDTH> l1, l2;
         _v_t<COSTTYPE, SIMDWIDTH> c;
-        for(i = 0; i < num_labels_chunk; ++i)
+        for(i = 0; i < num_labels; ++i)
         {
             l1 = iv_init<COSTTYPE, SIMDWIDTH>(labels[i]);
+
             for(j = 0; j < num_labels_chunk; j += SIMDWIDTH)
             {
                 l2 = iv_load<COSTTYPE, SIMDWIDTH>(&labels[j]);
+
+                /* mask out labels in l2 whose position is >= num_labels */
+                const _iv_t<COSTTYPE, SIMDWIDTH> l_i = 
+                    iv_sequence<COSTTYPE, SIMDWIDTH>(j);
+                const _iv_t<COSTTYPE, SIMDWIDTH> valid_labels = 
+                    iv_le<COSTTYPE, SIMDWIDTH>(l_i, 
+                    iv_init<COSTTYPE, SIMDWIDTH>(num_labels - 1));
+                l2 = iv_blend<COSTTYPE, SIMDWIDTH>(
+                    iv_init<COSTTYPE, SIMDWIDTH>(), l_i, valid_labels);
+
+                /* by masking, l2 contains only valid labels and 0 */
                 c = m_previous->level_pairwise->get_binary_costs(l1, l2);
 
                 v_store<COSTTYPE, SIMDWIDTH>(c, &costs[i * num_labels + j]);

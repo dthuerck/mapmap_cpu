@@ -13,18 +13,18 @@ below).
 Currently, this code implements the following modules and features:
 
 - [x] Customizable (parallel) performance
-	- [x] Change cost type between float and double
-	- [x] Templated SIMD width (1, 4, 8 for float; 1, 2, 4 for double)
+  - [x] Change cost type between float and double
+  - [x] Templated SIMD width (1, 4, 8 for float; 1, 2, 4 for double)
   - [x] Automatically setting SIMD width at compile time
-	- [x] Supports SSE4/AVX/AVX2, autodetected during build
+  - [x] Supports SSE4/AVX/AVX2, autodetected during build
 - [x] Extensible interfaces for all components, providing user hooks
-	- [x] Cost functions (unary and pairwise)
-	- [x] Termination criteria
-	- [x] Node grouping criteria for the multilevel module
+  - [x] Cost functions (unary and pairwise)
+  - [x] Termination criteria
+  - [x] Node grouping criteria for the multilevel module
 - [x] Solver modules
-	- [x] Acyclic (BCD) descent
-	- [x] Spanning tree descent
-	- [x] Multilevel solving
+  - [x] Acyclic (BCD) descent
+  - [x] Spanning tree descent
+  - [x] Multilevel solving
 - [x] Finding and exploiting connected components in the topology
 - [x] Test suite for each individual module
 
