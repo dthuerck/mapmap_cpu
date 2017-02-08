@@ -46,7 +46,8 @@ find_package(GTest REQUIRED)
 # include headers
 include_directories(
 	${PROJECT_SOURCE_DIR}
-	${PROJECT_SOURCE_DIR}/mapmap
+	${PROJECT_SOURCE_DIR}/mapmap)
+include_directories(SYSTEM
     ${GTEST_INCLUDE_DIR} 
 	${TBB_INCLUDE_DIR})
 
