@@ -24,7 +24,7 @@ template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 UnaryTable<COSTTYPE, SIMDWIDTH>::
 UnaryTable(
-    const Graph<COSTTYPE> * graph, 
+    const Graph<COSTTYPE> * graph,
     const LabelSet<COSTTYPE, SIMDWIDTH> * label_set)
 : m_graph(graph),
   m_labelset(label_set),
@@ -42,7 +42,7 @@ FORCEINLINE
 UnaryTable<COSTTYPE, SIMDWIDTH>::
 ~UnaryTable()
 {
-    
+
 }
 
 template<typename COSTTYPE, uint_t SIMDWIDTH>
@@ -50,15 +50,15 @@ FORCEINLINE
 void
 UnaryTable<COSTTYPE, SIMDWIDTH>::
 set_costs_for_node(
-    const luint_t& node_id, 
+    const luint_t& node_id,
     const std::vector<_s_t<COSTTYPE, SIMDWIDTH>>& costs)
 {
     if(node_id >= m_offsets.size())
         return;
 
-    const uint_t len = std::min((_iv_st<COSTTYPE, SIMDWIDTH>) costs.size(), 
+    const uint_t len = std::min((_iv_st<COSTTYPE, SIMDWIDTH>) costs.size(),
         m_labelset->label_set_size(node_id));
-    std::memcpy(&m_cost_table[m_offsets[node_id]], &costs[0], len * 
+    std::memcpy(&m_cost_table[m_offsets[node_id]], &costs[0], len *
         sizeof(_s_t<COSTTYPE, SIMDWIDTH>));
 }
 
@@ -77,7 +77,7 @@ FORCEINLINE
 _v_t<COSTTYPE, SIMDWIDTH>
 UnaryTable<COSTTYPE, SIMDWIDTH>::
 get_unary_costs(
-    const luint_t& node_id, 
+    const luint_t& node_id,
     const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec)
 const
 throw()
@@ -95,7 +95,7 @@ throw()
         result[i] = (COSTTYPE) 0;
 
     /* find all labels in the list and assemble in new vector */
-    const _iv_st<COSTTYPE, SIMDWIDTH> lset_size = 
+    const _iv_st<COSTTYPE, SIMDWIDTH> lset_size =
         m_labelset->label_set_size(node_id);
 
     uint_t done = 0;
@@ -105,7 +105,7 @@ throw()
         if(done == SIMDWIDTH)
             break;
 
-        const _iv_st<COSTTYPE, SIMDWIDTH> l_id_label = 
+        const _iv_st<COSTTYPE, SIMDWIDTH> l_id_label =
             m_labelset->label_from_offset(node_id, l_id);
 
         for(uint_t j = 0; j < SIMDWIDTH; ++j)
@@ -126,14 +126,14 @@ FORCEINLINE
 _v_t<COSTTYPE, SIMDWIDTH>
 UnaryTable<COSTTYPE, SIMDWIDTH>::
 get_unary_costs_enum_offset(
-    const luint_t& node_id, 
+    const luint_t& node_id,
     const _iv_st<COSTTYPE, SIMDWIDTH>& offset)
 const
 throw()
 {
     if(node_id >= m_offsets.size())
         return v_init<COSTTYPE, SIMDWIDTH>();
-   
+
     const COSTTYPE * ptr = &m_cost_table[m_offsets[node_id]] + offset;
     return v_load<COSTTYPE, SIMDWIDTH>(ptr);
 }
@@ -167,7 +167,8 @@ align_offsets(
     PlusScan<luint_t, luint_t> ex_scan(&padded_label_set[0], &m_offsets[0]);
     tbb::parallel_scan(node_range, ex_scan);
 
-    return (padded_label_set.back() + m_offsets.back());
+    return (padded_label_set.back() + m_offsets.back() +
+        sizeof(_v_t<COSTTYPE, SIMDWIDTH>));
 }
 
 NS_MAPMAP_END
