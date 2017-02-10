@@ -25,7 +25,7 @@ GroupSameLabel<COSTTYPE, SIMDWIDTH>::
 GroupSameLabel()
 {
 
-} 
+}
 
 /* ************************************************************************** */
 
@@ -64,14 +64,14 @@ group_nodes(
     std::iota(std::begin(qu), std::end(qu), 0);
     std::random_shuffle(qu.begin(), qu.end());
 
-    
+
     /* do BFSes from randomly selected seeds */
-    tbb::parallel_do(qu,
+    tbb::parallel_do(qu.begin(), qu.end(),
         [&](const luint_t& seed)
         {
             /* retrieve label common to this group */
-            const _iv_st<COSTTYPE, SIMDWIDTH> seed_lbl = 
-                current_level->level_label_set->label_from_offset(seed, 
+            const _iv_st<COSTTYPE, SIMDWIDTH> seed_lbl =
+                current_level->level_label_set->label_from_offset(seed,
                 current_solution[seed]);
 
             std::queue<luint_t> bfs;
@@ -88,9 +88,9 @@ group_nodes(
                 /* lock node */
                 while(node_locks[cur].compare_and_swap(1u, 0u) != 0u);
 
-                /** 
+                /**
                  * smaller marker: another thread is already here or this
-                 * thread already saw this node, so stop 
+                 * thread already saw this node, so stop
                  */
                 if(node_in_group[cur] <= seed)
                     skip_neighbors = true;
@@ -103,18 +103,18 @@ group_nodes(
                 /* traverse neighbors if they have the same label */
                 if(!skip_neighbors)
                 {
-                    for(const luint_t& e_id : 
+                    for(const luint_t& e_id :
                         current_level->level_graph->inc_edges(cur))
                     {
-                        const GraphEdge<COSTTYPE>& e = 
+                        const GraphEdge<COSTTYPE>& e =
                             current_level->level_graph->edges()[e_id];
-                        const luint_t neighbor = (e.node_a == cur) ? 
+                        const luint_t neighbor = (e.node_a == cur) ?
                             e.node_b : e.node_a;
 
                         /* retrieve other node's label */
-                        const _iv_st<COSTTYPE, SIMDWIDTH> other_label = 
+                        const _iv_st<COSTTYPE, SIMDWIDTH> other_label =
                             current_level->level_label_set->label_from_offset(
-                            neighbor, current_solution[neighbor]); 
+                            neighbor, current_solution[neighbor]);
 
                         if(other_label == seed_lbl)
                         {

@@ -18,7 +18,7 @@
 
 NS_MAPMAP_BEGIN
 
-/** 
+/**
  * *****************************************************************************
  * *********************** DynamicProgrammingTableEntry ************************
  * *****************************************************************************
@@ -83,9 +83,9 @@ optimize_entry(
     const bool is_root = (node_id() == parent_id());
 
     /* optimize a single node - if it's a root, assume an artificial parent */
-    const _iv_st<COSTTYPE, SIMDWIDTH> num_parent_labels = is_root ? 1 : 
+    const _iv_st<COSTTYPE, SIMDWIDTH> num_parent_labels = is_root ? 1 :
         costs.c_labels->label_set_size(parent_id());
-    const _iv_st<COSTTYPE, SIMDWIDTH> num_node_labels = 
+    const _iv_st<COSTTYPE, SIMDWIDTH> num_node_labels =
         costs.c_labels->label_set_size(node_id());
 
     /* initialize running minimum */
@@ -106,7 +106,7 @@ optimize_entry(
         label_from_offset(node_id(), 0);
 
     /* one DP table entry per iteration of this loop is created */
-    for(_iv_st<COSTTYPE, SIMDWIDTH> l_p_i = 0; l_p_i < num_parent_labels; 
+    for(_iv_st<COSTTYPE, SIMDWIDTH> l_p_i = 0; l_p_i < num_parent_labels;
         ++l_p_i)
     {
         min_costs = v_init<COSTTYPE, SIMDWIDTH>(
@@ -119,14 +119,14 @@ optimize_entry(
             costs.c_labels->label_from_offset(m_node.parent_id, l_p_i));
 
         /* handle all this node's labels */
-        for(_iv_st<COSTTYPE, SIMDWIDTH> l_i = 0; l_i < num_node_labels; 
+        for(_iv_st<COSTTYPE, SIMDWIDTH> l_i = 0; l_i < num_node_labels;
             l_i += SIMDWIDTH)
         {
             /* vector holding costs */
             _v_t<COSTTYPE, SIMDWIDTH> cost = v_init<COSTTYPE, SIMDWIDTH>();
 
             /* retrieve label index vector for this offset */
-            const _iv_t<COSTTYPE, SIMDWIDTH> v_l_i = 
+            const _iv_t<COSTTYPE, SIMDWIDTH> v_l_i =
                 iv_sequence<COSTTYPE, SIMDWIDTH>(l_i);
 
             /* retrieve label vector for this offset */
@@ -148,12 +148,12 @@ optimize_entry(
             {
                 if(costs.c_binary->node_dependent())
                     cost = v_add<COSTTYPE, SIMDWIDTH>(
-                        v_mult<COSTTYPE, SIMDWIDTH>(w_p, 
+                        v_mult<COSTTYPE, SIMDWIDTH>(w_p,
                         costs.c_binary->get_binary_costs(parent_id(),
                         l_p, node_id(), l)), cost);
                 else
                     cost = v_add<COSTTYPE, SIMDWIDTH>(
-                        v_mult<COSTTYPE, SIMDWIDTH>(w_p, 
+                        v_mult<COSTTYPE, SIMDWIDTH>(w_p,
                         costs.c_binary->get_binary_costs(l_p, l)), cost);
             }
 
@@ -164,18 +164,18 @@ optimize_entry(
             else
                 cost = v_add<COSTTYPE, SIMDWIDTH>(cost, costs.c_unary->
                     get_unary_costs(node_id(), l));
-            
+
             /* add pairwise costs for dependencies (if applicable) */
-            for(luint_t d_i = 0; costs.respect_dependencies && 
+            for(luint_t d_i = 0; costs.respect_dependencies &&
                 (d_i < m_node.dependency_degree); ++d_i)
             {
                 const luint_t d = m_node.dependency_ids[d_i];
-                const _s_t<COSTTYPE, SIMDWIDTH> w = 
+                const _s_t<COSTTYPE, SIMDWIDTH> w =
                     m_node.dependency_weights[d_i];
 
                 /* fetch dependency label index */
                 _iv_st<COSTTYPE, SIMDWIDTH> l_d_i = (*costs.c_assignment)[d];
-                _iv_t<COSTTYPE, SIMDWIDTH> l_d = iv_init<COSTTYPE, SIMDWIDTH>( 
+                _iv_t<COSTTYPE, SIMDWIDTH> l_d = iv_init<COSTTYPE, SIMDWIDTH>(
                     costs.c_labels->label_from_offset(d, l_d_i));
 
                 /* add pairwise cost to dependency (multiplied by weight) */
@@ -183,10 +183,10 @@ optimize_entry(
                 {
                     const _v_t<COSTTYPE, SIMDWIDTH> d_c =
                         costs.c_binary->get_binary_costs(d, l_d, node_id(), l);
-                    
-                    cost = (w != 1.0) ? 
-                        v_add<COSTTYPE, SIMDWIDTH>(cost, 
-                        v_mult<COSTTYPE, SIMDWIDTH>(d_c, 
+
+                    cost = (w != 1.0) ?
+                        v_add<COSTTYPE, SIMDWIDTH>(cost,
+                        v_mult<COSTTYPE, SIMDWIDTH>(d_c,
                         v_init<COSTTYPE, SIMDWIDTH>(w))) :
                         v_add<COSTTYPE, SIMDWIDTH>(cost, d_c);
                 }
@@ -195,8 +195,8 @@ optimize_entry(
                     const _v_t<COSTTYPE, SIMDWIDTH> d_c =
                         costs.c_binary->get_binary_costs(l_d, l);
 
-                    cost = (w != 1.0) ?  
-                        v_add<COSTTYPE, SIMDWIDTH>(cost, 
+                    cost = (w != 1.0) ?
+                        v_add<COSTTYPE, SIMDWIDTH>(cost,
                         v_mult<COSTTYPE, SIMDWIDTH>(d_c,
                         v_init<COSTTYPE, SIMDWIDTH>(w))) :
                         v_add<COSTTYPE, SIMDWIDTH>(cost, d_c);
@@ -206,13 +206,13 @@ optimize_entry(
             /* add children's table entries */
             for(luint_t i = 0; i < m_node.degree; ++i)
             {
-                const _s_t<COSTTYPE, SIMDWIDTH> * c_vals = 
+                const _s_t<COSTTYPE, SIMDWIDTH> * c_vals =
                     (*costs.c_child_values)[m_node.children_ids[i]];
 
                 /* load corresponding optima from c's table */
                 _v_t<COSTTYPE, SIMDWIDTH> c_dp = v_load<COSTTYPE, SIMDWIDTH>(
                     &c_vals[l_i]);
-                
+
                 cost = v_add<COSTTYPE, SIMDWIDTH>(cost, c_dp);
             }
 
@@ -220,9 +220,9 @@ optimize_entry(
              * SSE quirk: doing cmple (v_le) results in 0xff... if the first
              * operand is smaller, whereas blendv (v_blend) would copy
              * the second operand given 0xff....
-             * Hence, in v_blend, we flip the arguments. 
+             * Hence, in v_blend, we flip the arguments.
              *
-             * Here, mask out costs for labels not in this node's table. 
+             * Here, mask out costs for labels not in this node's table.
              */
             cost = v_blend<COSTTYPE, SIMDWIDTH>(
                 v_init<COSTTYPE, SIMDWIDTH>(std::numeric_limits<
@@ -238,11 +238,11 @@ optimize_entry(
             else
             {
                 /* determine componentwise minimum */
-                _v_t<COSTTYPE, SIMDWIDTH> min_mask = 
+                _v_t<COSTTYPE, SIMDWIDTH> min_mask =
                     v_le<COSTTYPE, SIMDWIDTH>(cost, min_costs);
 
                 /* update componentwise minimas (values + label indices) */
-                min_costs = v_blend<COSTTYPE, SIMDWIDTH>(min_costs, cost, 
+                min_costs = v_blend<COSTTYPE, SIMDWIDTH>(min_costs, cost,
                     min_mask);
                 min_labels = iv_blend<COSTTYPE, SIMDWIDTH>(min_labels, v_l_i,
                     v_reinterpret_iv<COSTTYPE, SIMDWIDTH>(min_mask));
@@ -279,7 +279,7 @@ optimize_entry(
 
 template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
 FORCEINLINE
-const _s_t<COSTTYPE, SIMDWIDTH> * 
+const _s_t<COSTTYPE, SIMDWIDTH> *
 DynamicProgrammingTableEntry<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
 optimal_value()
 {
@@ -291,13 +291,13 @@ optimal_value()
 template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
 FORCEINLINE
 const _iv_st<COSTTYPE, SIMDWIDTH> *
-DynamicProgrammingTableEntry<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>:: 
+DynamicProgrammingTableEntry<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
 optimal_labels()
 {
     return m_opt_labels;
 }
 
-/** 
+/**
  * *****************************************************************************
  * *********************** CombinatorialDynamicProgramming *********************
  * *****************************************************************************
@@ -368,9 +368,9 @@ CombinatorialDynamicProgramming<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
 discover_leaves()
 {
     tbb::blocked_range<luint_t> tree_range(0, this->m_tree->num_graph_nodes());
-    std::vector<luint_t> leaf_list(this->m_tree->num_graph_nodes(), 
+    std::vector<luint_t> leaf_list(this->m_tree->num_graph_nodes(),
         (luint_t) 0);
-    std::vector<luint_t> leaf_offsets(this->m_tree->num_graph_nodes(), 
+    std::vector<luint_t> leaf_offsets(this->m_tree->num_graph_nodes(),
         (luint_t) 0);
 
     /* Leaf = node without children, count offsets */
@@ -378,13 +378,13 @@ discover_leaves()
         [&](const tbb::blocked_range<luint_t>& r)
         {
             for(luint_t i = r.begin(); i != r.end(); ++i)
-                leaf_list[i] = (this->m_tree->node(i).is_in_tree && 
+                leaf_list[i] = (this->m_tree->node(i).is_in_tree &&
                     this->m_tree->node(i).degree == 0);
         });
-    
+
     PlusScan<luint_t, luint_t> p_scan(&leaf_list[0], &leaf_offsets[0]);
     tbb::parallel_scan(tree_range, p_scan);
-    const luint_t num_leaves = leaf_offsets.back() + leaf_list.back();    
+    const luint_t num_leaves = leaf_offsets.back() + leaf_list.back();
 
     /* save leaf IDs in vector */
     m_leaf_ids = std::vector<luint_t>(num_leaves, invalid_luint_t);
@@ -417,9 +417,9 @@ allocate_memory()
         this->m_tree->num_graph_nodes());
 
     /* allocate memory to hold the DP table for indices for all nodes */
-    std::vector<luint_t> lbl_set_sizes(this->m_tree->num_graph_nodes(), 
+    std::vector<luint_t> lbl_set_sizes(this->m_tree->num_graph_nodes(),
         (luint_t) 0);
-    std::vector<luint_t> lbl_set_offsets(this->m_tree->num_graph_nodes(), 
+    std::vector<luint_t> lbl_set_offsets(this->m_tree->num_graph_nodes(),
         (luint_t) 0);
 
     tbb::parallel_for(node_range,
@@ -440,7 +440,7 @@ allocate_memory()
     const luint_t total_mem_req = lbl_set_offsets.back() + lbl_set_sizes.back();
 
     /* index table for all nodes */
-    m_opt_labels = std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>(total_mem_req, 
+    m_opt_labels = std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>(total_mem_req,
         (uint_t) invalid_luint_t);
 
 #ifndef BUILD_MEMORY_SAVE
@@ -459,10 +459,10 @@ allocate_memory()
             for(luint_t i = r.begin(); i != r.end(); ++i)
                 if(this->m_tree->node(i).parent_id != invalid_luint_t)
                 {
-                    m_opt_label_nodes[i] = &m_opt_labels[0] + 
+                    m_opt_label_nodes[i] = &m_opt_labels[0] +
                         lbl_set_offsets[i];
 #ifndef BUILD_MEMORY_SAVE
-                    m_opt_value_nodes[i] = &m_opt_values[0] + 
+                    m_opt_value_nodes[i] = &m_opt_values[0] +
                         lbl_set_offsets[i];
 #endif
                 }
@@ -479,9 +479,9 @@ node_memory_allocate(
     const luint_t node_id)
 {
     /* determine number of needed storage spaces */
-    const _iv_st<COSTTYPE, SIMDWIDTH> entry_size = SIMDWIDTH * 
+    const _iv_st<COSTTYPE, SIMDWIDTH> entry_size = SIMDWIDTH *
         DIV_UP(this->m_label_set->label_set_size(
-        this->m_tree->node(node_id)->parent_id), SIMDWIDTH);
+        this->m_tree->node(node_id).parent_id), SIMDWIDTH);
 
     /* allocate memory */
     m_opt_value_nodes[node_id] = m_value_allocator->allocate(entry_size);
@@ -501,11 +501,11 @@ node_memory_clean_children(
     const TreeNode<COSTTYPE> tree_n = this->m_tree->node(node_id);
     const luint_t degree = tree_n.degree;
     const luint_t * children = tree_n.children_ids;
-    
+
     for(luint_t d = 0; d < degree; ++d)
     {
         const luint_t c = children[d];
-        m_value_allocator->deallocate(m_opt_value_nodes[c], 
+        m_value_allocator->deallocate(m_opt_value_nodes[c],
             m_opt_value_sizes[c]);
     }
 }
@@ -540,22 +540,22 @@ bottom_up_opt()
     dpb.c_child_labels = &m_opt_label_nodes;
     dpb.c_assignment = &this->m_current_assignment;
     dpb.respect_dependencies = this->m_uses_dependencies;
-        
+
     /* use feeder instead of level-wise queue */
     tbb::concurrent_vector<luint_t> queue;
     queue.assign(m_leaf_ids.begin(), m_leaf_ids.end());
 
     int processed = 0;
-    tbb::parallel_do(queue,
+    tbb::parallel_do(queue.begin(), queue.end(),
         [&](const luint_t n, tbb::parallel_do_feeder<luint_t>& feeder)
         {
                 /* allocate memory */
 #if defined(BUILD_MEMORY_SAVE)
                 node_memory_allocate(n);
-#endif 
+#endif
 
                 /* create one table entry per node */
-                DynamicProgrammingTableEntry<COSTTYPE, SIMDWIDTH, UNARY, 
+                DynamicProgrammingTableEntry<COSTTYPE, SIMDWIDTH, UNARY,
                     PAIRWISE> dpe(this->m_tree->node(n), m_opt_value_nodes[n],
                         m_opt_label_nodes[n]);
 
@@ -607,9 +607,9 @@ top_down_opt(
                 const uint_t r_label_set_size = this->m_label_set->
                     label_set_size(root);
 
-                const _s_t<COSTTYPE, SIMDWIDTH> * my_costs = 
+                const _s_t<COSTTYPE, SIMDWIDTH> * my_costs =
                     m_opt_value_nodes[root];
-                const _iv_st<COSTTYPE, SIMDWIDTH> * my_labels = 
+                const _iv_st<COSTTYPE, SIMDWIDTH> * my_labels =
                     m_opt_label_nodes[root];
 
                 _s_t<COSTTYPE, SIMDWIDTH> min_costs = my_costs[0];
@@ -632,19 +632,19 @@ top_down_opt(
         });
 
     /* continue traversal */
-    tbb::parallel_do(queue,
+    tbb::parallel_do(queue.begin(), queue.end(),
         [&](const luint_t n, tbb::parallel_do_feeder<luint_t>& feeder)
         {
             /* retrieve current node */
-            const TreeNode<COSTTYPE>& node = 
+            const TreeNode<COSTTYPE>& node =
                 this->m_tree->node(n);
 
             /* retrieve parent's label (index) */
-            const _iv_st<COSTTYPE, SIMDWIDTH> p_label = 
+            const _iv_st<COSTTYPE, SIMDWIDTH> p_label =
                 solution[node.parent_id];
 
             /* set n's label (index) */
-            const _iv_st<COSTTYPE, SIMDWIDTH> * my_labels = 
+            const _iv_st<COSTTYPE, SIMDWIDTH> * my_labels =
                 m_opt_label_nodes[n];
             solution[n] = my_labels[p_label];
 

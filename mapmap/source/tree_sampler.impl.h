@@ -50,7 +50,7 @@ select_random_roots(
 {
     roots.clear();
     std::vector<unsigned char> root_marker(m_graph->num_nodes(), 0u);
-    
+
     std::mt19937 rnd(m_rnd_dev());
 
     /* make sure that k <= number of nodes */
@@ -80,7 +80,7 @@ select_random_roots(
             next_component = dd(rnd);
         }
 
-        std::uniform_int_distribution<luint_t> ud(0, 
+        std::uniform_int_distribution<luint_t> ud(0,
             component_sizes[next_component] - 1);
         luint_t root_index = ud(rnd);
         luint_t next_root = m_component_lists[next_component]
@@ -100,7 +100,7 @@ select_random_roots(
                 for(const luint_t e_id : m_graph->inc_edges(next_root))
                 {
                     const GraphEdge<COSTTYPE>& e = m_graph->edges()[e_id];
-                    const luint_t other_node = (e.node_a == next_root ? 
+                    const luint_t other_node = (e.node_a == next_root ?
                         e.node_b : e.node_a);
 
                     if(root_marker[other_node] > 0u)
@@ -108,7 +108,7 @@ select_random_roots(
                         violation = true;
                         break;
                     }
-                } 
+                }
 
                 if(!violation)
                     break;
@@ -129,7 +129,7 @@ select_random_roots(
                 }
 
                 /* select next candidate */
-                std::uniform_int_distribution<luint_t> ud(0, 
+                std::uniform_int_distribution<luint_t> ud(0,
                     component_sizes[next_component] - 1);
                 root_index = ud(rnd);
                 next_root = m_component_lists[next_component]
@@ -139,13 +139,13 @@ select_random_roots(
             if (skip)
                 continue;
         }
-  
+
         roots.push_back(next_root);
         root_marker[next_root] = 1u;
 
         /**
          * ease further node selection by putting selected node to
-         * the end of the list 
+         * the end of the list
          */
         if(component_sizes[next_component] > 1)
             std::swap(m_component_lists[next_component][root_index],
@@ -207,7 +207,7 @@ sample(
                 for(const luint_t& e_id : m_graph->inc_edges(r))
                 {
                     const GraphEdge<COSTTYPE>& e = m_graph->edges()[e_id];
-                    const luint_t other_node = (e.node_a == r ? e.node_b : 
+                    const luint_t other_node = (e.node_a == r ? e.node_b :
                         e.node_a);
                     //if (m_markers[other_node] < 2u)
                         ++m_markers[other_node];
@@ -227,7 +227,7 @@ sample(
                 m_rem_degrees[i] = m_graph->nodes()[i].incident_edges.size();
             }
         });
-    
+
     /* start actual growing process */
     luint_t it = 0;
     while(true)
@@ -255,14 +255,14 @@ sample(
             sample_phase_III();
         }
 
-        /** 
+        /**
          * if procedure gets stuck - add nodes with marker 0
          * as new nodes (that respect acyclicity).
          */
         if(ACYCLIC && m_w_out->size() == 0u)
         {
             sample_rescue();
-            
+
             for(luint_t i = 0; i < m_w_out->size(); ++i)
                 roots.push_back((*m_w_out)[i]);
         }
@@ -288,7 +288,7 @@ build_component_lists()
 {
     const luint_t num_nodes = m_graph->num_nodes();
     const luint_t num_components = m_graph->num_components();
-    const std::vector<luint_t>& components = m_graph->components(); 
+    const std::vector<luint_t>& components = m_graph->components();
 
     m_component_lists.clear();
     m_component_lists.resize(num_components);
@@ -304,7 +304,7 @@ build_component_lists()
 
 template<typename COSTTYPE, bool ACYCLIC>
 void
-TreeSampler<COSTTYPE, ACYCLIC>:: 
+TreeSampler<COSTTYPE, ACYCLIC>::
 create_adj_acc()
 {
     /* make private copy of nodes' adjacency list */
@@ -346,7 +346,7 @@ sample_phase_I()
 {
     tbb::blocked_range<luint_t> in_range(0, m_w_in->size(), 32);
 
-    tbb::parallel_for(in_range, 
+    tbb::parallel_for(in_range,
         [&](const tbb::blocked_range<luint_t>& r)
         {
             std::mt19937 rnd_gen(r.begin());
@@ -354,11 +354,11 @@ sample_phase_I()
             for (luint_t i = r.begin(); i != r.end(); ++i)
             {
                 const luint_t in_node = (*m_w_in)[i];
-                /** 
+                /**
                  * due to lazy queue handling, removed nodes might be in the
                  * queue, need to avoid that here
                  */
-                const bool is_in_tree = (m_tree->raw_parent_ids()[in_node] != 
+                const bool is_in_tree = (m_tree->raw_parent_ids()[in_node] !=
                     invalid_luint_t);
 
                 if(!is_in_tree)
@@ -366,7 +366,7 @@ sample_phase_I()
                     continue;
                 }
 
-                /** 
+                /**
                  * try to acquire lock, if not accessible - then other thread
                  * already handles this node, so just skip it
                  */
@@ -378,23 +378,23 @@ sample_phase_I()
                         std::uniform_int_distribution<luint_t> d(
                             0, m_rem_degrees[in_node] - 1);
                         const luint_t inc_list_ix = d(rnd_gen);
-                        const luint_t e_id = m_adj[m_adj_offsets[in_node] + 
+                        const luint_t e_id = m_adj[m_adj_offsets[in_node] +
                             inc_list_ix];
                         const GraphEdge<COSTTYPE> e = m_graph->edges()[e_id];
 
                         /* extract corresponding adjacent node */
-                        const luint_t o_node = (e.node_a == in_node ? 
+                        const luint_t o_node = (e.node_a == in_node ?
                             e.node_b : e.node_a);
 
                         /* try to acquire lock on adjacent node */
-                        if(m_node_locks[o_node].compare_and_swap(1u, 0u) 
+                        if(m_node_locks[o_node].compare_and_swap(1u, 0u)
                             == 0u)
                         {
                             /* check conditions for growing a branch */
                             const bool is_in_tree =
-                                (m_tree->raw_parent_ids()[o_node] != 
+                                (m_tree->raw_parent_ids()[o_node] !=
                                 invalid_luint_t);
-                            const bool markers_exceed = (ACYCLIC ? 
+                            const bool markers_exceed = (ACYCLIC ?
                                 (m_markers[o_node] >= 2u) : false);
 
                             if(!is_in_tree && !markers_exceed)
@@ -413,9 +413,9 @@ sample_phase_I()
                             m_node_locks[o_node] = 0u;
                         }
 
-                        /** 
-                         * swap out selected entry in in_node's 
-                         * adjacency table 
+                        /**
+                         * swap out selected entry in in_node's
+                         * adjacency table
                          */
                         if(m_rem_degrees[in_node] > 1u)
                         {
@@ -459,20 +459,20 @@ sample_phase_II()
                 for(const luint_t& e_id : m_graph->inc_edges(new_node))
                 {
                     const GraphEdge<COSTTYPE> e = m_graph->edges()[e_id];
-                    const luint_t o_node = (e.node_a == new_node ? 
+                    const luint_t o_node = (e.node_a == new_node ?
                             e.node_b : e.node_a);
-                    const bool o_in_tree = 
+                    const bool o_in_tree =
                         (m_tree->raw_parent_ids()[o_node] != invalid_luint_t);
-                    
+
                     /* don't check collisions with the parent node... */
-                    const bool is_parent = (m_tree->raw_parent_ids()[new_node] 
+                    const bool is_parent = (m_tree->raw_parent_ids()[new_node]
                         == o_node);
 
-                    if(ACYCLIC && o_in_tree && !is_parent && 
+                    if(ACYCLIC && o_in_tree && !is_parent &&
                         (new_node < o_node))
                     {
-                        /** 
-                         * record conflict pair - only once by exploiting 
+                        /**
+                         * record conflict pair - only once by exploiting
                          * the node id's total ordering
                          */
                         m_w_conflict.push_back(std::make_pair(new_node,
@@ -511,10 +511,10 @@ sample_phase_III()
 
                 /* select one node at random to remove */
                 const luint_t remove_ix = d(rnd_gen);
-                const luint_t remove_node = (remove_ix == 0 ? c_pair.first : 
+                const luint_t remove_node = (remove_ix == 0 ? c_pair.first :
                     c_pair.second);
 
-                /** 
+                /**
                  * a node could have multiple conflicts at the same time
                  * and thus multiple removals would corrupt the marker
                  * decrement process.
@@ -524,7 +524,7 @@ sample_phase_III()
                     const bool is_in_tree = (m_tree->raw_parent_ids()
                         [remove_node] != invalid_luint_t);
 
-                    /** 
+                    /**
                      * skip removal operation if already happended by
                      * another conflict pair.
                      */
@@ -532,18 +532,18 @@ sample_phase_III()
                     {
                         const luint_t old_parent = m_tree->raw_parent_ids()
                             [remove_node];
-                        m_tree->raw_parent_ids()[remove_node] = 
+                        m_tree->raw_parent_ids()[remove_node] =
                             invalid_luint_t;
 
                         ++num_nodes_removed;
 
                         /* decrement marker of adjacent nodes */
-                        for(const luint_t& e_id : 
+                        for(const luint_t& e_id :
                             m_graph->inc_edges(remove_node))
                         {
-                            const GraphEdge<COSTTYPE> e = 
+                            const GraphEdge<COSTTYPE> e =
                                 m_graph->edges()[e_id];
-                            const luint_t o_node = (e.node_a == remove_node ? 
+                            const luint_t o_node = (e.node_a == remove_node ?
                                     e.node_b : e.node_a);
 
                             --m_markers[o_node];
@@ -569,7 +569,7 @@ sample_phase_III()
         m_w_out->clear();
         m_w_out->reserve(m_w_new.size());
 
-        tbb::parallel_do(m_w_new,
+        tbb::parallel_do(m_w_new.begin(), m_w_new.end(),
             [&](const luint_t& n)
             {
                 /* add only nodes to queue which are in the tree */
@@ -617,9 +617,9 @@ sample_rescue()
     for(const luint_t& e_id : m_graph->inc_edges(new_root))
     {
         const GraphEdge<COSTTYPE> e = m_graph->edges()[e_id];
-        const luint_t o_node = (e.node_a == new_root ? 
+        const luint_t o_node = (e.node_a == new_root ?
                 e.node_b : e.node_a);
-        
+
         /* update marker */
         ++m_markers[o_node];
     }
