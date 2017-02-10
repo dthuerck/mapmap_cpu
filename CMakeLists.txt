@@ -11,7 +11,7 @@ project(mapMAP)
 
 # selection what to build
 option(BUILD_MEMSAVE "Use memory-saving mode. Might influence performance negatively." OFF)
-option(BUILD_TEST "Build Google Tests for mapMAP modules." ON)
+option(BUILD_TEST "Build Google Tests for mapMAP modules." OFF)
 option(BUILD_DEMO "Build a demo, reading SHIMF datasets into mapMAP." ON)
 
 set(TBB_INCLUDE_DIRS "/usr/include" CACHE PATH "Path to where the TBB include files (tbb/) reside")
@@ -20,7 +20,7 @@ set(TBB_LIBRARY "/usr/lib" CACHE PATH "Path to where the TBB library files (libt
 set(GTEST_ROOT "/usr/lib" CACHE PATH "Path to GoogleTest's root folder")
 
 # set optimization options for GCC on unixoid systems
-# uses -march=native to make the compiler set __SSE4_2__, __AVX__ and 
+# uses -march=native to make the compiler set __SSE4_2__, __AVX__ and
 # __AVX2__ to fit the binary to the computer
 set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -march=native -O2 -flto -funroll-loops")
@@ -39,16 +39,15 @@ if(BUILD_DEMO)
 	file(DOWNLOAD http://download.hrz.tu-darmstadt.de/media/FB20/GCC/project_files/mapmap/planesweep_320_256_96.bin ${PROJECT_SOURCE_DIR}/demo/planesweep_320_256_96.bin)
 endif(BUILD_DEMO)
 
-# find location to Google Test and TBB and set variables
+# find location to TBB and set variables
 find_package(TBB REQUIRED)
-find_package(GTest REQUIRED)
 
 # include headers
 include_directories(
 	${PROJECT_SOURCE_DIR}
 	${PROJECT_SOURCE_DIR}/mapmap)
 include_directories(SYSTEM
-    ${GTEST_INCLUDE_DIR} 
+    ${GTEST_INCLUDE_DIR}
 	${TBB_INCLUDE_DIR})
 
 set(header_dir "mapmap/header")
@@ -71,7 +70,7 @@ set(header_base
     ${header_dir}/tree_sampler.h
     ${header_dir}/vector_types.h
 	${header_dir}/vector_math.h)
-    
+
 set(impl_base
 	${impl_dir}/costs.impl.h
 	${impl_dir}/dynamic_programming.impl.h
@@ -105,7 +104,7 @@ set(header_multilevel_instances
 
 set(impl_multilevel_instances
 	${impl_dir}/multilevel_instances/group_same_label.impl.h)
-	
+
 # termination criterion instances
 set(header_termination_instances
 	${header_dir}/termination_instances/stop_after_iterations.h
@@ -118,7 +117,7 @@ set(impl_termination_instances
 	${impl_dir}/termination_instances/stop_after_time.impl.h
 	${impl_dir}/termination_instances/stop_when_flat.impl.h
 	${impl_dir}/termination_instances/stop_when_returns_diminish.impl.h)
-	
+
 # test files
 set(header_test
 	${test_dir}/util_test.h)
@@ -133,14 +132,14 @@ set(src_test
 	${test_dir}/test_multilevel.cc
     ${test_dir}/test_spanning_tree.cc
 	${test_dir}/test_vector_math.cc)
-	
+
 set_source_files_properties(${header_base} PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties(${header_cost_instances} PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties(${header_multilevel_instances} PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties(${header_termination_instances} PROPERTIES HEADER_FILE_ONLY TRUE)
 
-source_group("Base" FILES 
-    ${header_base} 
+source_group("Base" FILES
+    ${header_base}
     ${impl_base})
 source_group("Costs" FILES
 	${header_cost_instances}
@@ -154,16 +153,17 @@ source_group("Termination" FILES
 source_group("Coloring" FILES
 	${header_coloring_instances}
 	${impl_coloring_instances})
-source_group("Test" FILES 
-    ${header_test} 
+source_group("Test" FILES
+    ${header_test}
     ${impl_test}
 	${src_test})
 
-# build gtest executable
+# build gtest executable (and find Gtest, which is now necessary)
 if(BUILD_TEST)
-add_executable(mapmap_test 
+find_package(GTest REQUIRED)
+add_executable(mapmap_test
     ${src_test})
-target_link_libraries(mapmap_test 
+target_link_libraries(mapmap_test
     ${TBB_LIBRARIES}
     ${GTEST_BOTH_LIBRARIES}
     pthread)

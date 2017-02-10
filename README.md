@@ -38,7 +38,7 @@ Prerequisites
 
 * CMake building system (>= 2.8.0)
 * C++11 compatible compiler (e.g. gcc-5, MSVC 13, icc 17)
-* GTest (see [Github](https://github.com/google/googletest))
+* GTest (see [Github](https://github.com/google/googletest)) for building/running the tests
 * Intel TBB (>= 4.2, see [Webpage](https://www.threadingbuildingblocks.org/))
 
 The code has been tested (and compiles without issues) on an Ubuntu 16.04
@@ -87,7 +87,7 @@ should be somewhat similar, though GUI-based.
    `ccmake`).
 5. Build the project using `make` (or `make -j` for parallel build).
 6. Depending on your configuration, you can now run `mapmap_test` and/or
-   `mapmap_demo`.
+   `mapmap_demo` (assuming you activated `BUILD_TEST` and `BUILD_DEMO`).
 
 Using mapMAP as a library in your own projects
 ------
