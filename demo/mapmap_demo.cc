@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016, Daniel Thuerck
+ * Copyright (C) 2016-2017, Daniel Thuerck
  * All rights reserved.
  *
  * This software may be modified and distributed under the terms
@@ -50,8 +50,9 @@ main(
     std::unique_ptr<unary_t> unaries;
     std::unique_ptr<pairwise_t> pairwise;
 
-    /* termination criterion */
+    /* termination criterion and control flow */
     std::unique_ptr<TerminationCriterion<cost_t, simd_w>> terminate;
+    mapMAP_control ctr;
 
     /* solver instance */
     mapMAP<cost_t, simd_w, unary_t, pairwise_t> mapmap;
@@ -170,6 +171,14 @@ main(
         terminate = std::unique_ptr<TerminationCriterion<cost_t, simd_w>>(
             new StopWhenReturnsDiminish<cost_t, simd_w>(5, 0.0001));
 
+        /* create (optional) control flow settings */
+        ctr.use_multilevel = true;
+        ctr.use_spanning_tree = true;
+        ctr.use_acyclic = true;
+        ctr.spanning_tree_multilevel_after_n_iterations = 5;
+        ctr.force_acyclic = true;
+        ctr.min_acyclic_iterations = 5;
+
         /* construct optimizer */
         mapmap.set_graph(graph.get());
         mapmap.set_label_set(label_set.get());
@@ -200,7 +209,7 @@ main(
     /* catch errors thrown during optimization */
     try
     {
-        mapmap.optimize(solution);
+        mapmap.optimize(solution, ctr);
     }
     catch(std::runtime_error& e)
     {

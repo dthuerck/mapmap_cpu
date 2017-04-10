@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016, Daniel Thuerck
+ * Copyright (C) 2016-2017, Daniel Thuerck
  * TU Darmstadt - Graphics, Capture and Massively Parallel Computing
  * All rights reserved.
  *
@@ -233,6 +233,23 @@ optimize(
     std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& solution)
 throw()
 {
+    /* initialize control flow with standard values */
+    mapMAP_control std_control;
+
+    return optimize(solution, std_control);
+}
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+FORCEINLINE
+_s_t<COSTTYPE, SIMDWIDTH>
+mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+optimize(
+    std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& solution,
+    const mapMAP_control& control_flow)
+throw()
+{
     _s_t<COSTTYPE, SIMDWIDTH> obj;
 
     /* create std modules for uninitialized fields */
@@ -273,27 +290,26 @@ throw()
     }
 
     /* rapid initial descent by multilevel */
-    m_objective = opt_step_multilevel();
-    record_time_from_start();
-    print_status();
+    if(control_flow.use_multilevel)
+    {
+        m_objective = opt_step_multilevel();
+        record_time_from_start();
+        print_status();
+    }
 
     /* take spanning tree steps until no more improvements occur */
     luint_t sp_it = 0;
 
     _s_t<COSTTYPE, SIMDWIDTH> old_objective = m_objective;
-    while(true)
+    while(control_flow.use_spanning_tree)
     {
         ++sp_it;
 
-        /* check if algorithms needs to terminate */
+        /* check if algorithm needs to terminate this mode */
         if(check_termination())
-        {
-            solution.assign(m_solution.begin(), m_solution.end());
+            break;
 
-            return m_objective;
-        }
-
-        /* execute spannign tree step */
+        /* execute spanning tree step */
         obj = opt_step_spanning_tree();
         record_time_from_start();
 
@@ -304,7 +320,8 @@ throw()
 
         print_status();
 
-        if(sp_it % 5 == 0)
+        if(control_flow.use_multilevel && sp_it %
+            control_flow.spanning_tree_multilevel_after_n_iterations == 0)
         {
             m_objective = opt_step_multilevel();
             record_time_from_start();
@@ -312,9 +329,14 @@ throw()
         }
     }
 
-    /* lastly, execute acyclic steps until termination */
-    while(!check_termination())
+    /* lastly, execute (forced) acyclic steps until termination */
+    luint_t ac_it = 0;
+    while(control_flow.use_acyclic &&
+        (!check_termination() || (control_flow.force_acyclic &&
+        ac_it < control_flow.min_acyclic_iterations)))
     {
+        ++ac_it;
+
         m_objective = opt_step_acyclic();
 
         record_time_from_start();

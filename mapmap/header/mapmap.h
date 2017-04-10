@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016, Daniel Thuerck
+ * Copyright (C) 2016-2017, Daniel Thuerck
  * TU Darmstadt - Graphics, Capture and Massively Parallel Computing
  * All rights reserved.
  *
@@ -48,6 +48,10 @@ const char * const UNIX_COLOR_YELLOW = "\033[1;33m";
 const char * const UNIX_COLOR_WHITE = "\033[1;37m";
 const char * const UNIX_COLOR_RESET = "\033[0m";
 
+/* forward declarations */
+struct mapMAP_control;
+
+/* MAPMAP main class */
 template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
 class mapMAP
 {
@@ -88,6 +92,10 @@ public:
     /* start optimization */
     _s_t<COSTTYPE, SIMDWIDTH> optimize(std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>&
         solution) throw();
+
+    /* start optimization with customized control flow */
+    _s_t<COSTTYPE, SIMDWIDTH> optimize(std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>&
+        solution, const mapMAP_control& control_flow) throw();
 
 protected:
     /* setup, sanity checks and tools */
@@ -163,6 +171,30 @@ protected:
     bool m_use_callback;
     std::function<void (const luint_t, const _s_t<COSTTYPE, SIMDWIDTH>)>
         m_callback;
+};
+
+/**
+ * control flow struct (default values for flowgraph in paper)
+ *
+ * NOTE: despite settings concerning minimum iteration numbers, early
+ * termination may be forced by a user-defined termination criterion
+ */
+struct mapMAP_control
+{
+    /* switch modes on/off */
+    bool use_multilevel = true;
+    bool use_spanning_tree = true;
+    bool use_acyclic = true;
+
+    /* multilevel settings */
+    /* none */
+
+    /* spanning tree settings */
+    uint_t spanning_tree_multilevel_after_n_iterations = 5;
+
+    /* acyclic settings */
+    bool force_acyclic = true; /* force using acyclic even if terminated */
+    uint_t min_acyclic_iterations = 5;
 };
 
 NS_MAPMAP_END
