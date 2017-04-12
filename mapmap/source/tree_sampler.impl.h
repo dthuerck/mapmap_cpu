@@ -86,60 +86,7 @@ select_random_roots(
         luint_t next_root = m_component_lists[next_component]
             [root_index];
 
-        if (ACYCLIC)
-        {
-            /* true to get into while loop */
-            bool violation = true;
-            bool skip = false;
-
-            while(violation)
-            {
-                violation = false;
-
-                /* check if node violates acylicy */
-                for(const luint_t e_id : m_graph->inc_edges(next_root))
-                {
-                    const GraphEdge<COSTTYPE>& e = m_graph->edges()[e_id];
-                    const luint_t other_node = (e.node_a == next_root ?
-                        e.node_b : e.node_a);
-
-                    if(root_marker[other_node] > 0u)
-                    {
-                        violation = true;
-                        break;
-                    }
-                }
-
-                if(!violation)
-                    break;
-
-                /* in case of violation, deactivate node */
-                if(component_sizes[next_component] > 1)
-                    std::swap(m_component_lists[next_component][root_index],
-                        m_component_lists[next_component]
-                        [m_component_lists[next_component].size() - 1]);
-
-                --component_sizes[next_component];
-
-                /* no more nodes in this component - skip selection */
-                if(component_sizes[next_component] == 0)
-                {
-                    skip = true;
-                    break;
-                }
-
-                /* select next candidate */
-                std::uniform_int_distribution<luint_t> ud(0,
-                    component_sizes[next_component] - 1);
-                root_index = ud(rnd);
-                next_root = m_component_lists[next_component]
-                    [root_index];
-            }
-
-            if (skip)
-                continue;
-        }
-
+        /* defer conflict handling to main procedure */
         roots.push_back(next_root);
         root_marker[next_root] = 1u;
 
@@ -165,7 +112,8 @@ std::unique_ptr<Tree<COSTTYPE>>
 TreeSampler<COSTTYPE, ACYCLIC>::
 sample(
     std::vector<luint_t>& roots,
-    const bool record_dependencies)
+    bool record_dependencies,
+    bool relax)
 {
     const luint_t num_nodes = m_graph->num_nodes();
     const luint_t num_edges = m_graph->edges().size();
@@ -175,6 +123,9 @@ sample(
     /* create acceleration structure for edge sampling */
     create_adj_acc();
 
+    /* for early termination, count number of nodes remaining */
+    m_rem_nodes = m_graph->num_nodes();
+
     /* work queues */
     m_w_in = &m_w_a;
     m_w_out = &m_w_b;
@@ -183,54 +134,30 @@ sample(
     m_w_out->reserve(num_nodes);
     m_w_new.reserve(num_nodes);
 
-    /* clear markers and set root neighbour markers */
+    /* clear markers */
     m_markers.clear();
     m_markers.resize(num_nodes, 0u);
 
-    for(luint_t i = 0; i < roots.size(); ++i)
-    {
-        /* add root nodes to initial queue */
-        m_w_in->push_back(roots[i]);
-
-        /* mark nodes as roots */
-        m_tree->raw_parent_ids()[roots[i]] = roots[i];
-    }
-
-    const tbb::blocked_range<luint_t> root_range(0, roots.size());
-    tbb::parallel_for(root_range,
-        [&](const tbb::blocked_range<luint_t>& range)
-        {
-            for(luint_t i = range.begin(); i != range.end(); ++i)
-            {
-                const luint_t r = roots[i];
-
-                for(const luint_t& e_id : m_graph->inc_edges(r))
-                {
-                    const GraphEdge<COSTTYPE>& e = m_graph->edges()[e_id];
-                    const luint_t other_node = (e.node_a == r ? e.node_b :
-                        e.node_a);
-                    //if (m_markers[other_node] < 2u)
-                        ++m_markers[other_node];
-                }
-            }
-        });
+    /* put roots into queue */
+    for(const luint_t r : roots)
+        m_tree->raw_parent_ids()[r] = r;
+    m_w_new.assign(roots.begin(), roots.end());
+    m_rem_nodes -= roots.size();
 
     /* copy original degrees and initialize locks */
     m_node_locks.resize(num_nodes);
     m_rem_degrees.resize(num_nodes);
-    tbb::parallel_for(tbb::blocked_range<luint_t>(0, num_nodes),
-        [&](const tbb::blocked_range<luint_t>& r)
-        {
-            for(luint_t i = r.begin(); i != r.end(); ++i)
-            {
-                m_node_locks[i] = 0;
-                m_rem_degrees[i] = m_graph->nodes()[i].incident_edges.size();
-            }
-        });
+    m_in_queue.resize(num_nodes);
+
+    for(luint_t i = 0; i < num_nodes; ++i)
+        m_rem_degrees[i] = m_graph->nodes()[i].incident_edges.size();
+    std::fill(m_node_locks.begin(), m_node_locks.end(), 0);
 
     /* start actual growing process */
     luint_t it = 0;
-    while(true)
+    /* exploit first iteration to solve root conflicts */
+    bool skip_ph1 = true;
+    while(m_rem_nodes > 0 || skip_ph1)
     {
         m_w_in = (it % 2 == 0 ? &m_w_a : &m_w_b);
         m_w_out = (it % 2 == 0 ? &m_w_b : &m_w_a);
@@ -238,13 +165,21 @@ sample(
         m_w_out->clear();
         m_w_out->reserve(num_nodes);
 
-        m_w_new.clear();
-        m_w_new.reserve(num_nodes);
-
         m_w_conflict.clear();
+        std::fill(m_in_queue.begin(), m_in_queue.end(), 0);
 
-        /* phase I: try growing new branches */
-        sample_phase_I();
+        /* phase I: try growing new branches (or just copy selected nodes) */
+        if(!skip_ph1)
+        {
+            m_w_new.clear();
+            m_w_new.reserve(num_nodes);
+
+            sample_phase_I();
+        }
+        else
+        {
+            m_w_out->assign(m_w_in->begin(), m_w_in->end());
+        }
 
         /* phase II: update markers and detect collisions */
         sample_phase_II();
@@ -253,22 +188,43 @@ sample(
         {
             /* phase III: resolve conflicts */
             sample_phase_III();
+
+            /* record roots from conflict-resolved rescue nodes */
+            if(skip_ph1)
+            {
+                for(const luint_t& cand : (*m_w_in))
+                {
+                    if(m_tree->raw_parent_ids()[cand] == cand)
+                    {
+                        roots.push_back(cand);
+                        --m_rem_nodes;
+                    }
+                }
+            }
         }
+        skip_ph1 = false;
+
+        /* append new (not removed nodes to queue) */
+        for(const luint_t& n : m_w_new)
+            m_w_out->push_back(n);
 
         /**
          * if procedure gets stuck - add nodes with marker 0
          * as new nodes (that respect acyclicity).
          */
-        if(ACYCLIC && m_w_out->size() == 0u)
+        if(ACYCLIC && !relax && m_w_out->empty())
         {
             sample_rescue();
 
-            for(luint_t i = 0; i < m_w_out->size(); ++i)
-                roots.push_back((*m_w_out)[i]);
+            /* defer conflict-solving and root recording to later */
+            skip_ph1 = true;
         }
-
-        if(m_w_out->size() == 0u)
-            break;
+        else
+        {
+            /* after rescue, defer break until after conflict handling */
+            if(m_w_out->empty())
+                break;
+        }
 
         ++it;
     }
@@ -344,7 +300,7 @@ void
 TreeSampler<COSTTYPE, ACYCLIC>::
 sample_phase_I()
 {
-    tbb::blocked_range<luint_t> in_range(0, m_w_in->size(), 32);
+    tbb::blocked_range<luint_t> in_range(0, m_w_in->size());
 
     tbb::parallel_for(in_range,
         [&](const tbb::blocked_range<luint_t>& r)
@@ -403,10 +359,8 @@ sample_phase_I()
                                 m_tree->raw_parent_ids()[o_node] = in_node;
                                 m_w_new.push_back(o_node);
 
-                                if(m_rem_degrees[o_node] > 0u)
-                                {
-                                    m_w_out->push_back(o_node);
-                                }
+                                /* one node less to consider */
+                                --m_rem_nodes;
                             }
 
                             /* release lock */
@@ -423,7 +377,9 @@ sample_phase_I()
                                 inc_list_ix],
                                 m_adj[m_adj_offsets[in_node] +
                                 m_rem_degrees[in_node] - 1]);
-                            m_w_out->push_back(in_node);
+
+                            if(!m_in_queue[in_node].fetch_and_store(1))
+                                m_w_out->push_back(in_node);
                         }
                         --m_rem_degrees[in_node];
                     }
@@ -433,7 +389,8 @@ sample_phase_I()
                 }
                 else
                 {
-                    m_w_out->push_back(in_node);
+                    if(!m_in_queue[in_node].fetch_and_store(1))
+                        m_w_out->push_back(in_node);
                 }
             }
         });
@@ -447,7 +404,6 @@ TreeSampler<COSTTYPE, ACYCLIC>::
 sample_phase_II()
 {
     tbb::blocked_range<luint_t> new_range(0, m_w_new.size());
-
     tbb::parallel_for(new_range,
         [&](const tbb::blocked_range<luint_t>& r)
         {
@@ -479,8 +435,10 @@ sample_phase_II()
                             o_node));
                     }
 
-                    /* update marker */
-                    ++m_markers[o_node];
+                    /* update marker and remove node from consideration */
+                    if(m_markers[o_node].fetch_and_increment() == 1 &&
+                        !o_in_tree)
+                        --m_rem_nodes;
                 }
             }
         });
@@ -497,7 +455,7 @@ sample_phase_III()
     if (num_conflicts_found == 0)
         return;
 
-    tbb::atomic<luint_t> num_nodes_removed = 0;
+    tbb::concurrent_vector<luint_t> del;
     tbb::blocked_range<luint_t> conflict_range(0, num_conflicts_found);
     tbb::parallel_for(conflict_range,
         [&](const tbb::blocked_range<luint_t>& r)
@@ -525,7 +483,7 @@ sample_phase_III()
                         [remove_node] != invalid_luint_t);
 
                     /**
-                     * skip removal operation if already happended by
+                     * skip removal operation if already happened by
                      * another conflict pair.
                      */
                     if(is_in_tree)
@@ -535,23 +493,15 @@ sample_phase_III()
                         m_tree->raw_parent_ids()[remove_node] =
                             invalid_luint_t;
 
-                        ++num_nodes_removed;
+                        del.push_back(remove_node);
 
-                        /* decrement marker of adjacent nodes */
-                        for(const luint_t& e_id :
-                            m_graph->inc_edges(remove_node))
-                        {
-                            const GraphEdge<COSTTYPE> e =
-                                m_graph->edges()[e_id];
-                            const luint_t o_node = (e.node_a == remove_node ?
-                                    e.node_b : e.node_a);
-
-                            --m_markers[o_node];
-                        }
+                        /* if removing 'new' root, don't restore table */
+                        if(remove_node != old_parent)
+                            ++m_rem_degrees[old_parent];
 
                         /* rollback parent and put it into queue */
-                        ++m_rem_degrees[old_parent];
-                        m_w_out->push_back(old_parent);
+                        if(!m_in_queue[old_parent].fetch_and_store(1))
+                            m_w_out->push_back(old_parent);
                     }
 
                     /* release lock */
@@ -560,22 +510,45 @@ sample_phase_III()
             }
         });
 
-    /* remove nodes not in tree from queue (queue filter step) */
-    if(num_nodes_removed > 0)
+    /* update markers of nodes adjacent to deleted candidates */
+    for(const luint_t& remove_node : del)
     {
-        /* abuse m_new as temporary storage */
-        m_w_new.clear();
-        m_w_new.assign(m_w_out->begin(), m_w_out->end());
-        m_w_out->clear();
-        m_w_out->reserve(m_w_new.size());
+        /* decrement marker of adjacent nodes */
+        for(const luint_t& e_id : m_graph->inc_edges(remove_node))
+        {
+            const GraphEdge<COSTTYPE> e = m_graph->edges()[e_id];
+            const luint_t o_node = (e.node_a == remove_node ?
+                    e.node_b : e.node_a);
+            const bool o_in_tree = (m_tree->raw_parent_ids()[o_node] !=
+                invalid_luint_t);
 
-        tbb::parallel_do(m_w_new.begin(), m_w_new.end(),
-            [&](const luint_t& n)
+            /* if marker-threshold passed while decrementing, reconsider node */
+            if(m_markers[o_node].fetch_and_decrement() == 2 && !o_in_tree)
             {
-                /* add only nodes to queue which are in the tree */
-                if(m_tree->raw_parent_ids()[n] != invalid_luint_t)
-                    m_w_out->push_back(n);
-            });
+                /* abuse m_in_queue to correctly handle reconsideration */
+                m_in_queue[o_node] = 255;
+                ++m_rem_nodes;
+            }
+        }
+    }
+
+    /* root case: put back deleted nodes if possible */
+    for(const luint_t& remove_node : del)
+    {
+        if(m_markers[remove_node] < 2 && m_in_queue[remove_node] < 255)
+            ++m_rem_nodes;
+    }
+
+    /* for correctness, make sure there are only tree-nodes in the queue */
+    if(!del.empty())
+    {
+        /* filter removed nodes from m_w_new */
+        std::vector<luint_t> filter_new;
+        for(const luint_t& newn : m_w_new)
+            if(m_tree->raw_parent_ids()[newn] != invalid_luint_t)
+                filter_new.push_back(newn);
+
+        m_w_new.assign(filter_new.begin(), filter_new.end());
     }
 }
 
@@ -589,7 +562,6 @@ sample_rescue()
     std::mt19937_64 rnd(m_rnd_dev());
 
     /* find potential nodes with marker 0 */
-    tbb::concurrent_vector<luint_t> candidates;
     tbb::blocked_range<luint_t> node_range(0, m_graph->num_nodes());
     tbb::parallel_for(node_range,
         [&](const tbb::blocked_range<luint_t>& r)
@@ -600,29 +572,16 @@ sample_rescue()
                     [i] != invalid_luint_t);
 
                 if(!is_in_tree && m_markers[i] == 0)
-                    candidates.push_back(i);
+                {
+                    m_tree->raw_parent_ids()[i] = i;
+
+                    m_w_new.push_back(i);
+                    --m_rem_nodes;
+                }
             }
         });
 
-    if(candidates.size() == 0)
-        return;
-
-    /* add 1 candidate as new root */
-    std::uniform_int_distribution<luint_t> d(0, candidates.size() - 1);
-    const luint_t new_root = candidates[d(rnd)];
-    m_w_out->push_back(new_root);
-    m_tree->raw_parent_ids()[new_root] = new_root;
-
-    /* update markers */
-    for(const luint_t& e_id : m_graph->inc_edges(new_root))
-    {
-        const GraphEdge<COSTTYPE> e = m_graph->edges()[e_id];
-        const luint_t o_node = (e.node_a == new_root ?
-                e.node_b : e.node_a);
-
-        /* update marker */
-        ++m_markers[o_node];
-    }
+    /* resolve conflicts later */
 }
 
 NS_MAPMAP_END

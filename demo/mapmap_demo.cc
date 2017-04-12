@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017, Daniel Thuerck
+ * Copyright (C) 2016, Daniel Thuerck
  * All rights reserved.
  *
  * This software may be modified and distributed under the terms
@@ -178,6 +178,7 @@ main(
         ctr.spanning_tree_multilevel_after_n_iterations = 5;
         ctr.force_acyclic = true;
         ctr.min_acyclic_iterations = 5;
+        ctr.relax_acyclic_maximal = true;
 
         /* construct optimizer */
         mapmap.set_graph(graph.get());

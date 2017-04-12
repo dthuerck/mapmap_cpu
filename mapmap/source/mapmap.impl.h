@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017, Daniel Thuerck
+ * Copyright (C) 2016, Daniel Thuerck
  * TU Darmstadt - Graphics, Capture and Massively Parallel Computing
  * All rights reserved.
  *
@@ -235,6 +235,13 @@ throw()
 {
     /* initialize control flow with standard values */
     mapMAP_control std_control;
+    std_control.use_multilevel = true;
+    std_control.use_spanning_tree = true;
+    std_control.use_acyclic = true;
+    std_control.spanning_tree_multilevel_after_n_iterations = 5;
+    std_control.force_acyclic = true;
+    std_control.min_acyclic_iterations = 5;
+    std_control.relax_acyclic_maximal = true;
 
     return optimize(solution, std_control);
 }
@@ -337,7 +344,7 @@ throw()
     {
         ++ac_it;
 
-        m_objective = opt_step_acyclic();
+        m_objective = opt_step_acyclic(control_flow.relax_acyclic_maximal);
 
         record_time_from_start();
         print_status();
@@ -642,7 +649,8 @@ template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
 FORCEINLINE
 _s_t<COSTTYPE, SIMDWIDTH>
 mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
-opt_step_acyclic()
+opt_step_acyclic(
+    bool relax_maximality)
 {
     std::vector<_iv_st<COSTTYPE, SIMDWIDTH>> ac_solution = m_solution;
 
@@ -654,7 +662,8 @@ opt_step_acyclic()
     sampler.select_random_roots(m_num_roots, roots);
 
     /* grow trees in forest */
-    std::unique_ptr<Tree<COSTTYPE>> tree = sampler.sample(roots, true);
+    std::unique_ptr<Tree<COSTTYPE>> tree = sampler.sample(roots, true,
+        relax_maximality);
 
     /* create tree optimizer (std: DP) and pass parameters and modules */
     CombinatorialDynamicProgramming<COSTTYPE, SIMDWIDTH, UNARY,

@@ -33,26 +33,27 @@ public:
     /**
      * Select around k roots, satisfying the following conditions:
      * - each component is covered by at least one root,
-     * - if ACYCLIC = true, roots cannot be adjacent nodes,
      * - number of components <= number of roots <= number of nodes.
      *
      * After each component is covered, the remaining nodes
      * are sampled according to the components' size.
+     *
+     * Conflict checking is deferred to a later stage.
      */
     void select_random_roots(const luint_t k, std::vector<luint_t>& roots);
 
     /**
      * Samples a maximal (acyclic) coordinate set, given a set
-     * of roots to grow from. To achieve maximality, additional roots 
+     * of roots to grow from. To achieve maximality, additional roots
      * may be included.
-     * 
+     *
      * Note: If a component is not covered by the root set,
      * it is also left out of the tree.
      *
      * Transfers ownership to the caller.
      */
     std::unique_ptr<Tree<COSTTYPE>> sample(std::vector<luint_t>& roots,
-        const bool record_dependencies);
+        bool record_dependencies, bool relax = true);
 
 public:
     const uint_t p_chunk_size = 16;
@@ -95,6 +96,8 @@ protected:
     std::vector<luint_t> m_rem_degrees;
     std::vector<tbb::atomic<luint_t>> m_markers;
     std::vector<tbb::atomic<unsigned char>> m_node_locks;
+    std::vector<tbb::atomic<unsigned char>> m_in_queue;
+    tbb::atomic<luint_t> m_rem_nodes;
 };
 
 template<typename COSTTYPE, bool ACYCLIC>

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2017, Daniel Thuerck
+ * Copyright (C) 2016, Daniel Thuerck
  * TU Darmstadt - Graphics, Capture and Massively Parallel Computing
  * All rights reserved.
  *
@@ -108,7 +108,7 @@ protected:
     _s_t<COSTTYPE, SIMDWIDTH> initial_labelling();
     _s_t<COSTTYPE, SIMDWIDTH> opt_step_spanning_tree();
     _s_t<COSTTYPE, SIMDWIDTH> opt_step_multilevel();
-    _s_t<COSTTYPE, SIMDWIDTH> opt_step_acyclic();
+    _s_t<COSTTYPE, SIMDWIDTH> opt_step_acyclic(bool relax_maximality);
     bool check_termination();
 
 protected:
@@ -182,19 +182,20 @@ protected:
 struct mapMAP_control
 {
     /* switch modes on/off */
-    bool use_multilevel = true;
-    bool use_spanning_tree = true;
-    bool use_acyclic = true;
+    bool use_multilevel;
+    bool use_spanning_tree;
+    bool use_acyclic;
 
     /* multilevel settings */
     /* none */
 
     /* spanning tree settings */
-    uint_t spanning_tree_multilevel_after_n_iterations = 5;
+    uint_t spanning_tree_multilevel_after_n_iterations;
 
     /* acyclic settings */
-    bool force_acyclic = true; /* force using acyclic even if terminated */
-    uint_t min_acyclic_iterations = 5;
+    bool force_acyclic; /* force using acyclic even if terminated */
+    uint_t min_acyclic_iterations;
+    bool relax_acyclic_maximal;
 };
 
 NS_MAPMAP_END
