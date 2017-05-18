@@ -17,6 +17,7 @@
 #include <chrono>
 
 #include "header/defines.h"
+#include "header/instance_factory.h"
 #include "header/vector_types.h"
 #include "header/tree_sampler.h"
 #include "header/dynamic_programming.h"
@@ -83,6 +84,9 @@ public:
     void set_termination_criterion(TerminationCriterion<COSTTYPE,
         SIMDWIDTH> * criterion);
 
+    /* algorithm selection */
+    void set_tree_sampler_algorithm(const TREE_SAMPLER_ALGORITHM& algo);
+
     /**
      * callback for external logging - outputs time in ms and energy after
      */
@@ -139,6 +143,9 @@ protected:
         m_multilevel_criterion;
     TerminationCriterion<COSTTYPE, SIMDWIDTH> *
         m_termination_criterion;
+
+    /* algorithms */
+    TREE_SAMPLER_ALGORITHM m_tree_sampler_algo;
 
     luint_t m_num_roots = 64u;
 

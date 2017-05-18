@@ -44,6 +44,26 @@ public:
 };
 
 /**
+ * Reduction body (operator: max) for tbb::parallel_reduce.
+ */
+template<typename VALTYPE, typename INDEXTYPE>
+class MaxReduction
+{
+public:
+    MaxReduction(VALTYPE * in);
+    MaxReduction(MaxReduction<VALTYPE, INDEXTYPE>& lhs, tbb::split);
+    ~MaxReduction();
+
+    VALTYPE get_max();
+    void operator()(const tbb::blocked_range<INDEXTYPE>& r);
+    void join(const MaxReduction<VALTYPE, INDEXTYPE>& rhs);
+
+public:
+    VALTYPE m_max;
+    VALTYPE * m_in;
+};
+
+/**
  * Exclusive scan body (operator: +) for tbb::parallel_scan.
  */
 template<typename VALTYPE, typename INDEXTYPE>
@@ -55,7 +75,7 @@ public:
     ~PlusScan();
 
     void operator()(const tbb::blocked_range<INDEXTYPE>& r, tbb::pre_scan_tag);
-    void operator()(const tbb::blocked_range<INDEXTYPE>& r, 
+    void operator()(const tbb::blocked_range<INDEXTYPE>& r,
         tbb::final_scan_tag);
     void assign(PlusScan<VALTYPE, INDEXTYPE>& rhs);
     void reverse_join(PlusScan<VALTYPE, INDEXTYPE>& rhs);
@@ -63,12 +83,12 @@ public:
 public:
     VALTYPE m_sum;
     VALTYPE* m_in;
-    VALTYPE* m_out; 
+    VALTYPE* m_out;
 };
 
 /**
  * Histogram helper (count how many times each number occurs).
- * 
+ *
  * Results in a list for values (must be discrete type) [0, length).
  */
 template<typename VALTYPE, typename INDEXTYPE>

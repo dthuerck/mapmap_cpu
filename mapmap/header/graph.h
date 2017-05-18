@@ -30,7 +30,7 @@ struct GraphEdge
     luint_t node_a;
     luint_t node_b;
     scalar_t<WEIGHTTYPE> weight;
-};                                                                             
+};
 
 template<typename COSTTYPE>
 class Graph
@@ -39,7 +39,7 @@ public:
     Graph(const luint_t num_nodes);
     ~Graph();
 
-    void add_edge(const luint_t node_a, const luint_t node_b, 
+    void add_edge(const luint_t node_a, const luint_t node_b,
         const scalar_t<COSTTYPE> weight) throw();
     const std::vector<GraphNode>& nodes() const;
     const luint_t num_nodes() const;
@@ -50,6 +50,9 @@ public:
     const std::vector<luint_t>& components() const;
     const luint_t num_components() const;
 
+    /* store and use coloring information */
+    void set_coloring(const std::vector<luint_t>& coloring);
+    const std::vector<luint_t>& get_coloring();
 
 protected:
 #if defined(BUILD_FOR_TEST)
@@ -63,6 +66,8 @@ protected:
     std::vector<GraphEdge<scalar_t<COSTTYPE>>> m_edges;
     std::vector<luint_t> m_components;
     luint_t m_num_components;
+
+    std::vector<luint_t> m_coloring;
 };
 
 NS_MAPMAP_END

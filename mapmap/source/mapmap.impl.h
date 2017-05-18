@@ -215,6 +215,18 @@ template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
 FORCEINLINE
 void
 mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+set_tree_sampler_algorithm(
+    const TREE_SAMPLER_ALGORITHM& algo)
+{
+    m_tree_sampler_algo = algo;
+}
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+FORCEINLINE
+void
+mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
 set_logging_callback(
     const std::function<void (const luint_t, const _s_t<COSTTYPE, SIMDWIDTH>)>&
         callback)
@@ -492,14 +504,16 @@ mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
 initial_labelling()
 {
     /* sample a tree (forest) without dependencies */
-    TreeSampler<COSTTYPE, false> sampler(m_graph);
+    std::unique_ptr<TreeSampler<COSTTYPE, false>> sampler =
+        InstanceFactory<COSTTYPE>::get_sampler_instance(
+        m_tree_sampler_algo, m_graph, false);
 
     /* sample roots of forest */
     std::vector<luint_t> roots;
-    sampler.select_random_roots(m_num_roots, roots);
+    sampler->select_random_roots(m_num_roots, roots);
 
     /* grow trees in forest */
-    std::unique_ptr<Tree<COSTTYPE>> tree = sampler.sample(roots, false);
+    std::unique_ptr<Tree<COSTTYPE>> tree = sampler->sample(roots, false);
 
     /* create tree optimizer (std: DP) and pass parameters and modules */
     CombinatorialDynamicProgramming<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE> opt;
@@ -525,14 +539,16 @@ mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
 opt_step_spanning_tree()
 {
     /* sample a tree (forest) without dependencies */
-    TreeSampler<COSTTYPE, false> sampler(m_graph);
+    std::unique_ptr<TreeSampler<COSTTYPE, false>> sampler =
+        InstanceFactory<COSTTYPE>::get_sampler_instance(
+        m_tree_sampler_algo, m_graph, false);
 
     /* sample roots of forest */
     std::vector<luint_t> roots;
-    sampler.select_random_roots(m_num_roots, roots);
+    sampler->select_random_roots(m_num_roots, roots);
 
     /* grow trees in forest */
-    std::unique_ptr<Tree<COSTTYPE>> tree = sampler.sample(roots, true);
+    std::unique_ptr<Tree<COSTTYPE>> tree = sampler->sample(roots, true);
 
     /* create tree optimizer (std: DP) and pass parameters and modules */
     CombinatorialDynamicProgramming<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE> opt;
@@ -605,12 +621,14 @@ opt_step_multilevel()
         lvl_opt.use_dependencies(upper_solution);
 
         /* sample tree on graph */
-        TreeSampler<COSTTYPE, true> sampler(m_multilevel->get_level_graph());
+        std::unique_ptr<TreeSampler<COSTTYPE, false>> sampler =
+            InstanceFactory<COSTTYPE>::get_sampler_instance(
+            m_tree_sampler_algo, m_multilevel->get_level_graph(), false);
 
         roots.clear();
-        sampler.select_random_roots(m_num_roots, roots);
+        sampler->select_random_roots(m_num_roots, roots);
         std::unique_ptr<Tree<COSTTYPE>> lvl_tree =
-            sampler.sample(roots, true);
+            sampler->sample(roots, true);
         lvl_opt.set_tree(lvl_tree.get());
 
         /* optimize for level solution */
@@ -655,14 +673,16 @@ opt_step_acyclic(
     std::vector<_iv_st<COSTTYPE, SIMDWIDTH>> ac_solution = m_solution;
 
     /* sample a tree (forest) without dependencies */
-    TreeSampler<COSTTYPE, true> sampler(m_graph);
+    std::unique_ptr<TreeSampler<COSTTYPE, true>> sampler =
+        InstanceFactory<COSTTYPE>::get_sampler_instance(
+        m_tree_sampler_algo, m_graph, true);
 
     /* sample roots of forest */
     std::vector<luint_t> roots;
-    sampler.select_random_roots(m_num_roots, roots);
+    sampler->select_random_roots(m_num_roots, roots);
 
     /* grow trees in forest */
-    std::unique_ptr<Tree<COSTTYPE>> tree = sampler.sample(roots, true,
+    std::unique_ptr<Tree<COSTTYPE>> tree = sampler->sample(roots, true,
         relax_maximality);
 
     /* create tree optimizer (std: DP) and pass parameters and modules */

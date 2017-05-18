@@ -9,6 +9,8 @@
 
 #include "header/parallel_templates.h"
 
+#include <limits>
+
 NS_MAPMAP_BEGIN
 
 template<typename VALTYPE, typename INDEXTYPE>
@@ -30,7 +32,7 @@ PlusReduction(
     tbb::split)
     : PlusReduction<VALTYPE, INDEXTYPE>(lhs.m_in)
 {
-    
+
 }
 
 /* ************************************************************************** */
@@ -61,7 +63,7 @@ operator()(
     const tbb::blocked_range<INDEXTYPE>& r)
 {
     for(INDEXTYPE i = r.begin(); i != r.end(); ++i)
-        m_sum += m_in[i];    
+        m_sum += m_in[i];
 }
 
 /* ************************************************************************** */
@@ -72,7 +74,73 @@ PlusReduction<VALTYPE, INDEXTYPE>::
 join(
     const PlusReduction<VALTYPE, INDEXTYPE>& rhs)
 {
-    m_sum += rhs.m_sum;   
+    m_sum += rhs.m_sum;
+}
+
+/* ************************************************************************** */
+
+template<typename VALTYPE, typename INDEXTYPE>
+MaxReduction<VALTYPE, INDEXTYPE>::
+MaxReduction(
+    VALTYPE * in)
+    : m_max((VALTYPE) std::numeric_limits<VALTYPE>::min()),
+      m_in(in)
+{
+
+}
+
+/* ************************************************************************** */
+
+template<typename VALTYPE, typename INDEXTYPE>
+MaxReduction<VALTYPE, INDEXTYPE>::
+MaxReduction(
+    MaxReduction<VALTYPE, INDEXTYPE>& lhs,
+    tbb::split)
+    : MaxReduction<VALTYPE, INDEXTYPE>(lhs.m_in)
+{
+
+}
+
+/* ************************************************************************** */
+
+template<typename VALTYPE, typename INDEXTYPE>
+MaxReduction<VALTYPE, INDEXTYPE>::
+~MaxReduction()
+{
+
+}
+
+/* ************************************************************************** */
+
+template<typename VALTYPE, typename INDEXTYPE>
+VALTYPE
+MaxReduction<VALTYPE, INDEXTYPE>::
+get_max()
+{
+    return m_max;
+}
+
+/* ************************************************************************** */
+
+template<typename VALTYPE, typename INDEXTYPE>
+void
+MaxReduction<VALTYPE, INDEXTYPE>::
+operator()(
+    const tbb::blocked_range<INDEXTYPE>& r)
+{
+    for(INDEXTYPE i = r.begin(); i != r.end(); ++i)
+        m_max = std::max(m_max, m_in[i]);
+}
+
+/* ************************************************************************** */
+
+template<typename VALTYPE, typename INDEXTYPE>
+void
+MaxReduction<VALTYPE, INDEXTYPE>::
+join(
+    const MaxReduction<VALTYPE, INDEXTYPE>& rhs)
+{
+    m_max = std::max(m_max, rhs.m_max);
 }
 
 /* ************************************************************************** */
@@ -86,8 +154,10 @@ PlusScan(
       m_in(in),
       m_out(out)
 {
-    
+
 }
+
+/* ************************************************************************** */
 
 template<typename VALTYPE, typename INDEXTYPE>
 PlusScan<VALTYPE, INDEXTYPE>::
@@ -96,7 +166,7 @@ PlusScan(
     tbb::split)
     : PlusScan<VALTYPE, INDEXTYPE>(lhs.m_in, lhs.m_out)
 {
-    
+
 }
 
 /* ************************************************************************** */
@@ -191,7 +261,7 @@ Histogram<VALTYPE, INDEXTYPE>::
 /* ************************************************************************** */
 
 template<typename VALTYPE, typename INDEXTYPE>
-std::vector<VALTYPE>& 
+std::vector<VALTYPE>&
 Histogram<VALTYPE, INDEXTYPE>::
 operator()(
     const tbb::blocked_range<INDEXTYPE>& r)
@@ -202,7 +272,7 @@ operator()(
     m_final_histogram.clear();
     m_final_histogram.resize(r.end(), (VALTYPE) 0);
 
-    tbb::parallel_for(r, 
+    tbb::parallel_for(r,
         [&](const tbb::blocked_range<INDEXTYPE>& ri)
         {
             for(INDEXTYPE n = ri.begin(); n != ri.end(); ++n)
@@ -212,9 +282,9 @@ operator()(
                     ++m_histogram[number];
             }
         });
-    
+
     /* copy to fixed data */
-    tbb::parallel_for(tbb::blocked_range<INDEXTYPE>(0, m_max_val), 
+    tbb::parallel_for(tbb::blocked_range<INDEXTYPE>(0, m_max_val),
         [&](const tbb::blocked_range<INDEXTYPE>& ri)
         {
             for(INDEXTYPE n = ri.begin(); n != ri.end(); ++n)

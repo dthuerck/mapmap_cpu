@@ -71,7 +71,7 @@ public:
         std::vector<luint_t> my_path;
         std::set<luint_t> my_neighbors;
 
-        /** 
+        /**
          * do a standard BFS, stop once all neighbours have been visited
          * by any task in the pool
          */
@@ -91,7 +91,7 @@ public:
                 my_path.push_back(cur_node);
                 (*m_components)[cur_node] = m_start_node;
 
-                /** 
+                /**
                  * Exploit m_visited as spinlock - 1 means currently
                  * visited, 2 means finished processing.
                  */
@@ -99,7 +99,7 @@ public:
 
                 for(const luint_t e_id : m_graph->inc_edges(cur_node))
                 {
-                    const GraphEdge<scalar_t<COSTTYPE>>& e = 
+                    const GraphEdge<scalar_t<COSTTYPE>>& e =
                         m_graph->edges()[e_id];
 
                     const luint_t other_node = (e.node_a == cur_node) ?
@@ -117,7 +117,7 @@ public:
             }
         }
 
-        /** 
+        /**
          * Only save complet if it contains a node (would cause empty components
          * otherwise).
          */
@@ -138,7 +138,7 @@ protected:
     tbb::concurrent_vector<complet> * m_complet_out;
 };
 
-/** 
+/**
  * *****************************************************************************
  * ************************** Graph - public functions *************************
  * *****************************************************************************
@@ -155,7 +155,9 @@ Graph(
   m_components(num_nodes, 0),
   m_num_components(1)
 {
-
+    /* initial coloring: all 0 */
+    m_coloring.resize(num_nodes);
+    std::fill(m_coloring.begin(), m_coloring.end(), 0);
 }
 
 /* ************************************************************************** */
@@ -188,7 +190,7 @@ throw()
     m_edges.push_back(edge);
 
     const lint_t new_edge_id = m_edges.size() - 1;
-   
+
     m_nodes[node_a].incident_edges.push_back(new_edge_id);
     m_nodes[node_b].incident_edges.push_back(new_edge_id);
 }
@@ -221,7 +223,7 @@ const
 
 template<typename COSTTYPE>
 FORCEINLINE
-const std::vector<luint_t>& 
+const std::vector<luint_t>&
 Graph<COSTTYPE>::
 inc_edges(
     const luint_t node)
@@ -257,7 +259,7 @@ update_components()
     std::iota(m_components.begin(), m_components.end(), 0);
 
     /*
-     * BFS until all nodes are marked by lazy algorithm: each thread discovers 
+     * BFS until all nodes are marked by lazy algorithm: each thread discovers
      * part of the graph, defers building of the components until later
      */
 
@@ -281,8 +283,8 @@ update_components()
         tbb::atomic<luint_t> start_nodes_selected;
         start_nodes_selected = (luint_t) 0;
 
-        tbb::parallel_for(node_range, 
-            [&] (const tbb::blocked_range<luint_t>& range) 
+        tbb::parallel_for(node_range,
+            [&] (const tbb::blocked_range<luint_t>& range)
             {
                 if(start_nodes_selected >= BFS_ROOTS)
                     return;
@@ -307,7 +309,7 @@ update_components()
         const luint_t real_tasks = (std::min)((luint_t) BFS_ROOTS, s_nodes);
         tbb::task_list round_tasks;
         for(uint_t i = 0; i < real_tasks; ++i)
-        {  
+        {
             round_tasks.push_back(*new(tbb::task::allocate_root())
                 LazyBFSTask<COSTTYPE>(
                     start_nodes[i],
@@ -315,7 +317,7 @@ update_components()
                     &visited,
                     &m_components,
                     &nodes_left,
-                    &accrued_complets)); 
+                    &accrued_complets));
         }
 
         /* spawn tasks and wait for completion */
@@ -410,6 +412,30 @@ num_components()
 const
 {
     return m_num_components;
+}
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE>
+FORCEINLINE
+void
+Graph<COSTTYPE>::
+set_coloring(
+    const std::vector<luint_t>& coloring)
+{
+    std::copy(coloring.begin(), coloring.begin() + std::min(coloring.size(),
+        m_num_nodes), m_coloring.begin());
+}
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE>
+FORCEINLINE
+const std::vector<luint_t>&
+Graph<COSTTYPE>::
+get_coloring()
+{
+    return m_coloring;
 }
 
 NS_MAPMAP_END

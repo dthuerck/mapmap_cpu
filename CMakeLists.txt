@@ -57,6 +57,7 @@ set(demo_dir "demo")
 
 # base files
 set(header_base
+	${header_dir}/color.h
 	${header_dir}/costs.h
     ${header_dir}/defines.h
 	${header_dir}/dynamic_programming.h
@@ -72,6 +73,7 @@ set(header_base
 	${header_dir}/vector_math.h)
 
 set(impl_base
+	${impl_dir}/color.impl.h
 	${impl_dir}/costs.impl.h
 	${impl_dir}/dynamic_programming.impl.h
     ${impl_dir}/graph.impl.h
@@ -126,6 +128,7 @@ set(impl_test
 	${test_dir}/util_test.impl.h)
 
 set(src_test
+	${test_dir}/test_coloring.cc
     ${test_dir}/test_coordinate_set.cc
 	${test_dir}/test_dynamic_programming.cc
     ${test_dir}/test_graph.cc

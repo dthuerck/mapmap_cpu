@@ -13,6 +13,7 @@
 #include "header/defines.h"
 #include "header/vector_types.h"
 #include "header/tree_sampler.h"
+#include "header/optimistic_tree_sampler.h"
 #include "test/util_test.h"
 
 NS_MAPMAP_BEGIN
@@ -29,7 +30,7 @@ class mapMAPTestCoordinateSet : public testing::Test
 public:
     using cost_t = float;
 
-    const uint_t num_components = 1;
+    const uint_t num_components = 2;
     const uint_t component_dim = 100;
 
 public:
@@ -54,7 +55,7 @@ public:
             m_roots.push_back(c * component_dim * component_dim);
 
         m_sampler = std::unique_ptr<TreeSampler<cost_t, true>>(
-            new TreeSampler<cost_t, true>(m_graph.get()));
+            new OptimisticTreeSampler<cost_t, true>(m_graph.get()));
 
         m_tree = m_sampler->sample(m_roots, true, false);
 

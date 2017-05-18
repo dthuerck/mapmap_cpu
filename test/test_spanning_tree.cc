@@ -17,6 +17,7 @@
 #include "header/defines.h"
 #include "header/vector_types.h"
 #include "header/tree_sampler.h"
+#include "header/optimistic_tree_sampler.h"
 #include "test/util_test.h"
 
 NS_MAPMAP_BEGIN
@@ -32,7 +33,7 @@ public:
 public:
     mapMAPTestSpanningTree()
     {
-        
+
     }
 
     ~mapMAPTestSpanningTree()
@@ -40,7 +41,7 @@ public:
 
     }
 
-    void 
+    void
     SetUp()
     {
         /* create a grid graph with a given number of connected components */
@@ -54,7 +55,7 @@ public:
             m_roots.push_back(c * component_dim * component_dim);
 
         m_sampler = std::unique_ptr<TreeSampler<cost_t, false>>(
-            new TreeSampler<cost_t, false>(m_graph.get()));
+            new OptimisticTreeSampler<cost_t, false>(m_graph.get()));
 
         m_tree = m_sampler->sample(m_roots, true);
 
@@ -134,7 +135,7 @@ TEST_F(mapMAPTestSpanningTree, TestIncompleteRootCover)
 
 TEST_F(mapMAPTestSpanningTree, TestIsComplete)
 {
-    const luint_t num_nodes = num_components * component_dim * 
+    const luint_t num_nodes = num_components * component_dim *
         component_dim;
     std::vector<unsigned char> visited(num_nodes, 0u);
 
@@ -142,7 +143,7 @@ TEST_F(mapMAPTestSpanningTree, TestIsComplete)
         BFSWithCustomFunc<cost_t>(m_tree.get(), r,
             [&visited](const Tree<cost_t> * tree, const luint_t node_id)
             {
-                visited[node_id] = 1u;  
+                visited[node_id] = 1u;
             });
 
     for (luint_t n = 0; n < num_nodes; ++n)
@@ -158,7 +159,7 @@ TEST_F(mapMAPTestSpanningTree, TestDoesNotViolateComponents)
                 const TreeNode<cost_t> node = tree->node(node_id);
                 const luint_t parent_node = node.parent_id;
 
-                /** 
+                /**
                  * Simply check if each parent/child link
                  * connects only nodes from the same component.
                  */
@@ -175,7 +176,7 @@ TEST_F(mapMAPTestSpanningTree, TestDoesNotViolateComponents)
 
 TEST_F(mapMAPTestSpanningTree, TestIsDAG)
 {
-    const luint_t num_nodes = num_components * component_dim * 
+    const luint_t num_nodes = num_components * component_dim *
         component_dim;
     std::vector<luint_t> visited(num_nodes, 0u);
 
@@ -183,7 +184,7 @@ TEST_F(mapMAPTestSpanningTree, TestIsDAG)
         BFSWithCustomFunc<cost_t>(m_tree.get(), r,
             [&visited](const Tree<cost_t> * tree, const luint_t node_id)
             {
-                ++visited[node_id];  
+                ++visited[node_id];
             });
 
     /* tree is DAG <=> each node visited at most once */
@@ -193,9 +194,9 @@ TEST_F(mapMAPTestSpanningTree, TestIsDAG)
 
 TEST_F(mapMAPTestSpanningTree, TestDependenciesAreComplete)
 {
-    const luint_t num_nodes = num_components * component_dim * 
+    const luint_t num_nodes = num_components * component_dim *
         component_dim;
-    
+
     for(luint_t i = 0; i < num_nodes; ++i)
     {
         /* collect parent, children and dependencies */
@@ -223,13 +224,13 @@ TEST_F(mapMAPTestSpanningTree, TestDependenciesAreComplete)
             inc_set.insert(d);
         }
 
-        /* check if the collected set covers the incidence list */ 
+        /* check if the collected set covers the incidence list */
         ASSERT_EQ(inc_set.size(), m_graph->inc_edges(i).size());
 
         for(const luint_t& n : m_graph->inc_edges(i))
         {
             const GraphEdge<cost_t> n_edge = m_graph->edges()[n];
-            const luint_t other_n = (n_edge.node_a == i) ? n_edge.node_b : 
+            const luint_t other_n = (n_edge.node_a == i) ? n_edge.node_b :
                 n_edge.node_a;
 
             ASSERT_TRUE(inc_set.find(other_n) != inc_set.end());

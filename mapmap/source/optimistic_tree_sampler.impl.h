@@ -21,8 +21,8 @@
 NS_MAPMAP_BEGIN
 
 template<typename COSTTYPE, bool ACYCLIC>
-TreeSampler<COSTTYPE, ACYCLIC>::
-TreeSampler(
+OptimisticTreeSampler<COSTTYPE, ACYCLIC>::
+OptimisticTreeSampler(
     const Graph<COSTTYPE> * graph)
     : m_graph(graph),
       m_rnd_dev()
@@ -33,8 +33,8 @@ TreeSampler(
 /* ************************************************************************** */
 
 template<typename COSTTYPE, bool ACYCLIC>
-TreeSampler<COSTTYPE, ACYCLIC>::
-~TreeSampler()
+OptimisticTreeSampler<COSTTYPE, ACYCLIC>::
+~OptimisticTreeSampler()
 {
 
 }
@@ -43,7 +43,7 @@ TreeSampler<COSTTYPE, ACYCLIC>::
 
 template<typename COSTTYPE, bool ACYCLIC>
 void
-TreeSampler<COSTTYPE, ACYCLIC>::
+OptimisticTreeSampler<COSTTYPE, ACYCLIC>::
 select_random_roots(
     const luint_t k,
     std::vector<luint_t>& roots)
@@ -109,7 +109,7 @@ select_random_roots(
 
 template<typename COSTTYPE, bool ACYCLIC>
 std::unique_ptr<Tree<COSTTYPE>>
-TreeSampler<COSTTYPE, ACYCLIC>::
+OptimisticTreeSampler<COSTTYPE, ACYCLIC>::
 sample(
     std::vector<luint_t>& roots,
     bool record_dependencies,
@@ -239,7 +239,7 @@ sample(
 
 template<typename COSTTYPE, bool ACYCLIC>
 void
-TreeSampler<COSTTYPE, ACYCLIC>::
+OptimisticTreeSampler<COSTTYPE, ACYCLIC>::
 build_component_lists()
 {
     const luint_t num_nodes = m_graph->num_nodes();
@@ -260,7 +260,7 @@ build_component_lists()
 
 template<typename COSTTYPE, bool ACYCLIC>
 void
-TreeSampler<COSTTYPE, ACYCLIC>::
+OptimisticTreeSampler<COSTTYPE, ACYCLIC>::
 create_adj_acc()
 {
     /* make private copy of nodes' adjacency list */
@@ -297,7 +297,7 @@ create_adj_acc()
 
 template<typename COSTTYPE, bool ACYCLIC>
 void
-TreeSampler<COSTTYPE, ACYCLIC>::
+OptimisticTreeSampler<COSTTYPE, ACYCLIC>::
 sample_phase_I()
 {
     tbb::blocked_range<luint_t> in_range(0, m_w_in->size());
@@ -400,7 +400,7 @@ sample_phase_I()
 
 template<typename COSTTYPE, bool ACYCLIC>
 void
-TreeSampler<COSTTYPE, ACYCLIC>::
+OptimisticTreeSampler<COSTTYPE, ACYCLIC>::
 sample_phase_II()
 {
     tbb::blocked_range<luint_t> new_range(0, m_w_new.size());
@@ -448,7 +448,7 @@ sample_phase_II()
 
 template<typename COSTTYPE, bool ACYCLIC>
 void
-TreeSampler<COSTTYPE, ACYCLIC>::
+OptimisticTreeSampler<COSTTYPE, ACYCLIC>::
 sample_phase_III()
 {
     const luint_t num_conflicts_found = m_w_conflict.size();
@@ -556,7 +556,7 @@ sample_phase_III()
 
 template<typename COSTTYPE, bool ACYCLIC>
 void
-TreeSampler<COSTTYPE, ACYCLIC>::
+OptimisticTreeSampler<COSTTYPE, ACYCLIC>::
 sample_rescue()
 {
     std::mt19937_64 rnd(m_rnd_dev());
