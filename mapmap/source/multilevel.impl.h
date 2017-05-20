@@ -37,7 +37,7 @@ template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
 FORCEINLINE
 Multilevel<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
 Multilevel(
-    const Graph<COSTTYPE> * original_graph,
+    Graph<COSTTYPE> * original_graph,
     const LabelSet<COSTTYPE, SIMDWIDTH> * original_label_set,
     const UNARY * original_unaries,
     const PAIRWISE * original_pairwise,
@@ -113,7 +113,7 @@ throw()
 
 template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
 FORCEINLINE
-const Graph<COSTTYPE> *
+Graph<COSTTYPE> *
 Multilevel<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
 get_level_graph()
 const

@@ -53,6 +53,7 @@ public:
     /* store and use coloring information */
     void set_coloring(const std::vector<luint_t>& coloring);
     const std::vector<luint_t>& get_coloring();
+    bool was_colored();
 
 protected:
 #if defined(BUILD_FOR_TEST)
@@ -68,6 +69,7 @@ protected:
     luint_t m_num_components;
 
     std::vector<luint_t> m_coloring;
+    bool m_was_colored;
 };
 
 NS_MAPMAP_END

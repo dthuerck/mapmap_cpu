@@ -14,6 +14,7 @@
 #include "header/multilevel_instances/group_same_label.h"
 #include "header/termination_instances/stop_when_flat.h"
 #include "header/dynamic_programming.h"
+#include "header/timer.h"
 
 NS_MAPMAP_BEGIN
 
@@ -88,7 +89,7 @@ FORCEINLINE
 void
 mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
 set_graph(
-    const Graph<COSTTYPE> * graph)
+    Graph<COSTTYPE> * graph)
 throw()
 {
     if(m_construct_graph)
@@ -215,18 +216,6 @@ template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
 FORCEINLINE
 void
 mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
-set_tree_sampler_algorithm(
-    const TREE_SAMPLER_ALGORITHM& algo)
-{
-    m_tree_sampler_algo = algo;
-}
-
-/* ************************************************************************** */
-
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
-FORCEINLINE
-void
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
 set_logging_callback(
     const std::function<void (const luint_t, const _s_t<COSTTYPE, SIMDWIDTH>)>&
         callback)
@@ -254,6 +243,7 @@ throw()
     std_control.force_acyclic = true;
     std_control.min_acyclic_iterations = 5;
     std_control.relax_acyclic_maximal = true;
+    std_control.tree_algorithm = OPTIMISTIC_TREE_SAMPLER;
 
     return optimize(solution, std_control);
 }
@@ -270,6 +260,9 @@ optimize(
 throw()
 {
     _s_t<COSTTYPE, SIMDWIDTH> obj;
+
+    /* copy some options from control structure */
+    m_tree_sampler_algo = control_flow.tree_algorithm;
 
     /* create std modules for uninitialized fields */
     create_std_modules();
@@ -505,8 +498,8 @@ initial_labelling()
 {
     /* sample a tree (forest) without dependencies */
     std::unique_ptr<TreeSampler<COSTTYPE, false>> sampler =
-        InstanceFactory<COSTTYPE>::get_sampler_instance(
-        m_tree_sampler_algo, m_graph, false);
+        InstanceFactory<COSTTYPE, false>::get_sampler_instance(
+        m_tree_sampler_algo, m_graph);
 
     /* sample roots of forest */
     std::vector<luint_t> roots;
@@ -540,15 +533,21 @@ opt_step_spanning_tree()
 {
     /* sample a tree (forest) without dependencies */
     std::unique_ptr<TreeSampler<COSTTYPE, false>> sampler =
-        InstanceFactory<COSTTYPE>::get_sampler_instance(
-        m_tree_sampler_algo, m_graph, false);
+        InstanceFactory<COSTTYPE, false>::get_sampler_instance(
+        m_tree_sampler_algo, m_graph);
 
     /* sample roots of forest */
     std::vector<luint_t> roots;
+    START_TIMER("SpanningTree roots");
     sampler->select_random_roots(m_num_roots, roots);
+    STOP_TIMER("SpanningTree roots");
+    PRINT_TIMER("SpanningTree roots");
 
     /* grow trees in forest */
+    START_TIMER("SpanningTree sample");
     std::unique_ptr<Tree<COSTTYPE>> tree = sampler->sample(roots, true);
+    STOP_TIMER("SpanningTree sample");
+    PRINT_TIMER("SpanningTree sample");
 
     /* create tree optimizer (std: DP) and pass parameters and modules */
     CombinatorialDynamicProgramming<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE> opt;
@@ -622,8 +621,8 @@ opt_step_multilevel()
 
         /* sample tree on graph */
         std::unique_ptr<TreeSampler<COSTTYPE, false>> sampler =
-            InstanceFactory<COSTTYPE>::get_sampler_instance(
-            m_tree_sampler_algo, m_multilevel->get_level_graph(), false);
+            InstanceFactory<COSTTYPE, false>::get_sampler_instance(
+            m_tree_sampler_algo, m_multilevel->get_level_graph());
 
         roots.clear();
         sampler->select_random_roots(m_num_roots, roots);
@@ -674,8 +673,8 @@ opt_step_acyclic(
 
     /* sample a tree (forest) without dependencies */
     std::unique_ptr<TreeSampler<COSTTYPE, true>> sampler =
-        InstanceFactory<COSTTYPE>::get_sampler_instance(
-        m_tree_sampler_algo, m_graph, true);
+        InstanceFactory<COSTTYPE, true>::get_sampler_instance(
+        m_tree_sampler_algo, m_graph);
 
     /* sample roots of forest */
     std::vector<luint_t> roots;

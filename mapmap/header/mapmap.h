@@ -19,13 +19,14 @@
 #include "header/defines.h"
 #include "header/instance_factory.h"
 #include "header/vector_types.h"
-#include "header/tree_sampler.h"
 #include "header/dynamic_programming.h"
 #include "header/graph.h"
 #include "header/multilevel.h"
 #include "header/termination_criterion.h"
 #include "header/tree.h"
 #include "header/tree_optimizer.h"
+#include "header/instance_factory.h"
+
 #include "tbb/tick_count.h"
 
 NS_MAPMAP_BEGIN
@@ -64,7 +65,7 @@ public:
     ~mapMAP();
 
     /* set graph and label set */
-    void set_graph(const Graph<COSTTYPE> * graph) throw();
+    void set_graph(Graph<COSTTYPE> * graph) throw();
     void set_label_set(const LabelSet<COSTTYPE, SIMDWIDTH> * label_set)
         throw();
 
@@ -83,9 +84,6 @@ public:
         criterion);
     void set_termination_criterion(TerminationCriterion<COSTTYPE,
         SIMDWIDTH> * criterion);
-
-    /* algorithm selection */
-    void set_tree_sampler_algorithm(const TREE_SAMPLER_ALGORITHM& algo);
 
     /**
      * callback for external logging - outputs time in ms and energy after
@@ -134,8 +132,8 @@ protected:
     const UNARY * m_unaries;
     const PAIRWISE * m_pairwise;
 
-    /* underlying graph */
-    const Graph<COSTTYPE> * m_graph;
+    /* underlying graph (may be augmented by coloring) */
+    Graph<COSTTYPE> * m_graph;
     const LabelSet<COSTTYPE, SIMDWIDTH> * m_label_set;
 
     /* configuration */
@@ -203,6 +201,9 @@ struct mapMAP_control
     bool force_acyclic; /* force using acyclic even if terminated */
     uint_t min_acyclic_iterations;
     bool relax_acyclic_maximal;
+
+    /* algorithmic settings */
+    TREE_SAMPLER_ALGORITHM tree_algorithm;
 };
 
 NS_MAPMAP_END

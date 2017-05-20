@@ -11,6 +11,13 @@
 #define __MAPMAP_HEADER_INSTANCE_FACTORY_H_
 
 #include "header/defines.h"
+#include "header/graph.h"
+
+#include "header/tree_sampler.h"
+
+#include <memory>
+
+NS_MAPMAP_BEGIN
 
 /* 0s mark the default algorithm */
 enum TREE_SAMPLER_ALGORITHM
@@ -21,14 +28,19 @@ enum TREE_SAMPLER_ALGORITHM
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE>
+template<typename COSTTYPE, bool ACYCLIC>
 class InstanceFactory
 {
 public:
-    static std::unique_ptr<TreeSampler<COSTTYPE>>& get_sampler_instance(
-        const TREE_SAMPLER_ALGORITHM& alg,
-        const Graph<COSTTYPE> * graph,
-        const bool acyclic);
+    static std::unique_ptr<TreeSampler<COSTTYPE, ACYCLIC>>
+        get_sampler_instance(
+            const TREE_SAMPLER_ALGORITHM& alg,
+            Graph<COSTTYPE> * graph);
 };
+
+NS_MAPMAP_END
+
+/* include function implementations */
+#include "source/instance_factory.impl.h"
 
 #endif /* __MAPMAP_HEADER_INSTANCE_FACTORY_H_ */

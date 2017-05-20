@@ -15,7 +15,10 @@
 #include "header/tree.h"
 #include "header/tree_sampler.h"
 
-#include "tbb/tbb_atomic.h"
+#include "tbb/atomic.h"
+#include "tbb/concurrent_vector.h"
+
+NS_MAPMAP_BEGIN
 
 /**
  * *****************************************************************************
@@ -27,14 +30,18 @@ template<typename COSTTYPE>
 class ColoredQueueBunch
 {
 public:
-    ColoredQueueBunch(const Graph<COSTTYPE> * graph);
-    ~ColoredQueueBunch()
+    ColoredQueueBunch(Graph<COSTTYPE> * graph);
+    ~ColoredQueueBunch();
 
     void push_to(const luint_t qu, const luint_t elem);
+    void replace_queue(const luint_t qu, const luint_t * new_qu,
+        const luint_t new_size);
+
     luint_t queue_size(const luint_t qu);
     luint_t queue_capacity(const luint_t qu);
     luint_t * queue(const luint_t qu);
     luint_t num_queues();
+    luint_t size();
 
     void reset();
 
@@ -48,6 +55,8 @@ protected:
     std::vector<luint_t> m_data;
     std::vector<luint_t *> m_qu_start;
     std::vector<tbb::atomic<luint_t>> m_qu_pos;
+
+    tbb::atomic<luint_t> m_size;
 };
 
 /**
@@ -60,10 +69,10 @@ protected:
  * Note: assumes the input graph has previously been colored.
  */
 template<typename COSTTYPE, bool ACYCLIC>
-class LockFreeTreeSampler : public TreeSampler<COSTTYPE>
+class LockFreeTreeSampler : public TreeSampler<COSTTYPE, ACYCLIC>
 {
 public:
-    LockFreeTreeSampler(const Graph<COSTTYPE> * graph);
+    LockFreeTreeSampler(Graph<COSTTYPE> * graph);
     ~LockFreeTreeSampler();
 
     void select_random_roots(const luint_t k, std::vector<luint_t>& roots);
@@ -74,11 +83,50 @@ public:
     const uint_t p_chunk_size = 16;
 
 protected:
-    const Graph<COSTTYPE> * m_graph;
+    void sample_phase_I();
+    void sample_phase_II();
+    void sample_rescue();
 
-    ColoredQueueBunch<COSTTYPE> m_qu_a;
-    ColoredQueueBunch<COSTTYPE> m_qu_b;
+protected:
+    /* colored queue for input data */
+    ColoredQueueBunch<COSTTYPE> m_qu;
+
+    /* save this rounds' active color */
+    luint_t m_cur_col;
+
+    /* markers for acyclic growing */
+    std::vector<tbb::atomic<luint_t>> m_markers;
+
+    /* determine which nodes have been added to the respective queue */
+    std::vector<tbb::atomic<char>> m_queued;
+
+    /* saves nodes added in last iteration */
+    std::vector<luint_t> m_new;
+    tbb::atomic<luint_t> m_new_size;
+
+    /* temporary single-color ouput queue */
+    std::vector<luint_t> m_qu_out;
+    tbb::atomic<luint_t> m_qu_out_pos;
+
+    /* counter: nodes remaining */
+    tbb::atomic<luint_t> m_rem_nodes;
+
+    /* counter: remaining degree per node */
+    std::vector<luint_t> m_rem_degrees;
+
+    /* save resulting tree */
+    std::unique_ptr<Tree<COSTTYPE>> m_tree;
+
+    /* how many potential tree-edges to save per vertex */
+    const luint_t m_buf_edges = 4;
+
+    /* limit for rescue roots */
+    const luint_t m_max_rescue = 4;
 };
 
+NS_MAPMAP_END
+
+/* include function implementations */
+#include "source/lock_free_tree_sampler.impl.h"
 
 #endif /* __MAPMAP_HEADER_LOCK_FREE_TREE_SAMPLER_H_ */

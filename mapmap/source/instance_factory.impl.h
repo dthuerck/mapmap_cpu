@@ -12,33 +12,28 @@
 #include "header/optimistic_tree_sampler.h"
 #include "header/lock_free_tree_sampler.h"
 
-template<typename COSTTYPE>
-std::unique_ptr<TreeSampler<COSTTYPE>>
-InstanceFactory<COSTTYPE>::
+NS_MAPMAP_BEGIN
+
+template<typename COSTTYPE, bool ACYCLIC>
+std::unique_ptr<TreeSampler<COSTTYPE, ACYCLIC>>
+InstanceFactory<COSTTYPE, ACYCLIC>::
 get_sampler_instance(
     const TREE_SAMPLER_ALGORITHM& alg,
-    const Graph<COSTTYPE> * graph,
-    const bool acyclic)
+    Graph<COSTTYPE> * graph)
 {
     if(alg == OPTIMISTIC_TREE_SAMPLER)
     {
-        if(acyclic)
-            return std::make_unique<TreeSampler<COSTTYPE, true>(
-                new OptimisticTreeSampler<COSTTYPE, true>(graph));
-        else
-            return std::make_unique<TreeSampler<COSTTYPE, false>(
-                new OptimisticTreeSampler<COSTTYPE, false>(graph));
+        return std::unique_ptr<TreeSampler<COSTTYPE, ACYCLIC>>(
+            new OptimisticTreeSampler<COSTTYPE, ACYCLIC>(graph));
     }
 
     if(alg == LOCK_FREE_TREE_SAMPLER)
     {
-        if(acyclic)
-            return std::make_unique<TreeSampler<COSTTYPE, true>(
-                new LockFreeTreeSampler<COSTTYPE, true>(graph));
-        else
-            return std::make_unique<TreeSampler<COSTTYPE, false>(
-                new LockFreeTreeSampler<COSTTYPE, false>(graph));
+        return std::unique_ptr<TreeSampler<COSTTYPE, ACYCLIC>>(
+            new LockFreeTreeSampler<COSTTYPE, ACYCLIC>(graph));
     }
 
-    return nullptr;
+    return std::unique_ptr<TreeSampler<COSTTYPE, ACYCLIC>>(nullptr);
 }
+
+NS_MAPMAP_END

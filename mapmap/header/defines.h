@@ -6,12 +6,15 @@
  * This software may be modified and distributed under the terms
  * of the BSD license. See the LICENSE file for details.
  */
- 
+
 #ifndef __MAPMAP_DEFINES_H_
 #define __MAPMAP_DEFINES_H_
 
+#include <chrono>
+#include <string>
+#include <map>
 
-/* 
+/*
  * *****************************************************************************
  * ************************* Parallelization control ***************************
  * *****************************************************************************
@@ -20,7 +23,7 @@
 #define BFS_ROOTS 32u
 #define DIV_UP(A, V) (A / V + (A % V == 0 ? 0 : 1))
 
-/* 
+/*
  * *****************************************************************************
  * ************************** OS-dependent brainfuck ***************************
  * *****************************************************************************
@@ -30,8 +33,8 @@
 #else
     #define FORCEINLINE __always_inline
 #endif
- 
-/* 
+
+/*
  * *****************************************************************************
  * *************************** Namespace definitions ***************************
  * *****************************************************************************
@@ -41,5 +44,5 @@
 
 #define NS_MAPMAP_BEGIN namespace NS_MAPMAP {
 #define NS_MAPMAP_END }
- 
+
 #endif /* __MAPMAP_DEFINES_H_ */

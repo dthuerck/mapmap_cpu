@@ -27,7 +27,8 @@ NS_MAPMAP_BEGIN
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 struct LevelSet
 {
-    const Graph<COSTTYPE> * level_graph;
+    /* might be modified by coloring */
+    Graph<COSTTYPE> * level_graph;
     const LabelSet<COSTTYPE, SIMDWIDTH> * level_label_set;
     const UnaryCosts<COSTTYPE, SIMDWIDTH> * level_unaries;
     const PairwiseCosts<COSTTYPE, SIMDWIDTH> * level_pairwise;
@@ -38,15 +39,15 @@ struct LevelSet
 
 /* ************************************************************************** */
 
-/** 
- * Given a level set (graph and costs) and a labelling, groups nodes 
+/**
+ * Given a level set (graph and costs) and a labelling, groups nodes
  * into supernodes. Does not require a contiguous ID range for supernodes.
  * That will be handled in the multilevel master class.
  *
  * Class must also be able to project the old solution to the
  * upper level (by choosing one label in each supernode e.g.), use
  * place of representative node in projected_solution.
- */  
+ */
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 class MultilevelCriterion
 {
@@ -66,41 +67,41 @@ public:
  * possibly refines) the graph and costs iteratively by grouping nodes
  * according to some criterion. The coarsened graph is another MRF to be
  * solved; its solution may i.e. be reprojected onto the original MRF.
- * 
+ *
  * The criterion/algorithm for grouping nodes must be specified as an instance
  * of MultilevelCriterion.
- */ 
+ */
 
 template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
 class Multilevel
 {
 public:
-    Multilevel(const Graph<COSTTYPE> * original_graph,
+    Multilevel(Graph<COSTTYPE> * original_graph,
         const LabelSet<COSTTYPE, SIMDWIDTH> * original_label_set,
         const UNARY * original_unaries,
         const PAIRWISE * original_pairwise,
-        MultilevelCriterion<COSTTYPE, SIMDWIDTH> * 
+        MultilevelCriterion<COSTTYPE, SIMDWIDTH> *
             criterion);
     ~Multilevel();
 
     const UnaryTable<COSTTYPE, SIMDWIDTH> * get_level_unaries() const throw();
-    const PairwiseTable<COSTTYPE, SIMDWIDTH> * get_level_pairwise() const 
+    const PairwiseTable<COSTTYPE, SIMDWIDTH> * get_level_pairwise() const
         throw();
-    const Graph<COSTTYPE> * get_level_graph() const throw();
+    Graph<COSTTYPE> * get_level_graph() const throw();
     const LabelSet<COSTTYPE, SIMDWIDTH> * get_level_label_set() const throw();
-    
+
     bool prev_level();
     bool next_level(const std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>&
         current_solution, std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>&
         projected_solution);
     void reproject_solution(const std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>&
-        level_solution, std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& 
+        level_solution, std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>&
         original_solution);
 
 protected:
 
     /* common functionalities */
-    void compute_contiguous_ids(const 
+    void compute_contiguous_ids(const
         std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& projected_solution);
     void compute_level_label_set() throw();
     void compute_level_unaries();
@@ -109,7 +110,7 @@ protected:
 
 protected:
     /* node grouping algorithm/criterion */
-    MultilevelCriterion<COSTTYPE, SIMDWIDTH> * 
+    MultilevelCriterion<COSTTYPE, SIMDWIDTH> *
         m_criterion;
 
     /* all levels - [0] is the original  */
@@ -124,16 +125,16 @@ protected:
 
     /* data storage for the level structures */
     std::vector<std::unique_ptr<Graph<COSTTYPE>>> m_storage_graph;
-    std::vector<std::unique_ptr<LabelSet<COSTTYPE, SIMDWIDTH>>> 
+    std::vector<std::unique_ptr<LabelSet<COSTTYPE, SIMDWIDTH>>>
         m_storage_label_set;
-    std::vector<std::unique_ptr<UnaryTable<COSTTYPE, SIMDWIDTH>>> 
+    std::vector<std::unique_ptr<UnaryTable<COSTTYPE, SIMDWIDTH>>>
         m_storage_unaries;
-    std::vector<std::unique_ptr<PairwiseTable<COSTTYPE, SIMDWIDTH>>> 
+    std::vector<std::unique_ptr<PairwiseTable<COSTTYPE, SIMDWIDTH>>>
         m_storage_pairwise;
 
     /**
-     * temporary data for the construction of the next level - 
-     * creeated from scratch for every level 
+     * temporary data for the construction of the next level -
+     * creeated from scratch for every level
      */
 
     /* node grouping data */

@@ -11,7 +11,6 @@
 
 #include <iostream>
 
-#include "tbb/mutex.h"
 #include "tbb/blocked_range.h"
 #include "tbb/parallel_for.h"
 #include "tbb/parallel_do.h"
@@ -23,11 +22,10 @@ NS_MAPMAP_BEGIN
 template<typename COSTTYPE, bool ACYCLIC>
 OptimisticTreeSampler<COSTTYPE, ACYCLIC>::
 OptimisticTreeSampler(
-    const Graph<COSTTYPE> * graph)
-    : m_graph(graph),
-      m_rnd_dev()
+    Graph<COSTTYPE> * graph)
+: TreeSampler<COSTTYPE, ACYCLIC>(graph)
 {
-    build_component_lists();
+    this->build_component_lists();
 }
 
 /* ************************************************************************** */
@@ -49,18 +47,18 @@ select_random_roots(
     std::vector<luint_t>& roots)
 {
     roots.clear();
-    std::vector<unsigned char> root_marker(m_graph->num_nodes(), 0u);
+    std::vector<unsigned char> root_marker(this->m_graph->num_nodes(), 0u);
 
-    std::mt19937 rnd(m_rnd_dev());
+    std::mt19937 rnd(this->m_rnd_dev());
 
     /* make sure that k <= number of nodes */
-    const luint_t num_components = m_graph->num_components();
-    luint_t corrected_k = std::max(std::min(k, m_graph->num_nodes()),
+    const luint_t num_components = this->m_graph->num_components();
+    luint_t corrected_k = std::max(std::min(k, this->m_graph->num_nodes()),
         num_components);
 
     std::vector<luint_t> component_sizes(num_components, 0);
     for(luint_t c = 0; c < num_components; ++c)
-        component_sizes[c] = m_component_lists[c].size();
+        component_sizes[c] = this->m_component_lists[c].size();
 
     luint_t next_component;
     luint_t it = 0;
@@ -83,7 +81,7 @@ select_random_roots(
         std::uniform_int_distribution<luint_t> ud(0,
             component_sizes[next_component] - 1);
         luint_t root_index = ud(rnd);
-        luint_t next_root = m_component_lists[next_component]
+        luint_t next_root = this->m_component_lists[next_component]
             [root_index];
 
         /* defer conflict handling to main procedure */
@@ -95,9 +93,9 @@ select_random_roots(
          * the end of the list
          */
         if(component_sizes[next_component] > 1)
-            std::swap(m_component_lists[next_component][root_index],
-                m_component_lists[next_component]
-                [m_component_lists[next_component].size() - 1]);
+            std::swap(this->m_component_lists[next_component][root_index],
+                this->m_component_lists[next_component]
+                [this->m_component_lists[next_component].size() - 1]);
 
         --component_sizes[next_component];
 
@@ -115,16 +113,16 @@ sample(
     bool record_dependencies,
     bool relax)
 {
-    const luint_t num_nodes = m_graph->num_nodes();
-    const luint_t num_edges = m_graph->edges().size();
+    const luint_t num_nodes = this->m_graph->num_nodes();
+    const luint_t num_edges = this->m_graph->edges().size();
     m_tree = std::unique_ptr<Tree<COSTTYPE>>(new Tree<COSTTYPE>(num_nodes,
         2 * num_edges));
 
     /* create acceleration structure for edge sampling */
-    create_adj_acc();
+    this->create_adj_acc();
 
     /* for early termination, count number of nodes remaining */
-    m_rem_nodes = m_graph->num_nodes();
+    m_rem_nodes = this->m_graph->num_nodes();
 
     /* work queues */
     m_w_in = &m_w_a;
@@ -150,11 +148,12 @@ sample(
     m_in_queue.resize(num_nodes);
 
     for(luint_t i = 0; i < num_nodes; ++i)
-        m_rem_degrees[i] = m_graph->nodes()[i].incident_edges.size();
+        m_rem_degrees[i] = this->m_graph->nodes()[i].incident_edges.size();
     std::fill(m_node_locks.begin(), m_node_locks.end(), 0);
 
     /* start actual growing process */
     luint_t it = 0;
+
     /* exploit first iteration to solve root conflicts */
     bool skip_ph1 = true;
     while(m_rem_nodes > 0 || skip_ph1)
@@ -230,67 +229,9 @@ sample(
     }
 
     /* gather children and finalize tree */
-    m_tree->finalize(record_dependencies, m_graph);
+    m_tree->finalize(record_dependencies, this->m_graph);
 
     return std::move(m_tree);
-}
-
-/* ************************************************************************** */
-
-template<typename COSTTYPE, bool ACYCLIC>
-void
-OptimisticTreeSampler<COSTTYPE, ACYCLIC>::
-build_component_lists()
-{
-    const luint_t num_nodes = m_graph->num_nodes();
-    const luint_t num_components = m_graph->num_components();
-    const std::vector<luint_t>& components = m_graph->components();
-
-    m_component_lists.clear();
-    m_component_lists.resize(num_components);
-
-    for(luint_t i = 0; i < num_components; ++i)
-        m_component_lists[i].reserve(num_nodes / num_components);
-
-    for(luint_t n = 0; n < num_nodes; ++n)
-        m_component_lists[components[n]].push_back(n);
-}
-
-/* ************************************************************************** */
-
-template<typename COSTTYPE, bool ACYCLIC>
-void
-OptimisticTreeSampler<COSTTYPE, ACYCLIC>::
-create_adj_acc()
-{
-    /* make private copy of nodes' adjacency list */
-    std::vector<luint_t> m_adj_size(m_graph->num_nodes());
-    m_adj_offsets.resize(m_graph->num_nodes());
-    tbb::blocked_range<luint_t> node_range(0, m_graph->num_nodes(), 128u);
-
-    tbb::parallel_for(node_range,
-        [&](const tbb::blocked_range<luint_t>& r)
-        {
-            for(luint_t i = r.begin(); i != r.end(); ++i)
-                m_adj_size[i] = m_graph->inc_edges(i).size();
-        });
-
-    PlusScan<luint_t, luint_t> ex_scan(&m_adj_size[0], &m_adj_offsets[0]);
-    tbb::parallel_scan(node_range, ex_scan);
-
-    const luint_t adj_size = 2 * m_graph->edges().size();
-    m_adj.resize(adj_size);
-
-    tbb::parallel_for(node_range,
-        [&](const tbb::blocked_range<luint_t>& r)
-        {
-            for(luint_t i = r.begin(); i != r.end(); ++i)
-            {
-                const std::vector<luint_t>& edges = m_graph->inc_edges(i);
-                std::memcpy(&m_adj[m_adj_offsets[i]],
-                    &edges[0], edges.size() * sizeof(luint_t));
-            }
-        });
 }
 
 /* ************************************************************************** */
@@ -334,9 +275,10 @@ sample_phase_I()
                         std::uniform_int_distribution<luint_t> d(
                             0, m_rem_degrees[in_node] - 1);
                         const luint_t inc_list_ix = d(rnd_gen);
-                        const luint_t e_id = m_adj[m_adj_offsets[in_node] +
-                            inc_list_ix];
-                        const GraphEdge<COSTTYPE> e = m_graph->edges()[e_id];
+                        const luint_t e_id = this->m_adj[
+                            this->m_adj_offsets[in_node] + inc_list_ix];
+                        const GraphEdge<COSTTYPE> e =
+                            this->m_graph->edges()[e_id];
 
                         /* extract corresponding adjacent node */
                         const luint_t o_node = (e.node_a == in_node ?
@@ -373,9 +315,9 @@ sample_phase_I()
                          */
                         if(m_rem_degrees[in_node] > 1u)
                         {
-                            std::swap(m_adj[m_adj_offsets[in_node] +
+                            std::swap(this->m_adj[this->m_adj_offsets[in_node] +
                                 inc_list_ix],
-                                m_adj[m_adj_offsets[in_node] +
+                                this->m_adj[this->m_adj_offsets[in_node] +
                                 m_rem_degrees[in_node] - 1]);
 
                             if(!m_in_queue[in_node].fetch_and_store(1))
@@ -412,9 +354,9 @@ sample_phase_II()
                 const luint_t new_node = m_w_new[i];
 
                 /* update markers of adjacent nodes */
-                for(const luint_t& e_id : m_graph->inc_edges(new_node))
+                for(const luint_t& e_id : this->m_graph->inc_edges(new_node))
                 {
-                    const GraphEdge<COSTTYPE> e = m_graph->edges()[e_id];
+                    const GraphEdge<COSTTYPE> e = this->m_graph->edges()[e_id];
                     const luint_t o_node = (e.node_a == new_node ?
                             e.node_b : e.node_a);
                     const bool o_in_tree =
@@ -460,7 +402,7 @@ sample_phase_III()
     tbb::parallel_for(conflict_range,
         [&](const tbb::blocked_range<luint_t>& r)
         {
-            std::mt19937 rnd_gen(m_rnd_dev());
+            std::mt19937 rnd_gen(this->m_rnd_dev());
             std::uniform_int_distribution<luint_t> d(0, 1u);
 
             for(luint_t i = r.begin(); i != r.end(); ++i)
@@ -514,9 +456,9 @@ sample_phase_III()
     for(const luint_t& remove_node : del)
     {
         /* decrement marker of adjacent nodes */
-        for(const luint_t& e_id : m_graph->inc_edges(remove_node))
+        for(const luint_t& e_id : this->m_graph->inc_edges(remove_node))
         {
-            const GraphEdge<COSTTYPE> e = m_graph->edges()[e_id];
+            const GraphEdge<COSTTYPE> e = this->m_graph->edges()[e_id];
             const luint_t o_node = (e.node_a == remove_node ?
                     e.node_b : e.node_a);
             const bool o_in_tree = (m_tree->raw_parent_ids()[o_node] !=
@@ -559,10 +501,10 @@ void
 OptimisticTreeSampler<COSTTYPE, ACYCLIC>::
 sample_rescue()
 {
-    std::mt19937_64 rnd(m_rnd_dev());
+    std::mt19937_64 rnd(this->m_rnd_dev());
 
     /* find potential nodes with marker 0 */
-    tbb::blocked_range<luint_t> node_range(0, m_graph->num_nodes());
+    tbb::blocked_range<luint_t> node_range(0, this->m_graph->num_nodes());
     tbb::parallel_for(node_range,
         [&](const tbb::blocked_range<luint_t>& r)
         {

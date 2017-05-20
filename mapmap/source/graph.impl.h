@@ -153,7 +153,9 @@ Graph(
   m_nodes(num_nodes),
   m_edges(),
   m_components(num_nodes, 0),
-  m_num_components(1)
+  m_num_components(1),
+  m_coloring(),
+  m_was_colored(false)
 {
     /* initial coloring: all 0 */
     m_coloring.resize(num_nodes);
@@ -425,6 +427,7 @@ set_coloring(
 {
     std::copy(coloring.begin(), coloring.begin() + std::min(coloring.size(),
         m_num_nodes), m_coloring.begin());
+    m_was_colored = true;
 }
 
 /* ************************************************************************** */
@@ -436,6 +439,17 @@ Graph<COSTTYPE>::
 get_coloring()
 {
     return m_coloring;
+}
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE>
+FORCEINLINE
+bool
+Graph<COSTTYPE>::
+was_colored()
+{
+    return m_was_colored;
 }
 
 NS_MAPMAP_END

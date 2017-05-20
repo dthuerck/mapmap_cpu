@@ -23,7 +23,8 @@ set(GTEST_ROOT "/usr/lib" CACHE PATH "Path to GoogleTest's root folder")
 # uses -march=native to make the compiler set __SSE4_2__, __AVX__ and
 # __AVX2__ to fit the binary to the computer
 set(CMAKE_BUILD_TYPE "Release")
-set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -march=native -O2 -flto -funroll-loops")
+#set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -march=native -O2 -flto -funroll-loops")
+set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -march=native -O2")
 
 # augment build parameters for optional builds
 if(BUILD_TEST)
@@ -40,7 +41,7 @@ if(BUILD_DEMO)
 endif(BUILD_DEMO)
 
 # find location to TBB and set variables
-find_package(TBB REQUIRED)
+find_package(TBB COMPONENTS tbbmalloc tbbmalloc_proxy REQUIRED)
 
 # include headers
 include_directories(
@@ -62,10 +63,14 @@ set(header_base
     ${header_dir}/defines.h
 	${header_dir}/dynamic_programming.h
     ${header_dir}/graph.h
+	${header_dir}/instance_factory.h
+	${header_dir}/lock_free_tree_sampler.h
 	${header_dir}/mapmap.h
 	${header_dir}/multilevel.h
+	${header_dir}/optimistic_tree_sampler.h
 	${header_dir}/parallel_templates.h
 	${header_dir}/termination_criterion.h
+	${header_dir}/timer.h
     ${header_dir}/tree.h
 	${header_dir}/tree_optimizer.h
     ${header_dir}/tree_sampler.h
@@ -77,9 +82,13 @@ set(impl_base
 	${impl_dir}/costs.impl.h
 	${impl_dir}/dynamic_programming.impl.h
     ${impl_dir}/graph.impl.h
+	${impl_dir}/instance_factory.impl.h
+	${impl_dir}/lock_free_tree_sampler.impl.h
 	${impl_dir}/mapmap.impl.h
 	${impl_dir}/multilevel.impl.h
+	${impl_dir}/optimistic_tree_sampler.impl.h
 	${impl_dir}/parallel_templates.impl.h
+	${impl_dir}/timer.impl.h
     ${impl_dir}/tree.impl.h
 	${impl_dir}/tree_optimizer.impl.h
     ${impl_dir}/tree_sampler.impl.h
@@ -178,5 +187,10 @@ add_executable(mapmap_demo
 	${src_base}
 	${demo_dir}/mapmap_demo.cc)
 target_link_libraries(mapmap_demo
+	${TBB_LIBRARIES})
+add_executable(mapmap_benchmark
+	${src_base}
+	${demo_dir}/mapmap_benchmark.cc)
+target_link_libraries(mapmap_benchmark
 	${TBB_LIBRARIES})
 endif(BUILD_DEMO)

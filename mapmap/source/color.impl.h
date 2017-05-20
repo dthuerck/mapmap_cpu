@@ -61,7 +61,7 @@ color_graph(
     /* use atomics for colors */
     std::vector<tbb::atomic<luint_t>> atom_colors(n, 0);
 
-    std::vector<char> conf_arrays(k * conf_in->size());
+    std::vector<char> conf_arrays((k + 1) * conf_in->size());
     while(!conf_in->empty())
     {
         const luint_t old_k = k;
@@ -70,16 +70,16 @@ color_graph(
         conf_out->clear();
 
         /* compute necessary memory for forbidden arrays */
-        const luint_t mem_size = conf_in->size() * k;
+        const luint_t mem_size = conf_in->size() * (k + 1);
         if(conf_arrays.size() < mem_size)
             conf_arrays.resize(mem_size);
 
         /* resolve detected conflicts */
-        tbb::blocked_range<luint_t> conf_range(0, conf_in->size());
+        tbb::blocked_range<luint_t> conf_range(0, conf_in->size(), 64u);
         tbb::parallel_for(conf_range,
             [&](const tbb::blocked_range<luint_t>& r)
             {
-                for(luint_t ix = r.begin(); ix < r.end(); ++ix)
+                for(luint_t ix = r.begin(); ix != r.end(); ++ix)
                 {
                     const luint_t conf_node = (*conf_in)[ix];
 
@@ -122,7 +122,7 @@ color_graph(
         tbb::parallel_for(conf_range,
             [&](const tbb::blocked_range<luint_t>& r)
             {
-                for(luint_t ix = r.begin(); ix < r.end(); ++ix)
+                for(luint_t ix = r.begin(); ix != r.end(); ++ix)
                 {
                     const luint_t conf_node = (*conf_in)[ix];
 

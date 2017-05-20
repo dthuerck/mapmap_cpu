@@ -21,6 +21,7 @@
 #include <memory>
 
 #include "mapmap/full.h"
+#include "tbb/task_scheduler_init.h"
 
 using namespace NS_MAPMAP;
 
@@ -29,6 +30,17 @@ main(
     int argc,
     char * argv[])
 {
+    /* retrieve console parameter -> number of threads */
+    int num_threads = 32;
+
+    if(argc > 1)
+        num_threads = std::atoi(argv[1]);
+    std::cout << "Using number of threads: " << num_threads << std::endl;
+
+    /* TBB control */
+    tbb::task_scheduler_init schedule(num_threads);
+    std::cout << "Schedule active: " << schedule.is_active() << std::endl;
+
     /* mapMAP template parameters */
     using cost_t = float;
     const uint_t simd_w = sys_max_simd_width<cost_t>();
@@ -172,13 +184,15 @@ main(
             new StopWhenReturnsDiminish<cost_t, simd_w>(5, 0.0001));
 
         /* create (optional) control flow settings */
-        ctr.use_multilevel = true;
-        ctr.use_spanning_tree = true;
+        ctr.use_multilevel = false;
+        ctr.use_spanning_tree = false;
         ctr.use_acyclic = true;
         ctr.spanning_tree_multilevel_after_n_iterations = 5;
         ctr.force_acyclic = true;
         ctr.min_acyclic_iterations = 5;
         ctr.relax_acyclic_maximal = true;
+        //ctr.tree_algorithm = OPTIMISTIC_TREE_SAMPLER;
+        ctr.tree_algorithm = LOCK_FREE_TREE_SAMPLER;
 
         /* construct optimizer */
         mapmap.set_graph(graph.get());

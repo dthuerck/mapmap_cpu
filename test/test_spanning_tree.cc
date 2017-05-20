@@ -17,12 +17,13 @@
 #include "header/defines.h"
 #include "header/vector_types.h"
 #include "header/tree_sampler.h"
-#include "header/optimistic_tree_sampler.h"
+#include "header/instance_factory.h"
 #include "test/util_test.h"
 
 NS_MAPMAP_BEGIN
 
-class mapMAPTestSpanningTree : public testing::Test
+class mapMAPTestSpanningTree :
+    public testing::TestWithParam<TREE_SAMPLER_ALGORITHM>
 {
 public:
     using cost_t = float;
@@ -54,8 +55,8 @@ public:
         for (uint_t c = 0; c < num_components; ++c)
             m_roots.push_back(c * component_dim * component_dim);
 
-        m_sampler = std::unique_ptr<TreeSampler<cost_t, false>>(
-            new OptimisticTreeSampler<cost_t, false>(m_graph.get()));
+        m_sampler = InstanceFactory<cost_t, false>::get_sampler_instance(
+            GetParam(), m_graph.get());
 
         m_tree = m_sampler->sample(m_roots, true);
 
@@ -83,7 +84,7 @@ public:
     std::unique_ptr<Tree<cost_t>> m_tree;
 };
 
-TEST_F(mapMAPTestSpanningTree, TestHasExactlySpecifiedRoots)
+TEST_P(mapMAPTestSpanningTree, TestHasExactlySpecifiedRoots)
 {
     std::set<luint_t> found_roots;
 
@@ -107,7 +108,7 @@ TEST_F(mapMAPTestSpanningTree, TestHasExactlySpecifiedRoots)
     ASSERT_EQ(found_roots.size(), m_roots.size());
 }
 
-TEST_F(mapMAPTestSpanningTree, TestMatchingRootCover)
+TEST_P(mapMAPTestSpanningTree, TestMatchingRootCover)
 {
     std::vector<luint_t> roots;
 
@@ -120,7 +121,7 @@ TEST_F(mapMAPTestSpanningTree, TestMatchingRootCover)
     ASSERT_EQ(components.size(), num_components);
 }
 
-TEST_F(mapMAPTestSpanningTree, TestIncompleteRootCover)
+TEST_P(mapMAPTestSpanningTree, TestIncompleteRootCover)
 {
     std::vector<luint_t> roots;
 
@@ -133,7 +134,7 @@ TEST_F(mapMAPTestSpanningTree, TestIncompleteRootCover)
     ASSERT_EQ(components.size(), num_components);
 }
 
-TEST_F(mapMAPTestSpanningTree, TestIsComplete)
+TEST_P(mapMAPTestSpanningTree, TestIsComplete)
 {
     const luint_t num_nodes = num_components * component_dim *
         component_dim;
@@ -150,7 +151,7 @@ TEST_F(mapMAPTestSpanningTree, TestIsComplete)
         ASSERT_GE(visited[n], 1u);
 }
 
-TEST_F(mapMAPTestSpanningTree, TestDoesNotViolateComponents)
+TEST_P(mapMAPTestSpanningTree, TestDoesNotViolateComponents)
 {
     for(const luint_t r : m_actual_roots)
         BFSWithCustomFunc<cost_t>(m_tree.get(), r,
@@ -174,7 +175,7 @@ TEST_F(mapMAPTestSpanningTree, TestDoesNotViolateComponents)
             });
 }
 
-TEST_F(mapMAPTestSpanningTree, TestIsDAG)
+TEST_P(mapMAPTestSpanningTree, TestIsDAG)
 {
     const luint_t num_nodes = num_components * component_dim *
         component_dim;
@@ -192,7 +193,7 @@ TEST_F(mapMAPTestSpanningTree, TestIsDAG)
         ASSERT_LE(visited[n], 1u);
 }
 
-TEST_F(mapMAPTestSpanningTree, TestDependenciesAreComplete)
+TEST_P(mapMAPTestSpanningTree, TestDependenciesAreComplete)
 {
     const luint_t num_nodes = num_components * component_dim *
         component_dim;
@@ -237,5 +238,9 @@ TEST_F(mapMAPTestSpanningTree, TestDependenciesAreComplete)
         }
     }
 }
+
+INSTANTIATE_TEST_CASE_P(SpanningTreeTest,
+    mapMAPTestSpanningTree,
+    ::testing::Values(OPTIMISTIC_TREE_SAMPLER, LOCK_FREE_TREE_SAMPLER));
 
 NS_MAPMAP_END

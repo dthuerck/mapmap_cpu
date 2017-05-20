@@ -28,7 +28,7 @@ template<typename COSTTYPE, bool ACYCLIC>
 class OptimisticTreeSampler : public TreeSampler<COSTTYPE, ACYCLIC>
 {
 public:
-    OptimisticTreeSampler(const Graph<COSTTYPE> * graph);
+    OptimisticTreeSampler(Graph<COSTTYPE> * graph);
     ~OptimisticTreeSampler();
 
     /**
@@ -60,8 +60,6 @@ public:
     const uint_t p_chunk_size = 16;
 
 protected:
-    void build_component_lists();
-    void create_adj_acc();
     void sample_phase_I();
     void sample_phase_II();
     void sample_phase_III();
@@ -75,14 +73,6 @@ protected:
     FRIEND_TEST(mapMAPTestCoordinateSet, TestIsAcyclic);
     FRIEND_TEST(mapMAPTestCoordinateSet, TestIsMaximal);
 #endif
-
-    const Graph<COSTTYPE> * m_graph;
-    std::vector<std::vector<luint_t>> m_component_lists;
-
-    std::vector<luint_t> m_adj_offsets;
-    std::vector<luint_t> m_adj;
-
-    std::random_device m_rnd_dev;
 
     tbb::concurrent_vector<luint_t>* m_w_in;
     tbb::concurrent_vector<luint_t>* m_w_out;
@@ -102,10 +92,12 @@ protected:
 };
 
 template<typename COSTTYPE, bool ACYCLIC>
-using OptimisticTreeSampler_ptr = std::shared_ptr<OptimisticTreeSampler<COSTTYPE, ACYCLIC>>;
+using OptimisticTreeSampler_ptr =
+    std::shared_ptr<OptimisticTreeSampler<COSTTYPE, ACYCLIC>>;
 
 NS_MAPMAP_END
 
+/* include function implementations */
 #include "source/optimistic_tree_sampler.impl.h"
 
 #endif /* __MAPMAP_HEADER_OPTIMISTIC_TREE_SAMPLER_H_ */

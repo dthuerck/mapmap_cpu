@@ -13,7 +13,7 @@
 #include "header/defines.h"
 #include "header/vector_types.h"
 #include "header/tree_sampler.h"
-#include "header/optimistic_tree_sampler.h"
+#include "header/instance_factory.h"
 #include "test/util_test.h"
 
 NS_MAPMAP_BEGIN
@@ -25,7 +25,8 @@ NS_MAPMAP_BEGIN
  * This test only tests the difference (acyclicity) to spanning trees.
  */
 
-class mapMAPTestCoordinateSet : public testing::Test
+class mapMAPTestCoordinateSet :
+    public testing::TestWithParam<TREE_SAMPLER_ALGORITHM>
 {
 public:
     using cost_t = float;
@@ -54,8 +55,8 @@ public:
         for (uint_t c = 0; c < num_components; ++c)
             m_roots.push_back(c * component_dim * component_dim);
 
-        m_sampler = std::unique_ptr<TreeSampler<cost_t, true>>(
-            new OptimisticTreeSampler<cost_t, true>(m_graph.get()));
+        m_sampler = InstanceFactory<cost_t, true>::get_sampler_instance(
+            GetParam(), m_graph.get());
 
         m_tree = m_sampler->sample(m_roots, true, false);
 
@@ -83,7 +84,7 @@ public:
     std::unique_ptr<Tree<cost_t>> m_tree;
 };
 
-TEST_F(mapMAPTestCoordinateSet, TestIsAcyclic)
+TEST_P(mapMAPTestCoordinateSet, TestIsAcyclic)
 {
     /*
      * Test acyclicity locally: for each graph node in the tree, each
@@ -151,7 +152,7 @@ TEST_F(mapMAPTestCoordinateSet, TestIsAcyclic)
     }
 }
 
-TEST_F(mapMAPTestCoordinateSet, TestIsMaximal)
+TEST_P(mapMAPTestCoordinateSet, TestIsMaximal)
 {
     /* Phase I : mark all nodes included in the tree */
     const luint_t num_nodes = m_graph->num_nodes();
@@ -190,5 +191,9 @@ TEST_F(mapMAPTestCoordinateSet, TestIsMaximal)
         ASSERT_GE(marker, 2u);
     }
 }
+
+INSTANTIATE_TEST_CASE_P(AcyclicTest,
+    mapMAPTestCoordinateSet,
+    ::testing::Values(OPTIMISTIC_TREE_SAMPLER, LOCK_FREE_TREE_SAMPLER));
 
 NS_MAPMAP_END
