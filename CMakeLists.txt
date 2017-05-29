@@ -187,10 +187,4 @@ add_executable(mapmap_demo
 	${demo_dir}/mapmap_demo.cc)
 target_link_libraries(mapmap_demo
 	${TBB_LIBRARIES})
-add_executable(mapmap_benchmark
-	${src_base}
-	${demo_dir}/mapmap_benchmark.cc)
-target_link_libraries(mapmap_benchmark
-	${TBB_LIBRARIES}
-	profiler)
 endif(BUILD_DEMO)
