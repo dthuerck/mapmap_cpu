@@ -40,7 +40,7 @@ if(BUILD_DEMO)
 endif(BUILD_DEMO)
 
 # find location to TBB and set variables
-find_package(TBB COMPONENTS REQUIRED)
+find_package(TBB COMPONENTS tbbmalloc_proxy tbbmalloc tbb REQUIRED)
 
 # include headers
 include_directories(
