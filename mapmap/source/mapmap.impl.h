@@ -538,16 +538,10 @@ opt_step_spanning_tree()
 
     /* sample roots of forest */
     std::vector<luint_t> roots;
-    START_TIMER("SpanningTree roots");
     sampler->select_random_roots(m_num_roots, roots);
-    STOP_TIMER("SpanningTree roots");
-    PRINT_TIMER("SpanningTree roots");
 
     /* grow trees in forest */
-    START_TIMER("SpanningTree sample");
     std::unique_ptr<Tree<COSTTYPE>> tree = sampler->sample(roots, true);
-    STOP_TIMER("SpanningTree sample");
-    PRINT_TIMER("SpanningTree sample");
 
     /* create tree optimizer (std: DP) and pass parameters and modules */
     CombinatorialDynamicProgramming<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE> opt;

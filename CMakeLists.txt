@@ -23,8 +23,7 @@ set(GTEST_ROOT "/usr/lib" CACHE PATH "Path to GoogleTest's root folder")
 # uses -march=native to make the compiler set __SSE4_2__, __AVX__ and
 # __AVX2__ to fit the binary to the computer
 set(CMAKE_BUILD_TYPE "Release")
-#set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -march=native -O2 -flto -funroll-loops")
-set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -march=native -O2")
+set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -march=native -O2 -flto -funroll-loops")
 
 # augment build parameters for optional builds
 if(BUILD_TEST)
@@ -192,5 +191,6 @@ add_executable(mapmap_benchmark
 	${src_base}
 	${demo_dir}/mapmap_benchmark.cc)
 target_link_libraries(mapmap_benchmark
-	${TBB_LIBRARIES})
+	${TBB_LIBRARIES}
+	profiler)
 endif(BUILD_DEMO)

@@ -127,25 +127,6 @@ TEST_P(mapMAPTestCoordinateSet, TestIsAcyclic)
             auto found = std::find(&node.children_ids[0],
                 &node.children_ids[node.degree], o_n);
 
-            if(!(node.parent_id == o_n || found !=
-                &node.children_ids[node.degree]))
-            {
-                std::cout << "Problem in " << o_n << " (parent " <<
-                    m_tree->node(o_n).parent_id << ") with " <<
-                    i << " (in turn with parent " <<
-                    node.parent_id << ", degree " << node.degree << ")" << std::endl;
-
-                std::cout << "Children " << i << ": ";
-                for(luint_t c = 0; c < node.degree; ++c)
-                    std::cout << node.children_ids[c] << " ";
-                std::cout << std::endl;
-
-                std::cout << "Children " << o_n << ": ";
-                for(luint_t c = 0; c < m_tree->node(o_n).degree; ++c)
-                    std::cout << m_tree->node(o_n).children_ids[c] << " ";
-                std::cout << std::endl;
-            }
-
             ASSERT_TRUE(node.parent_id == o_n || found !=
                 &node.children_ids[node.degree]);
         }

@@ -368,7 +368,7 @@ sample(
     m_cur_col = this->m_graph->get_coloring()[roots[0]];
 
     luint_t it = 0;
-    bool  first = true;
+    bool first = true;
     while(m_rem_nodes > 0)
     {
         /* relax option: do not enforce maximality */
@@ -402,7 +402,6 @@ sample(
 
         ++it;
     }
-    std::cout << "Took " << it << " rounds." << std::endl;
 
     /* gather children and finalize tree */
     m_tree->finalize(record_dependencies, this->m_graph);
@@ -439,7 +438,7 @@ sample_phase_I()
     max_qu = m_qu.queue(m_cur_col);
 
     /* iterate over nodes in queue */
-    tbb::blocked_range<luint_t> qu_range(0, max_qu_size, 64u);
+    tbb::blocked_range<luint_t> qu_range(0, max_qu_size, 128u);
     tbb::parallel_for(qu_range,
         [&](const tbb::blocked_range<luint_t>& r)
         {
@@ -500,7 +499,7 @@ LockFreeTreeSampler<COSTTYPE, ACYCLIC>::
 sample_phase_II()
 {
     /* edit markers for neighbors of newly added nodes */
-    tbb::blocked_range<luint_t> new_range(0, m_new_size, 64u);
+    tbb::blocked_range<luint_t> new_range(0, m_new_size);
     tbb::parallel_for(new_range,
         [&](const tbb::blocked_range<luint_t>& r)
         {
@@ -563,7 +562,7 @@ sample_rescue()
                     const luint_t my_color = this->m_graph->get_coloring()[i];
                     rescue_color.compare_and_swap(my_color, invalid_luint_t);
 
-                    if(my_color == rescue_color && m_new.size() < m_max_rescue)
+                    if(my_color == rescue_color && m_new_size < m_max_rescue)
                     {
                         m_tree->raw_parent_ids()[i] = i;
 
