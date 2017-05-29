@@ -11,8 +11,9 @@
 #define __MAPMAP_HEADER_TREE_SAMPLER_H_
 
 #include "header/defines.h"
-
 #include "header/tree.h"
+
+#include <random>
 
 NS_MAPMAP_BEGIN
 

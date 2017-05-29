@@ -7,13 +7,14 @@ compiler:
 
 before_script:
     - a=`pwd`
+    - sudo add-apt-repository -y ppa:krzysztof-trzepla/onedata
     - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
     - sudo apt-get update
     - sudo apt-get install -qq g++-5
     - sudo apt-get install -qq gcc-5
     - export CXX="g++-5"
     - export CC="gcc-5"
-    - sudo apt-get install -qq libtbb2 libtbb-dev libgtest-dev
+    - sudo apt-get install -qq tbb libgtest-dev
     - cd /usr/src/gtest && sudo mkdir build && cd build && sudo cmake -DCMAKE_BUILD_TYPE=RELEASE .. && sudo make
     - sudo mv libg* /usr/lib/
     - cd $a
