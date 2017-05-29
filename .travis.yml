@@ -14,7 +14,7 @@ before_script:
     - sudo apt-get install -qq gcc-5
     - export CXX="g++-5"
     - export CC="gcc-5"
-    - sudo apt-get install -qq tbb libgtest-dev
+    - sudo apt-get install -qq libtbb-dev=4.4~20151115-0ubuntu3ppa1~trusty libtbb2=4.4~20151115-0ubuntu3ppa1~trusty libtbb2-dbg=4.4~20151115-0ubuntu3ppa1~trusty libgtest-dev
     - cd /usr/src/gtest && sudo mkdir build && cd build && sudo cmake -DCMAKE_BUILD_TYPE=RELEASE .. && sudo make
     - sudo mv libg* /usr/lib/
     - cd $a
