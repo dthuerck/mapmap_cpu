@@ -21,6 +21,9 @@ Currently, this code implements the following modules and features:
   - [x] Cost functions (unary and pairwise)
   - [x] Termination criteria
   - [x] Node grouping criteria for the multilevel module
+  - [x] Choice of two (parallel) coordinate selection algorithms
+  - [x] Use of heuristics, thereby modifying the solver's structure.
+  - [x] User hooks for logging intermediate results.
 - [x] Solver modules
   - [x] Acyclic (BCD) descent
   - [x] Spanning tree descent
@@ -39,7 +42,7 @@ Prerequisites
 * CMake building system (>= 2.8.0)
 * C++11 compatible compiler (e.g. gcc-5, MSVC 13, icc 17)
 * GTest (see [Github](https://github.com/google/googletest)) for building/running the tests
-* Intel TBB (>= 4.2, see [Webpage](https://www.threadingbuildingblocks.org/))
+* Intel TBB (>= 4.4, see [Webpage](https://www.threadingbuildingblocks.org/))
 
 The code has been tested (and compiles without issues) on an Ubuntu 16.04
 system with an AVX-compliant Intel i7-3930K CPU with 64 GB RAM and
@@ -137,11 +140,11 @@ Contact
 ------
 
 For any trouble with building, using or extending this software, please use
-the project's intergated issue tracker. We'll be happy to help you there or
+the project's integrated issue tracker. We'll be happy to help you there or
 discuss feature requests.
 
 For requests not matching the above, please contact the developer team and
-maintainer at mapmap(at)gris.tu-darmstadt.de.
+maintainer at mapmap(at)gcc.tu-darmstadt.de.
 
 Contributors (including preceding project)
 ------
