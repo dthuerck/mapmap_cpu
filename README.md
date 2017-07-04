@@ -66,7 +66,7 @@ should be somewhat similar, though GUI-based.
 
 *Step-by-step* instructions:
 
-1. `git clone https://gitlab.gcc.informatik.tu-darmstadt.de/dthuerck/mapmap_cpu`
+1. `git clone https://github.com/dthuerck/mapmap_cpu`
 2. `cd mapmap_cpu && mkdir build &&  cd build && cmake ..`
 3. `ccmake .` and configure the following options (if you want to...):
   * `CMAKE_C_COMPILER` - command for your C-compiler, e.g. `gcc-5`
