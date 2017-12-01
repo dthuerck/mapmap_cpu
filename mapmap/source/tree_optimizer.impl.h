@@ -162,6 +162,8 @@ objective(
                 /* determine label (indices) for both nodes */
                 const luint_t n_a = m_graph->edges()[e].node_a;
                 const luint_t n_b = m_graph->edges()[e].node_b;
+                const _s_t<COSTTYPE, SIMDWIDTH> e_weight = 
+                    m_graph->edges()[e].weight;
 
                 const _iv_st<COSTTYPE, SIMDWIDTH> n_a_l_i = solution[n_a];
                 const _iv_st<COSTTYPE, SIMDWIDTH> n_b_l_i = solution[n_b];
@@ -184,6 +186,10 @@ objective(
                     p_costs = m_pairwise->get_binary_costs(
                         iv_init<COSTTYPE, SIMDWIDTH>(n_a_l),
                         iv_init<COSTTYPE, SIMDWIDTH>(n_b_l));
+                        
+                /* multiply with edge weight */
+                p_costs = v_mult<COSTTYPE, SIMDWIDTH>(p_costs, 
+                    v_init<COSTTYPE, SIMDWIDTH>(e_weight));
 
                 /* extract first element of vector */
                 v_store<COSTTYPE, SIMDWIDTH>(p_costs, tmp);
