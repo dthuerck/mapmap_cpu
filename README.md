@@ -1,6 +1,41 @@
 mapMAP MRF MAP Solver [![Build Status](https://travis-ci.org/dthuerck/mapmap_cpu.svg?branch=master)](https://travis-ci.org/dthuerck/mapmap_cpu)
 ======
 
+Change Log
+------
+Compared with the development version from our HPG paper (cf. below).
+
+* v1.4 (1/10/2018):
+  - Deterministic solver path with user-provided seed.
+  - Several bugfixes and smaller improvements.
+* v1.3 (10/18/2017):
+  - Envelope optimization for Potts, TruncatedLinear, TruncatedQuadratic.
+  - Ability to have individual cost functions per edge.
+  - Removed UNARY/PAIRWISE template parameters from solver, hiding these
+    internally.
+  - Improved multilevel performance, even in the case of individual costs.
+  - Added GTest for automatic built instead of a hard dependency.
+* v1.2 (5/29/2017):
+  - Introduced a new, multicoloring-based tree selection algorithm -
+    lock-free.
+* v1.1 (4/12/2017):
+  - Tuned the tree growing implementation for early termination and
+  - option for relaxing the maximality requirement.
+* v1.0 (2/8/2017):
+  - Stable release.
+  - Logging callbacks for use as library.
+  - Clean, documented interface and documentation.
+  - Added a demo for correct usage.
+* beta (12/6/2016):
+  - Initial release, mirrors functionality outlined in the paper.
+  - Automated vectorization (compile-time detection) for float/double.
+  - Supporting scalar/SSE2-4/AVX/AVX2.
+  - Added cost function instances.
+  - Added unit tests.
+
+Overview
+------
+
 CPU-implementation of out massively-parallel, generic, MRF MAP solver named
 *mapMAP* posing minimal assumptions to the input, allowing rapid solution
 of a large class of MRF problems.
@@ -17,6 +52,8 @@ Currently, this code implements the following modules and features:
   - [x] Templated SIMD width (1, 4, 8 for float; 1, 2, 4 for double)
   - [x] Automatically setting SIMD width at compile time
   - [x] Supports SSE4/AVX/AVX2, autodetected during build
+  - [x] Automatically using linear-time optimization for certain cost functions
+  - [x] Two algorithms for parallel tree sampling
 - [x] Extensible interfaces for all components, providing user hooks
   - [x] Cost functions (unary and pairwise)
   - [x] Termination criteria
@@ -39,21 +76,20 @@ For the license and terms of usage, please see "License, Terms of usage & Refere
 Prerequisites
 ------
 
-* CMake building system (>= 2.8.0)
+* CMake building system (>= 3.0.2)
 * C++11 compatible compiler (e.g. gcc-5, MSVC 13, icc 17)
-* GTest (see [Github](https://github.com/google/googletest)) for building/running the tests
 * Intel TBB (>= 4.4, see [Webpage](https://www.threadingbuildingblocks.org/))
 
 The code has been tested (and compiles without issues) on an Ubuntu 16.04
 system with an AVX-compliant Intel i7-3930K CPU with 64 GB RAM and
-using gcc/g++ 5.4.0, GTest 1.8.0 and Intel TBB (v2017u3). The latter is
+using gcc/g++ 5.4.0 and Intel TBB (v2017u3). The latter is
 licensed under the 3BSD-compatible Apache 2.0 licence (see
 [ASF legal FAQ](http://www.apache.org/legal/resolved.html#category-a)).
 Please make sure to use an C++11-comptabile compiler and activate the
 necessary options.
 If you are a Ubuntu user, please install the packages
-`libtbb2 libtbb-dev libgtest-dev` and compile GTest's source in
-`/usr/src/gtest` (see also Travis CI-script).
+`libtbb2 libtbb-dev` (see also Travis CI-script). Google Test will automatically
+be downloaded and built.
 
 The provided FindTBB.cmake is taken from [justusc](https://github.com/justusc/FindTBB)
 and licensed under the MIT license.
@@ -108,7 +144,8 @@ performance:
 ```
 -std=c++11 -Wall -march=native -O2 -flto -mfpmath=sse -funroll-loops
 ```
-
+As a good starting point, we recommend studying `mapmap_demo.cc` closely,
+which is mostly self-explanatory.
 
 Documentation
 ------
@@ -153,8 +190,9 @@ Contributors (including preceding project)
 * Max von Buelow
 * Patrick Seemann
 * Nils Moehrle
+* Nick Heppert
 
-</a>Further material
+Further material
 ------
 
 Please see our project page at

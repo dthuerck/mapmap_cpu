@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2016, Daniel Thuerck
+ * TU Darmstadt - Graphics, Capture and Massively Parallel Computing
  * All rights reserved.
  *
  * This software may be modified and distributed under the terms
@@ -7,7 +8,7 @@
  */
 
 /**
- * This file is meant for demos purposes - it allows the execution of mapMAP
+ * This file is meant for demo purposes - it allows the execution of mapMAP
  * on datasets stored in the (deprecated) binary SHIMF format. mapMAP is
  * used as it would be if used as a library; pairwise costs must be
  * set manually.
@@ -58,7 +59,7 @@ main(
     std::unique_ptr<Graph<cost_t>> graph;
     std::unique_ptr<LabelSet<cost_t, simd_w>> label_set;
 
-    std::unique_ptr<unary_t> unaries;
+    std::vector<std::unique_ptr<unary_t>> unaries;
     std::unique_ptr<pairwise_t> pairwise;
 
     /* termination criterion and control flow */
@@ -66,7 +67,7 @@ main(
     mapMAP_control ctr;
 
     /* solver instance */
-    mapMAP<cost_t, simd_w, unary_t, pairwise_t> mapmap;
+    mapMAP<cost_t, simd_w> mapmap;
 
     /* read packed dataset */
     std::ifstream io(mrf_path, std::ifstream::in | std::ifstream::binary);
@@ -104,7 +105,6 @@ main(
 
             graph->add_edge(min_id, max_id, weight);
         }
-
 
         /* finalize component lists for base graph */
         graph->update_components();
@@ -154,26 +154,25 @@ main(
         io.read((char *) &tmp_unary_table[0], tmp_total_unary_entries *
             sizeof(float));
 
-        /* construct unary cost table */
-        unaries = std::unique_ptr<unary_t>(new unary_t
-            (graph.get(), label_set.get()));
+        /* construct unary cost tables */
+        unaries.reserve(num_nodes);
 
         for(uint32_t n = 0; n < num_nodes; ++n)
         {
+            unaries.emplace_back(std::unique_ptr<unary_t>(new unary_t(
+                n, label_set.get())));
+
             const uint32_t n_labels = tmp_node_label_counts[n];
             std::vector<_s_t<cost_t, simd_w>> costs(n_labels);
 
             for(uint32_t l = 0; l < n_labels; ++l)
                 costs[l] = tmp_unary_table[tmp_node_unary_offsets[n] + l];
 
-            unaries->set_costs_for_node(n, costs);
+            unaries.back()->set_costs(costs);
         }
 
-        for(luint_t n = 0; n < num_nodes; ++n)
-            tmp_node_unary_offsets[n] = n * num_labels;
-
-        /* pairwise costs */
-        pairwise = std::unique_ptr<pairwise_t>(new pairwise_t(2));
+        /* construct pairwise costs */
+        pairwise = std::unique_ptr<pairwise_t>(new pairwise_t({1.0, 2.0}));
 
         /* skip extensions and PTX files */
         io.close();
@@ -192,10 +191,15 @@ main(
         ctr.relax_acyclic_maximal = true;
         ctr.tree_algorithm = LOCK_FREE_TREE_SAMPLER;
 
+        /* set to true and select a seed for (serial) deterministic sampling */
+        ctr.sample_deterministic = false;
+        ctr.initial_seed = 548923723;
+
         /* construct optimizer */
         mapmap.set_graph(graph.get());
         mapmap.set_label_set(label_set.get());
-        mapmap.set_unaries(unaries.get());
+        for(luint_t n = 0; n < num_nodes; ++n)
+            mapmap.set_unary(n, unaries[n].get());
         mapmap.set_pairwise(pairwise.get());
         mapmap.set_termination_criterion(terminate.get());
 

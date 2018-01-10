@@ -52,20 +52,28 @@ FORCEINLINE
 _v_t<COSTTYPE, SIMDWIDTH>
 v_init();
 
+/* ************************************************************************** */
+
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _v_t<COSTTYPE, SIMDWIDTH>
 v_init(const _s_t<COSTTYPE, SIMDWIDTH>& a);
+
+/* ************************************************************************** */
 
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _iv_t<COSTTYPE, SIMDWIDTH>
 iv_init();
 
+/* ************************************************************************** */
+
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _iv_t<COSTTYPE, SIMDWIDTH>
 iv_init(const _iv_st<COSTTYPE, SIMDWIDTH>& a);
+
+/* ************************************************************************** */
 
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
@@ -82,11 +90,15 @@ _v_t<COSTTYPE, SIMDWIDTH>
 v_add(const _v_t<COSTTYPE, SIMDWIDTH>& a, 
     const _v_t<COSTTYPE, SIMDWIDTH>& b);
 
+/* ************************************************************************** */
+
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _v_t<COSTTYPE, SIMDWIDTH> 
 v_sub(const _v_t<COSTTYPE, SIMDWIDTH>& a, 
     const _v_t<COSTTYPE, SIMDWIDTH>& b);
+
+/* ************************************************************************** */
 	
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
@@ -94,15 +106,26 @@ _v_t<COSTTYPE, SIMDWIDTH>
 v_mult(const _v_t<COSTTYPE, SIMDWIDTH>& a, 
     const _v_t<COSTTYPE, SIMDWIDTH>& b);
 
+/* ************************************************************************** */
+
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _v_t<COSTTYPE, SIMDWIDTH>
 v_abs(const _v_t<COSTTYPE, SIMDWIDTH>& a);
 
+/* ************************************************************************** */
+
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _v_t<COSTTYPE, SIMDWIDTH>
 v_min(const _v_t<COSTTYPE, SIMDWIDTH>& a, const _v_t<COSTTYPE, SIMDWIDTH>& b);
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE, uint_t SIMDWIDTH>
+FORCEINLINE
+_v_t<COSTTYPE, SIMDWIDTH>
+v_max(const _v_t<COSTTYPE, SIMDWIDTH>& a, const _v_t<COSTTYPE, SIMDWIDTH>& b);
 
 /** 
  * Integer arithmetique functions
@@ -114,11 +137,15 @@ _iv_t<COSTTYPE, SIMDWIDTH>
 iv_add(const _iv_t<COSTTYPE, SIMDWIDTH>& a, 
     const _iv_t<COSTTYPE, SIMDWIDTH>& b);
 
+/* ************************************************************************** */
+
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _iv_t<COSTTYPE, SIMDWIDTH>
 iv_sub(const _iv_t<COSTTYPE, SIMDWIDTH>& a, 
     const _iv_t<COSTTYPE, SIMDWIDTH>& b);
+
+/* ************************************************************************** */
 
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
@@ -126,15 +153,27 @@ _iv_t<COSTTYPE, SIMDWIDTH>
 iv_mult(const _iv_t<COSTTYPE, SIMDWIDTH>& a,
     const _iv_t<COSTTYPE, SIMDWIDTH>& b);
 
+/* ************************************************************************** */
+
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _iv_t<COSTTYPE, SIMDWIDTH>
 iv_abs(const _iv_t<COSTTYPE, SIMDWIDTH>& a);
 
+/* ************************************************************************** */
+
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _iv_t<COSTTYPE, SIMDWIDTH>
 iv_min(const _iv_t<COSTTYPE, SIMDWIDTH>& a, 
+    const _iv_t<COSTTYPE, SIMDWIDTH>& b);
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE, uint_t SIMDWIDTH>
+FORCEINLINE
+_iv_t<COSTTYPE, SIMDWIDTH>
+iv_max(const _iv_t<COSTTYPE, SIMDWIDTH>& a, 
     const _iv_t<COSTTYPE, SIMDWIDTH>& b);
 
 /**
@@ -146,35 +185,56 @@ FORCEINLINE
 _v_t<COSTTYPE, SIMDWIDTH>
 iv_reinterpret_v(const _iv_t<COSTTYPE, SIMDWIDTH>& a);
 
+/* ************************************************************************** */
+
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _iv_t<COSTTYPE, SIMDWIDTH>
 v_reinterpret_iv(const _v_t<COSTTYPE, SIMDWIDTH>& a);
+
+/* ************************************************************************** */
 
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _v_t<COSTTYPE, SIMDWIDTH>
 iv_convert_v(const _iv_t<COSTTYPE, SIMDWIDTH>& a);
 
+/* ************************************************************************** */
+
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _iv_t<COSTTYPE, SIMDWIDTH>
 v_convert_iv(const _v_t<COSTTYPE, SIMDWIDTH>& a);
+
+/* ************************************************************************** */
 
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _v_t<COSTTYPE, SIMDWIDTH>
 v_eq(const _v_t<COSTTYPE, SIMDWIDTH>& a, const _v_t<COSTTYPE, SIMDWIDTH>& b);
 
+/* ************************************************************************** */
+
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _v_t<COSTTYPE, SIMDWIDTH>
 v_not(const _v_t<COSTTYPE, SIMDWIDTH>& a);
 
+/* ************************************************************************** */
+
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _v_t<COSTTYPE, SIMDWIDTH>
 v_and(const _v_t<COSTTYPE, SIMDWIDTH>& a, const _v_t<COSTTYPE, SIMDWIDTH>& b);
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE, uint_t SIMDWIDTH>
+FORCEINLINE
+_v_t<COSTTYPE, SIMDWIDTH>
+v_or(const _v_t<COSTTYPE, SIMDWIDTH>& a, const _v_t<COSTTYPE, SIMDWIDTH>& b);
+
+/* ************************************************************************** */
 
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
@@ -182,11 +242,23 @@ _v_t<COSTTYPE, SIMDWIDTH>
 v_le(const _v_t<COSTTYPE, SIMDWIDTH>& a, 
     const _v_t<COSTTYPE, SIMDWIDTH>& b);
 
+/* ************************************************************************** */
+
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _iv_t<COSTTYPE, SIMDWIDTH>
 iv_le(const _iv_t<COSTTYPE, SIMDWIDTH>& a,
     const _iv_t<COSTTYPE, SIMDWIDTH>& b);
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE, uint_t SIMDWIDTH>
+FORCEINLINE
+_iv_t<COSTTYPE, SIMDWIDTH>
+iv_eq(const _iv_t<COSTTYPE, SIMDWIDTH>& a,
+    const _iv_t<COSTTYPE, SIMDWIDTH>& b);
+
+/* ************************************************************************** */
 
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
@@ -194,12 +266,25 @@ _v_t<COSTTYPE, SIMDWIDTH>
 v_blend(const _v_t<COSTTYPE, SIMDWIDTH>& a, const _v_t<COSTTYPE, SIMDWIDTH>& b, 
     const _v_t<COSTTYPE, SIMDWIDTH>& mask);
 
+/* ************************************************************************** */
+
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _iv_t<COSTTYPE, SIMDWIDTH>
 iv_blend(const _iv_t<COSTTYPE, SIMDWIDTH>& a, 
     const _iv_t<COSTTYPE, SIMDWIDTH>& b, 
     const _iv_t<COSTTYPE, SIMDWIDTH>& mask);
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE, uint_t SIMDWIDTH>
+FORCEINLINE
+_s_t<COSTTYPE, SIMDWIDTH>
+v_extract(
+    const _v_t<COSTTYPE, SIMDWIDTH>& a,
+    const int8_t imm);
+
+/* ************************************************************************** */
 
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
@@ -217,20 +302,42 @@ FORCEINLINE
 _v_t<COSTTYPE, SIMDWIDTH>
 v_load(const _s_t<COSTTYPE, SIMDWIDTH>* ptr);
 
+/* ************************************************************************** */
+
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _iv_t<COSTTYPE, SIMDWIDTH>
 iv_load(const _iv_st<COSTTYPE, SIMDWIDTH>* ptr);
+
+/* ************************************************************************** */
 
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 void
 v_store(const _v_t<COSTTYPE, SIMDWIDTH>& a, _s_t<COSTTYPE, SIMDWIDTH>* ptr);
 
+/* ************************************************************************** */
+
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 void
 iv_store(const _iv_t<COSTTYPE, SIMDWIDTH>& a, _iv_st<COSTTYPE, SIMDWIDTH>* ptr);
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE, uint_t SIMDWIDTH>
+FORCEINLINE
+void
+v_masked_store(const _v_t<COSTTYPE, SIMDWIDTH>& a, const _iv_t<COSTTYPE,
+    SIMDWIDTH>& mask, _s_t<COSTTYPE, SIMDWIDTH> * ptr);
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE, uint_t SIMDWIDTH>
+FORCEINLINE
+_v_t<COSTTYPE, SIMDWIDTH>
+v_gather(const _s_t<COSTTYPE, SIMDWIDTH> * base,
+    const _iv_t<COSTTYPE, SIMDWIDTH>& offsets);
 
 /**
  * Miscelleanous functions

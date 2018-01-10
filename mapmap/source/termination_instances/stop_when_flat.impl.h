@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2016, Daniel Thuerck
+ * TU Darmstadt - Graphics, Capture and Massively Parallel Computing
  * All rights reserved.
  *
  * This software may be modified and distributed under the terms
@@ -50,9 +51,9 @@ check_termination(
     luint_t flat_iterations = 0;
     for(luint_t j = num_energy_iterations - 1; j > 0; --j)
     {
-        const bool is_flat = ((*history->energy_history)[j] == 
+        const bool is_flat = ((*history->energy_history)[j] ==
             (*history->energy_history)[j - 1]);
-        const bool is_improvement = ((*history->energy_history)[j] <= 
+        const bool is_improvement = ((*history->energy_history)[j] <=
             (*history->energy_history)[j - 1]);
 
         if(is_flat)

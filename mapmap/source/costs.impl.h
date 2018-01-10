@@ -30,7 +30,7 @@ template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 LabelSet<COSTTYPE, SIMDWIDTH>::
 LabelSet(
-    const luint_t& num_graph_nodes, 
+    const luint_t& num_graph_nodes,
     const bool compress)
 : m_graph_num_nodes(num_graph_nodes),
   m_max_label_set_size(0),
@@ -110,11 +110,11 @@ const
 
     /* determine label set for node and calculate pointer */
     const luint_t label_set_id = m_label_set_ids[node_id];
-    const _iv_st<COSTTYPE, SIMDWIDTH>* ptr = (_iv_st<COSTTYPE, SIMDWIDTH>*) 
+    const _iv_st<COSTTYPE, SIMDWIDTH>* ptr = (_iv_st<COSTTYPE, SIMDWIDTH>*)
         (&m_label_sets[label_set_id][offset]);
 
     /* load vector from ptr */
-    return iv_load<COSTTYPE, SIMDWIDTH>(ptr);    
+    return iv_load<COSTTYPE, SIMDWIDTH>(ptr);
 }
 
 /* ************************************************************************** */
@@ -122,7 +122,7 @@ const
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _iv_st<COSTTYPE, SIMDWIDTH>
-LabelSet<COSTTYPE, SIMDWIDTH>:: 
+LabelSet<COSTTYPE, SIMDWIDTH>::
 label_from_offset(
     const luint_t& node_id,
     const _iv_st<COSTTYPE, SIMDWIDTH>& offset)
@@ -168,7 +168,7 @@ const
     else
     {
         /* linear search */
-        const auto it = std::find(m_label_sets[label_set_id].begin(), 
+        const auto it = std::find(m_label_sets[label_set_id].begin(),
             m_label_sets[label_set_id].end(), label);
 
         if(it != m_label_sets[label_set_id].end())
@@ -176,7 +176,68 @@ const
                 (it - m_label_sets[label_set_id].begin());
     }
 
-    return 0;
+    return -1;
+}
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE, uint_t SIMDWIDTH>
+FORCEINLINE
+const _iv_t<COSTTYPE, SIMDWIDTH>
+LabelSet<COSTTYPE, SIMDWIDTH>::
+offsets_for_labels(
+    const luint_t& node_id,
+    const _iv_t<COSTTYPE, SIMDWIDTH>& labels)
+const
+{
+    if(node_id >= m_graph_num_nodes)
+        return iv_init<COSTTYPE, SIMDWIDTH>(0);
+
+    /* determine label set for node */
+    const luint_t label_set_id = m_label_set_ids[node_id];
+
+    /* find label in label set - binary search is sorted, otherwise linear */
+    _iv_st<COSTTYPE, SIMDWIDTH> tmp[SIMDWIDTH];
+    if(m_is_ordered[label_set_id])
+    {
+        for(uint_t i = 0; i < SIMDWIDTH; ++i)
+        {
+            tmp[i] = 0;
+            const _iv_st<COSTTYPE, SIMDWIDTH> label = iv_extract<COSTTYPE,
+                SIMDWIDTH>(labels, i);
+
+            /* binary search */
+            const auto it = std::lower_bound(m_label_sets[label_set_id].begin(),
+                m_label_sets[label_set_id].end(), label);
+
+            if(it != m_label_sets[label_set_id].end() && !(label < *it))
+                tmp[i] = (const _iv_st<COSTTYPE, SIMDWIDTH>)
+                    (it - m_label_sets[label_set_id].begin());
+        }
+
+        return iv_load<COSTTYPE, SIMDWIDTH>(tmp);
+    }
+    else
+    {
+        for(uint_t i = 0; i < SIMDWIDTH; ++i)
+        {
+            tmp[i] = 0;
+            const _iv_st<COSTTYPE, SIMDWIDTH> label = iv_extract<COSTTYPE,
+                SIMDWIDTH>(labels, i);
+                        
+            /* linear search */
+            const auto it = std::find(m_label_sets[label_set_id].begin(),
+                m_label_sets[label_set_id].end(), label);
+
+            if(it != m_label_sets[label_set_id].end())
+                tmp[i] = (const _iv_st<COSTTYPE, SIMDWIDTH>)
+                    (it - m_label_sets[label_set_id].begin());
+        }
+
+        return iv_load<COSTTYPE, SIMDWIDTH>(tmp);
+    }
+
+    return iv_init<COSTTYPE, SIMDWIDTH>();
 }
 
 /* ************************************************************************** */
@@ -189,7 +250,7 @@ set_label_set_for_node(
     const luint_t& node_id,
     const std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& label_set)
 {
-    m_max_label_set_size = std::max(m_max_label_set_size, 
+    m_max_label_set_size = std::max(m_max_label_set_size,
         (_iv_st<COSTTYPE, SIMDWIDTH>) label_set.size());
 
     /* update max label */
@@ -199,25 +260,25 @@ set_label_set_for_node(
     /**
      * if compression is activated, each newly passed label set is checked
      * against all other label sets and only added if it is new
-     */ 
+     */
     if(m_compress)
     {
         const uint_t set_hash = hash(label_set);
 
         /* check all other hashes serially (might be a nested loop here!) */
         uint_t exists = invalid_uint_t;
-        for(uint_t hash_ix = 0; hash_ix < m_label_set_hashes.size(); ++hash_ix) 
+        for(uint_t hash_ix = 0; hash_ix < m_label_set_hashes.size(); ++hash_ix)
         {
             if(m_label_set_hashes[hash_ix] == set_hash)
             {
-                const std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& other_set = 
+                const std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& other_set =
                     m_label_sets[hash_ix];
 
                 /* now check label set for equivalence */
                 bool is_equal = (label_set.size() == other_set.size());
                 for(uint_t i = 0; (i < label_set.size()) && is_equal; ++i)
                     is_equal &= (label_set[i] == other_set[i]);
-                
+
                 if(is_equal)
                     exists = hash_ix;
             }
@@ -232,7 +293,7 @@ set_label_set_for_node(
         /* in case set is new: add hash to list of known hashes */
         m_label_set_hashes.push_back(set_hash);
     }
-    
+
     /* add label set as new label set (new ID: m_label_set_ids.size()) */
     m_label_set_sizes.push_back(label_set.size());
     m_label_set_ids[node_id] = m_label_sets.size();
@@ -245,7 +306,7 @@ set_label_set_for_node(
     m_is_ordered.push_back(ordered);
 
     /* expand label set to facilitate vectorized DP */
-    m_label_sets.back().resize(SIMDWIDTH * DIV_UP(m_label_set_sizes.back(), 
+    m_label_sets.back().resize(SIMDWIDTH * DIV_UP(m_label_set_sizes.back(),
         SIMDWIDTH), std::numeric_limits<_iv_st<COSTTYPE, SIMDWIDTH>>::max());
 }
 

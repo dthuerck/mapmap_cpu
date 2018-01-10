@@ -22,7 +22,20 @@ template<typename COSTTYPE>
 Color<COSTTYPE>::
 Color(
     Graph<COSTTYPE>& graph)
+: Color<COSTTYPE>(graph, false)
+{
+
+}
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE>
+Color<COSTTYPE>::
+Color(
+    Graph<COSTTYPE>& graph,
+    const bool deterministic)
 : m_graph(graph),
+  m_deterministic(deterministic),
   m_conf_a(),
   m_conf_b()
 {
@@ -76,76 +89,86 @@ color_graph(
 
         /* resolve detected conflicts */
         tbb::blocked_range<luint_t> conf_range(0, conf_in->size(), 64u);
-        tbb::parallel_for(conf_range,
-            [&](const tbb::blocked_range<luint_t>& r)
+        const auto fun_resolve = [&](const tbb::blocked_range<luint_t>& r)
+        {
+            for(luint_t ix = r.begin(); ix != r.end(); ++ix)
             {
-                for(luint_t ix = r.begin(); ix != r.end(); ++ix)
+                const luint_t conf_node = (*conf_in)[ix];
+
+                /* clear forbidden array */
+                char * forbidden = conf_arrays.data() + ix * old_k;
+                std::memset(forbidden, 0, old_k);
+
+                /* collect neighboring colors */
+                const luint_t degree = m_graph.inc_edges(conf_node).size();
+                for(luint_t j = 0; j < degree; ++j)
                 {
-                    const luint_t conf_node = (*conf_in)[ix];
+                    const luint_t e_id =
+                        m_graph.inc_edges(conf_node)[j];
+                    const GraphEdge<COSTTYPE>& e = m_graph.edges()[e_id];
+                    const luint_t o_node = (e.node_a == conf_node) ?
+                        e.node_b : e.node_a;
 
-                    /* clear forbidden array */
-                    char * forbidden = conf_arrays.data() + ix * old_k;
-                    std::memset(forbidden, 0, old_k);
-
-                    /* collect neighboring colors */
-                    const luint_t degree = m_graph.inc_edges(conf_node).size();
-                    for(luint_t j = 0; j < degree; ++j)
-                    {
-                        const luint_t e_id =
-                            m_graph.inc_edges(conf_node)[j];
-                        const GraphEdge<COSTTYPE>& e = m_graph.edges()[e_id];
-                        const luint_t o_node = (e.node_a == conf_node) ?
-                            e.node_b : e.node_a;
-
-                        forbidden[atom_colors[o_node]] = 1u;
-                    }
-
-                    /* find minimum non-conflicting color */
-                    luint_t new_color = atom_colors[conf_node];
-                    for(luint_t i = 0; i < old_k &&
-                        forbidden[new_color]; ++i)
-                        new_color = i;
-
-                    /* still not conflict-free? need to add one color */
-                    if(forbidden[new_color])
-                    {
-                        k.compare_and_swap(old_k + 1, old_k);
-                        new_color = old_k + 1;
-                    }
-
-                    /* set color atomically */
-                    atom_colors[conf_node] = new_color;
+                    forbidden[atom_colors[o_node]] = 1u;
                 }
-            });
+
+                /* find minimum non-conflicting color */
+                luint_t new_color = atom_colors[conf_node];
+                for(luint_t i = 0; i < old_k &&
+                    forbidden[new_color]; ++i)
+                    new_color = i;
+
+                /* still not conflict-free? need to add one color */
+                if(forbidden[new_color])
+                {
+                    k.compare_and_swap(old_k + 1, old_k);
+                    new_color = old_k + 1;
+                }
+
+                /* set color atomically */
+                atom_colors[conf_node] = new_color;
+            }
+        };
+
+        /* for deterministic coloring, run function serially */
+        if(m_deterministic)
+            fun_resolve(conf_range);
+        else
+            tbb::parallel_for(conf_range, fun_resolve);
 
         /* detect remaining conflicts */
-        tbb::parallel_for(conf_range,
-            [&](const tbb::blocked_range<luint_t>& r)
+        const auto fun_detect = [&](const tbb::blocked_range<luint_t>& r)
+        {
+            for(luint_t ix = r.begin(); ix != r.end(); ++ix)
             {
-                for(luint_t ix = r.begin(); ix != r.end(); ++ix)
+                const luint_t conf_node = (*conf_in)[ix];
+
+                /* detect conflicts */
+                bool recorded_node = false;
+                const luint_t degree = m_graph.inc_edges(conf_node).size();
+                for(luint_t j = 0; j < degree && !recorded_node; ++j)
                 {
-                    const luint_t conf_node = (*conf_in)[ix];
+                    const luint_t e_id =
+                        m_graph.inc_edges(conf_node)[j];
+                    const GraphEdge<COSTTYPE>& e = m_graph.edges()[e_id];
+                    const luint_t o_node = (e.node_a == conf_node) ?
+                        e.node_b : e.node_a;
 
-                    /* detect conflicts */
-                    bool recorded_node = false;
-                    const luint_t degree = m_graph.inc_edges(conf_node).size();
-                    for(luint_t j = 0; j < degree && !recorded_node; ++j)
+                    if(atom_colors[conf_node] == atom_colors[o_node] &&
+                        conf_node < o_node)
                     {
-                        const luint_t e_id =
-                            m_graph.inc_edges(conf_node)[j];
-                        const GraphEdge<COSTTYPE>& e = m_graph.edges()[e_id];
-                        const luint_t o_node = (e.node_a == conf_node) ?
-                            e.node_b : e.node_a;
-
-                        if(atom_colors[conf_node] == atom_colors[o_node] &&
-                            conf_node < o_node)
-                        {
-                            conf_out->push_back(conf_node);
-                            recorded_node = true;
-                        }
+                        conf_out->push_back(conf_node);
+                        recorded_node = true;
                     }
                 }
-            });
+            }
+        };
+
+        /* for deterministic coloring, run function serially */
+        if(m_deterministic)
+            fun_detect(conf_range);
+        else
+            tbb::parallel_for(conf_range, fun_detect);
 
         /* exchange input/output queues */
         std::swap(conf_in, conf_out);

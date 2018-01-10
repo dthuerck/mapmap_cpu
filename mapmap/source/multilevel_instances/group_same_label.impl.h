@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2016, Daniel Thuerck
+ * TU Darmstadt - Graphics, Capture and Massively Parallel Computing
  * All rights reserved.
  *
  * This software may be modified and distributed under the terms

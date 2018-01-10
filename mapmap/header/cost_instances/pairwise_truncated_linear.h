@@ -7,8 +7,8 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#ifndef __MAPMAP_HEADER_COST_INSTANCES_PAIRWISE_TRUNCATED_LINEAR_H_
-#define __MAPMAP_HEADER_COST_INSTANCES_PAIRWISE_TRUNCATED_LINEAR_H_
+#ifndef __MAPMAP_PAIRWISE_TRUNCATED_LINEAR_H_
+#define __MAPMAP_PAIRWISE_TRUNCATED_LINEAR_H_
 
 #include "header/defines.h"
 #include "header/costs.h"
@@ -19,22 +19,31 @@ template<typename COSTTYPE, uint_t SIMDWIDTH>
 class PairwiseTruncatedLinear : public PairwiseCosts<COSTTYPE, SIMDWIDTH>
 {
 public:
-    PairwiseTruncatedLinear(const _s_t<COSTTYPE, SIMDWIDTH>& label_diff_cap);
+    PairwiseTruncatedLinear();
+    PairwiseTruncatedLinear(const _s_t<COSTTYPE, SIMDWIDTH>& c,
+        const _s_t<COSTTYPE, SIMDWIDTH>& label_diff_cap);
+    PairwiseTruncatedLinear(const std::initializer_list<_s_t<COSTTYPE,
+        SIMDWIDTH>>& ps);
     ~PairwiseTruncatedLinear();
 
-    virtual bool node_dependent() const;
+    _s_t<COSTTYPE, SIMDWIDTH> get_label_diff_cap() const;
+    _s_t<COSTTYPE, SIMDWIDTH> get_c() const;
 
-    virtual _v_t<COSTTYPE, SIMDWIDTH> get_binary_costs(
-        const luint_t& node_id_1, 
-        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_1, 
-        const luint_t& node_id_2, 
-        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_2) const throw();
-    virtual _v_t<COSTTYPE, SIMDWIDTH> get_binary_costs(
-        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_1, 
-        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_2) const throw();
+    virtual std::unique_ptr<PairwiseCosts<COSTTYPE, SIMDWIDTH>> copy() const;
+
+    virtual bool supports_enumerable_costs() const;
+    virtual bool eq(const PairwiseCosts<COSTTYPE, SIMDWIDTH> * costs) const;
+
+    virtual _v_t<COSTTYPE, SIMDWIDTH> get_pairwise_costs(
+        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_1,
+        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_2) const;
+    virtual _v_t<COSTTYPE, SIMDWIDTH> get_pairwise_costs_enum_offsets(
+        const _iv_t<COSTTYPE, SIMDWIDTH>& label_ix_vec_1,
+        const _iv_t<COSTTYPE, SIMDWIDTH>& label_ix_vec_2) const;
 
 protected:
-    _s_t<COSTTYPE, SIMDWIDTH> m_label_diff_cap;
+    _s_t<COSTTYPE, SIMDWIDTH> m_c = (_s_t<COSTTYPE, SIMDWIDTH>) 1;
+    _s_t<COSTTYPE, SIMDWIDTH> m_label_diff_cap = (_s_t<COSTTYPE, SIMDWIDTH>) 2;
 };
 
 template<typename COSTTYPE, uint_t SIMDWIDTH>
@@ -43,6 +52,7 @@ using PairwiseTruncatedLinear_ptr = std::shared_ptr<PairwiseTruncatedLinear<
 
 NS_MAPMAP_END
 
+/* include function implementations */
 #include "source/cost_instances/pairwise_truncated_linear.impl.h"
 
-#endif /* __MAPMAP_HEADER_COST_INSTANCES_PAIRWISE_TRUNCATED_LINEAR_H_ */
+#endif /* __MAPMAP_PAIRWISE_TRUNCATED_LINEAR_H_ */

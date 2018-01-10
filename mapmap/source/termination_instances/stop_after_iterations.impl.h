@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2016, Daniel Thuerck
+ * TU Darmstadt - Graphics, Capture and Massively Parallel Computing
  * All rights reserved.
  *
  * This software may be modified and distributed under the terms
@@ -45,9 +46,9 @@ StopAfterIterations<COSTTYPE, SIMDWIDTH>::
 check_termination(
     const SolverHistory<COSTTYPE, SIMDWIDTH> * history)
 {
-    luint_t iterations_done = 
-        (m_count_acyclic ? history->acyclic_iterations : 0) + 
-        (m_count_spanningtree ? history->spanningtree_iterations : 0) + 
+    luint_t iterations_done =
+        (m_count_acyclic ? history->acyclic_iterations : 0) +
+        (m_count_spanningtree ? history->spanningtree_iterations : 0) +
         (m_count_multilevel ? history->multilevel_iterations : 0);
 
     return (iterations_done >= m_max_iterations);

@@ -7,8 +7,8 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#ifndef __MAPMAP_HEADER_MULTILEVEL_H_
-#define __MAPMAP_HEADER_MULTILEVEL_H_
+#ifndef __MAPMAP_MULTILEVEL_H_
+#define __MAPMAP_MULTILEVEL_H_
 
 #include <memory>
 #include <vector>
@@ -18,6 +18,7 @@
 #include "header/defines.h"
 #include "header/graph.h"
 #include "header/costs.h"
+#include "header/cost_bundle.h"
 
 #include "header/cost_instances/unary_table.h"
 #include "header/cost_instances/pairwise_table.h"
@@ -30,8 +31,7 @@ struct LevelSet
     /* might be modified by coloring */
     Graph<COSTTYPE> * level_graph;
     const LabelSet<COSTTYPE, SIMDWIDTH> * level_label_set;
-    const UnaryCosts<COSTTYPE, SIMDWIDTH> * level_unaries;
-    const PairwiseCosts<COSTTYPE, SIMDWIDTH> * level_pairwise;
+    CostBundle<COSTTYPE, SIMDWIDTH> * level_cost_bundle;
 
     /* associate nodes from previous level with nodes in this level */
     std::vector<luint_t> prev_node_in_group;
@@ -72,23 +72,24 @@ public:
  * of MultilevelCriterion.
  */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 class Multilevel
 {
 public:
     Multilevel(Graph<COSTTYPE> * original_graph,
         const LabelSet<COSTTYPE, SIMDWIDTH> * original_label_set,
-        const UNARY * original_unaries,
-        const PAIRWISE * original_pairwise,
-        MultilevelCriterion<COSTTYPE, SIMDWIDTH> *
-            criterion);
+        const CostBundle<COSTTYPE, SIMDWIDTH> * original_cost_bundle,
+        MultilevelCriterion<COSTTYPE, SIMDWIDTH> * criterion);
+    Multilevel(Graph<COSTTYPE> * original_graph,
+        const LabelSet<COSTTYPE, SIMDWIDTH> * original_label_set,
+        const CostBundle<COSTTYPE, SIMDWIDTH> * original_cost_bundle,
+        MultilevelCriterion<COSTTYPE, SIMDWIDTH> * criterion,
+        const bool deterministic);
     ~Multilevel();
 
-    const UnaryTable<COSTTYPE, SIMDWIDTH> * get_level_unaries() const throw();
-    const PairwiseTable<COSTTYPE, SIMDWIDTH> * get_level_pairwise() const
-        throw();
-    Graph<COSTTYPE> * get_level_graph() const throw();
-    const LabelSet<COSTTYPE, SIMDWIDTH> * get_level_label_set() const throw();
+    const CostBundle<COSTTYPE, SIMDWIDTH> * get_level_cost_bundle() const;
+    Graph<COSTTYPE> * get_level_graph() const;
+    const LabelSet<COSTTYPE, SIMDWIDTH> * get_level_label_set() const;
 
     bool prev_level();
     bool next_level(const std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>&
@@ -103,12 +104,16 @@ protected:
     /* common functionalities */
     void compute_contiguous_ids(const
         std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& projected_solution);
-    void compute_level_label_set() throw();
+    void compute_level_label_set();
+    void compute_level_cost_bundle();
     void compute_level_unaries();
     void compute_level_pairwise();
     void compute_level_graph_from_node_groups();
 
 protected:
+    /* switch on/off determinism in graph creation */
+    const bool m_deterministic;
+
     /* node grouping algorithm/criterion */
     MultilevelCriterion<COSTTYPE, SIMDWIDTH> *
         m_criterion;
@@ -127,9 +132,11 @@ protected:
     std::vector<std::unique_ptr<Graph<COSTTYPE>>> m_storage_graph;
     std::vector<std::unique_ptr<LabelSet<COSTTYPE, SIMDWIDTH>>>
         m_storage_label_set;
+    std::vector<std::unique_ptr<CostBundle<COSTTYPE, SIMDWIDTH>>>
+        m_storage_cbundle;
     std::vector<std::unique_ptr<UnaryTable<COSTTYPE, SIMDWIDTH>>>
         m_storage_unaries;
-    std::vector<std::unique_ptr<PairwiseTable<COSTTYPE, SIMDWIDTH>>>
+    std::vector<std::unique_ptr<PairwiseCosts<COSTTYPE, SIMDWIDTH>>>
         m_storage_pairwise;
 
     /**
@@ -156,6 +163,10 @@ protected:
     /* mutex for writing access to the graph */
     tbb::mutex m_graph_write_mutex;
 
+    /* allocator for working tables */
+    std::unique_ptr<tbb::tbb_allocator<_s_t<COSTTYPE, SIMDWIDTH>>>
+        m_value_allocator;
+
     /* debug */
     std::vector<_iv_st<COSTTYPE, SIMDWIDTH>> m_solution;
 };
@@ -164,4 +175,4 @@ NS_MAPMAP_END
 
 #include "source/multilevel.impl.h"
 
-#endif /* __MAPMAP_HEADER_MULTILEVEL_H_ */
+#endif /* __MAPMAP_MULTILEVEL_H_ */

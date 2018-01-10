@@ -30,12 +30,16 @@ class Color
 {
 public:
     Color(Graph<COSTTYPE>& graph);
+    Color(Graph<COSTTYPE>& graph, const bool deterministic);
     ~Color();
 
     void color_graph(std::vector<luint_t>& coloring);
 
 protected:
     Graph<COSTTYPE>& m_graph;
+
+    /* deterministic (serial) handling */
+    const bool m_deterministic;
 
     tbb::concurrent_vector<luint_t> m_conf_a;
     tbb::concurrent_vector<luint_t> m_conf_b;

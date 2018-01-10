@@ -13,7 +13,7 @@
 
 #include "header/multilevel_instances/group_same_label.h"
 #include "header/termination_instances/stop_when_flat.h"
-#include "header/dynamic_programming.h"
+#include "header/optimizer_instances/dynamic_programming.h"
 #include "header/timer.h"
 
 NS_MAPMAP_BEGIN
@@ -24,9 +24,9 @@ NS_MAPMAP_BEGIN
  * *****************************************************************************
  */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+mapMAP<COSTTYPE, SIMDWIDTH>::
 mapMAP()
 : m_construct_graph(false),
   m_set_graph(false),
@@ -35,6 +35,7 @@ mapMAP()
   m_set_pairwise(false),
   m_set_multilevel_criterion(false),
   m_set_termination_criterion(false),
+  m_cbundle(nullptr),
   m_hist_energy(),
   m_hist_acyclic_iterations(0),
   m_hist_spanningtree_iterations(0),
@@ -46,9 +47,9 @@ mapMAP()
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+mapMAP<COSTTYPE, SIMDWIDTH>::
 mapMAP(
     const luint_t num_nodes,
     const luint_t num_labels)
@@ -59,6 +60,7 @@ mapMAP(
   m_set_pairwise(false),
   m_set_multilevel_criterion(false),
   m_set_termination_criterion(false),
+  m_cbundle(nullptr),
   m_num_nodes(num_nodes),
   m_num_labels(num_labels),
   m_graph(new Graph<COSTTYPE>),
@@ -67,16 +69,17 @@ mapMAP(
   m_hist_acyclic_iterations(0),
   m_hist_spanningtree_iterations(0),
   m_hist_multilevel_iterations(0),
-  m_use_callback(false)
+  m_use_callback(false),
+  m_cbundle(nullptr)
 {
 
 }
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+mapMAP<COSTTYPE, SIMDWIDTH>::
 ~mapMAP()
 {
 
@@ -84,10 +87,10 @@ mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 void
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+mapMAP<COSTTYPE, SIMDWIDTH>::
 set_graph(
     Graph<COSTTYPE> * graph)
 throw()
@@ -103,10 +106,10 @@ throw()
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 void
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+mapMAP<COSTTYPE, SIMDWIDTH>::
 set_label_set(
     const LabelSet<COSTTYPE, SIMDWIDTH> * label_set)
 throw()
@@ -121,10 +124,10 @@ throw()
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 void
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+mapMAP<COSTTYPE, SIMDWIDTH>::
 add_edge(
     const luint_t node_a,
     const luint_t node_b,
@@ -140,10 +143,10 @@ throw()
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 void
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+mapMAP<COSTTYPE, SIMDWIDTH>::
 set_node_label_set(
     const luint_t node_id,
     const std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& label_set)
@@ -159,36 +162,80 @@ throw()
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 void
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+mapMAP<COSTTYPE, SIMDWIDTH>::
 set_unaries(
-    const UNARY * unaries)
+    const UnaryCosts<COSTTYPE, SIMDWIDTH> * unary)
 {
-    m_unaries = unaries;
+    if(m_cbundle.get() == nullptr)
+        m_cbundle = std::unique_ptr<CostBundle<COSTTYPE, SIMDWIDTH>>(
+            new CostBundle<COSTTYPE, SIMDWIDTH>(this->m_graph));
+
+    m_cbundle->set_unary_costs(unary);
     m_set_unaries = true;
 }
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 void
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+mapMAP<COSTTYPE, SIMDWIDTH>::
 set_pairwise(
-    const PAIRWISE * pairwise)
+    const PairwiseCosts<COSTTYPE, SIMDWIDTH> * pairwise)
 {
-    m_pairwise = pairwise;
+    if(m_cbundle.get() == nullptr)
+        m_cbundle = std::unique_ptr<CostBundle<COSTTYPE, SIMDWIDTH>>(
+            new CostBundle<COSTTYPE, SIMDWIDTH>(this->m_graph));
+
+    m_cbundle->set_pairwise_costs(pairwise);
     m_set_pairwise = true;
 }
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 void
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+mapMAP<COSTTYPE, SIMDWIDTH>::
+set_unary(
+    const luint_t node_id,
+    const UnaryCosts<COSTTYPE, SIMDWIDTH> * unary)
+{
+    if(m_cbundle.get() == nullptr)
+        m_cbundle = std::unique_ptr<CostBundle<COSTTYPE, SIMDWIDTH>>(
+            new CostBundle<COSTTYPE, SIMDWIDTH>(this->m_graph));
+
+    m_cbundle->set_unary_costs(node_id, unary);
+    m_set_unaries = true;
+}
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE, uint_t SIMDWIDTH>
+FORCEINLINE
+void
+mapMAP<COSTTYPE, SIMDWIDTH>::
+set_pairwise(
+    const luint_t edge_id,
+    const PairwiseCosts<COSTTYPE, SIMDWIDTH> * pairwise)
+{
+    if(m_cbundle.get() == nullptr)
+        m_cbundle = std::unique_ptr<CostBundle<COSTTYPE, SIMDWIDTH>>(
+            new CostBundle<COSTTYPE, SIMDWIDTH>(this->m_graph));
+
+    m_cbundle->set_pairwise_costs(edge_id, pairwise);
+    m_set_pairwise = true;
+}
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE, uint_t SIMDWIDTH>
+FORCEINLINE
+void
+mapMAP<COSTTYPE, SIMDWIDTH>::
 set_multilevel_criterion(
     MultilevelCriterion<COSTTYPE, SIMDWIDTH> * criterion)
 {
@@ -198,10 +245,10 @@ set_multilevel_criterion(
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 void
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+mapMAP<COSTTYPE, SIMDWIDTH>::
 set_termination_criterion(
     TerminationCriterion<COSTTYPE, SIMDWIDTH> * criterion)
 {
@@ -212,10 +259,10 @@ set_termination_criterion(
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 void
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+mapMAP<COSTTYPE, SIMDWIDTH>::
 set_logging_callback(
     const std::function<void (const luint_t, const _s_t<COSTTYPE, SIMDWIDTH>)>&
         callback)
@@ -226,10 +273,10 @@ set_logging_callback(
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _s_t<COSTTYPE, SIMDWIDTH>
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+mapMAP<COSTTYPE, SIMDWIDTH>::
 optimize(
     std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& solution)
 throw()
@@ -243,17 +290,19 @@ throw()
     std_control.force_acyclic = true;
     std_control.min_acyclic_iterations = 5;
     std_control.relax_acyclic_maximal = true;
-    std_control.tree_algorithm = OPTIMISTIC_TREE_SAMPLER;
+    std_control.tree_algorithm = LOCK_FREE_TREE_SAMPLER;
+    std_control.sample_deterministic = false;
+    std_control.initial_seed = 0;
 
     return optimize(solution, std_control);
 }
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _s_t<COSTTYPE, SIMDWIDTH>
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+mapMAP<COSTTYPE, SIMDWIDTH>::
 optimize(
     std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& solution,
     const mapMAP_control& control_flow)
@@ -263,6 +312,10 @@ throw()
 
     /* copy some options from control structure */
     m_tree_sampler_algo = control_flow.tree_algorithm;
+    m_sample_deterministic = control_flow.sample_deterministic;
+
+    /* initialize seed generator */
+    m_seeder.seed(control_flow.initial_seed);
 
     /* create std modules for uninitialized fields */
     create_std_modules();
@@ -375,10 +428,10 @@ throw()
  * *****************************************************************************
  */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 void
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+mapMAP<COSTTYPE, SIMDWIDTH>::
 create_std_modules()
 {
     /* std module - group nodes that have the same label */
@@ -401,17 +454,17 @@ create_std_modules()
     }
 
     /* create a multilevel module for the current graph */
-    m_multilevel = std::unique_ptr<Multilevel<COSTTYPE, SIMDWIDTH,
-        UNARY, PAIRWISE>>(new Multilevel<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>(
-        m_graph, m_label_set, m_unaries, m_pairwise, m_multilevel_criterion));
+    m_multilevel = std::unique_ptr<Multilevel<COSTTYPE, SIMDWIDTH>>(
+        new Multilevel<COSTTYPE, SIMDWIDTH>(m_graph, m_label_set,
+        m_cbundle.get(), m_multilevel_criterion, m_sample_deterministic));
 }
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 bool
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+mapMAP<COSTTYPE, SIMDWIDTH>::
 check_data_complete()
 {
     if(!m_construct_graph && !m_set_graph && !m_set_label_set)
@@ -441,10 +494,10 @@ check_data_complete()
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 void
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+mapMAP<COSTTYPE, SIMDWIDTH>::
 record_time_from_start()
 {
     m_hist_time.push_back(std::chrono::duration_cast<
@@ -454,10 +507,10 @@ record_time_from_start()
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 void
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+mapMAP<COSTTYPE, SIMDWIDTH>::
 print_status()
 {
     if(!m_use_callback)
@@ -490,16 +543,16 @@ print_status()
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _s_t<COSTTYPE, SIMDWIDTH>
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+mapMAP<COSTTYPE, SIMDWIDTH>::
 initial_labelling()
 {
     /* sample a tree (forest) without dependencies */
     std::unique_ptr<TreeSampler<COSTTYPE, false>> sampler =
         InstanceFactory<COSTTYPE, false>::get_sampler_instance(
-        m_tree_sampler_algo, m_graph);
+        m_tree_sampler_algo, m_graph, m_sample_deterministic, m_seeder());
 
     /* sample roots of forest */
     std::vector<luint_t> roots;
@@ -509,15 +562,14 @@ initial_labelling()
     std::unique_ptr<Tree<COSTTYPE>> tree = sampler->sample(roots, false);
 
     /* create tree optimizer (std: DP) and pass parameters and modules */
-    CombinatorialDynamicProgramming<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE> opt;
+    CombinatorialDynamicProgramming<COSTTYPE, SIMDWIDTH> opt;
     opt.set_graph(m_graph);
     opt.set_tree(tree.get());
     opt.set_label_set(m_label_set);
-    opt.set_costs(m_unaries, m_pairwise);
+    opt.set_costs(m_cbundle.get());
 
     /* optimize! */
-    opt.optimize(m_solution);
-    m_objective = opt.objective(m_solution);
+    m_objective = opt.optimize(m_solution);
     m_hist_energy.push_back(m_objective);
 
     return m_objective;
@@ -525,16 +577,16 @@ initial_labelling()
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _s_t<COSTTYPE, SIMDWIDTH>
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+mapMAP<COSTTYPE, SIMDWIDTH>::
 opt_step_spanning_tree()
 {
     /* sample a tree (forest) without dependencies */
     std::unique_ptr<TreeSampler<COSTTYPE, false>> sampler =
         InstanceFactory<COSTTYPE, false>::get_sampler_instance(
-        m_tree_sampler_algo, m_graph);
+        m_tree_sampler_algo, m_graph, m_sample_deterministic, m_seeder());
 
     /* sample roots of forest */
     std::vector<luint_t> roots;
@@ -544,11 +596,11 @@ opt_step_spanning_tree()
     std::unique_ptr<Tree<COSTTYPE>> tree = sampler->sample(roots, true);
 
     /* create tree optimizer (std: DP) and pass parameters and modules */
-    CombinatorialDynamicProgramming<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE> opt;
+    CombinatorialDynamicProgramming<COSTTYPE, SIMDWIDTH> opt;
     opt.set_graph(m_graph);
     opt.set_tree(tree.get());
     opt.set_label_set(m_label_set);
-    opt.set_costs(m_unaries, m_pairwise);
+    opt.set_costs(m_cbundle.get());
     opt.use_dependencies(m_solution);
 
     /* optimize! */
@@ -563,10 +615,10 @@ opt_step_spanning_tree()
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _s_t<COSTTYPE, SIMDWIDTH>
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+mapMAP<COSTTYPE, SIMDWIDTH>::
 opt_step_multilevel()
 {
     std::vector<_iv_st<COSTTYPE, SIMDWIDTH>> lvl_solution;
@@ -574,11 +626,10 @@ opt_step_multilevel()
     lvl_solution.assign(m_solution.begin(), m_solution.end());
 
     /* tree optimizer needed for calculating the objective */
-    CombinatorialDynamicProgramming<COSTTYPE, SIMDWIDTH, UNARY,
-        PAIRWISE> org_opt;
+    CombinatorialDynamicProgramming<COSTTYPE, SIMDWIDTH> org_opt;
     org_opt.set_graph(m_graph);
     org_opt.set_label_set(m_label_set);
-    org_opt.set_costs(m_unaries, m_pairwise);
+    org_opt.set_costs(m_cbundle.get());
     org_opt.use_dependencies(m_solution);
 
     /* optimize level-up until no improvement happens on the reprojection */
@@ -599,24 +650,21 @@ opt_step_multilevel()
         const Graph<COSTTYPE> * lvl_graph = m_multilevel->get_level_graph();
         const LabelSet<COSTTYPE, SIMDWIDTH> * lvl_label_set = m_multilevel->
             get_level_label_set();
-        const UnaryTable<COSTTYPE, SIMDWIDTH> * lvl_unaries =
-            m_multilevel->get_level_unaries();
-        const PairwiseTable<COSTTYPE, SIMDWIDTH> * lvl_pairwise =
-            m_multilevel->get_level_pairwise();
+        const CostBundle<COSTTYPE, SIMDWIDTH> * lvl_cbundle =
+            m_multilevel->get_level_cost_bundle();
 
         /* create new optimizer for level graph */
-        CombinatorialDynamicProgramming<COSTTYPE, SIMDWIDTH,
-            UnaryTable<COSTTYPE, SIMDWIDTH>, PairwiseTable<COSTTYPE, SIMDWIDTH>>
-            lvl_opt;
+        CombinatorialDynamicProgramming<COSTTYPE, SIMDWIDTH> lvl_opt;
         lvl_opt.set_graph(lvl_graph);
         lvl_opt.set_label_set(lvl_label_set);
-        lvl_opt.set_costs(lvl_unaries, lvl_pairwise);
+        lvl_opt.set_costs(lvl_cbundle);
         lvl_opt.use_dependencies(upper_solution);
 
         /* sample tree on graph */
         std::unique_ptr<TreeSampler<COSTTYPE, false>> sampler =
             InstanceFactory<COSTTYPE, false>::get_sampler_instance(
-            m_tree_sampler_algo, m_multilevel->get_level_graph());
+            m_tree_sampler_algo, m_multilevel->get_level_graph(),
+            m_sample_deterministic, m_seeder());
 
         roots.clear();
         sampler->select_random_roots(m_num_roots, roots);
@@ -656,10 +704,10 @@ opt_step_multilevel()
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _s_t<COSTTYPE, SIMDWIDTH>
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+mapMAP<COSTTYPE, SIMDWIDTH>::
 opt_step_acyclic(
     bool relax_maximality)
 {
@@ -668,7 +716,7 @@ opt_step_acyclic(
     /* sample a tree (forest) without dependencies */
     std::unique_ptr<TreeSampler<COSTTYPE, true>> sampler =
         InstanceFactory<COSTTYPE, true>::get_sampler_instance(
-        m_tree_sampler_algo, m_graph);
+        m_tree_sampler_algo, m_graph, m_sample_deterministic, m_seeder());
 
     /* sample roots of forest */
     std::vector<luint_t> roots;
@@ -679,12 +727,11 @@ opt_step_acyclic(
         relax_maximality);
 
     /* create tree optimizer (std: DP) and pass parameters and modules */
-    CombinatorialDynamicProgramming<COSTTYPE, SIMDWIDTH, UNARY,
-        PAIRWISE> opt;
+    CombinatorialDynamicProgramming<COSTTYPE, SIMDWIDTH> opt;
     opt.set_graph(m_graph);
     opt.set_tree(tree.get());
     opt.set_label_set(m_label_set);
-    opt.set_costs(m_unaries, m_pairwise);
+    opt.set_costs(m_cbundle.get());
     opt.use_dependencies(ac_solution);
 
     /* optimize! */
@@ -706,10 +753,10 @@ opt_step_acyclic(
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 bool
-mapMAP<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+mapMAP<COSTTYPE, SIMDWIDTH>::
 check_termination()
 {
     /* collect information for termination criterion */

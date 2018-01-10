@@ -7,8 +7,8 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#ifndef __MAPMAP_HEADER_TIMER_H_
-#define __MAPMAP_HEADER_TIMER_H_
+#ifndef __MAPMAP_TIMER_H_
+#define __MAPMAP_TIMER_H_
 
 #include "header/defines.h"
 
@@ -40,4 +40,4 @@ NS_MAPMAP_END
 /* include timer implementation */
 #include "source/timer.impl.h"
 
-#endif /* __MAPMAP_HEADER_TIMER_H_ */
+#endif /* __MAPMAP_TIMER_H_ */

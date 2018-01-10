@@ -7,8 +7,8 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#ifndef __MAPMAP_HEADER_TERMINATION_INSTANCES_STOP_WHEN_RETURNS_DIMINISH_H_
-#define __MAPMAP_HEADER_TERMINATION_INSTANCES_STOP_WHEN_RETURNS_DIMINISH_H_
+#ifndef __MAPMAP_STOP_WHEN_RETURNS_DIMINISH_H_
+#define __MAPMAP_STOP_WHEN_RETURNS_DIMINISH_H_
 
 #include "header/termination_criterion.h"
 
@@ -34,4 +34,4 @@ NS_MAPMAP_END
 
 #include "source/termination_instances/stop_when_returns_diminish.impl.h"
 
-#endif /* __MAPMAP_HEADER_TERMINATION_INSTANCES_STOP_WHEN_RETURNS_DIMINISH_H_ */
+#endif /* __MAPMAP_STOP_WHEN_RETURNS_DIMINISH_H_ */

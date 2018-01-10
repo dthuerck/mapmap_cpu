@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2016, Daniel Thuerck
+ * TU Darmstadt - Graphics, Capture and Massively Parallel Computing
  * All rights reserved.
  *
  * This software may be modified and distributed under the terms
@@ -27,7 +28,19 @@ PairwisePotts(
     const _s_t<COSTTYPE, SIMDWIDTH>& c)
 : m_c(c)
 {
-    
+
+}
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE, uint_t SIMDWIDTH>
+FORCEINLINE
+PairwisePotts<COSTTYPE, SIMDWIDTH>::
+PairwisePotts(
+    const std::initializer_list<_s_t<COSTTYPE, SIMDWIDTH>>& ps)
+{
+    if(ps.size() > 0)
+        m_c = ps.begin()[0];
 }
 
 /* ************************************************************************** */
@@ -44,9 +57,21 @@ PairwisePotts<COSTTYPE, SIMDWIDTH>::
 
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
+_s_t<COSTTYPE, SIMDWIDTH>
+PairwisePotts<COSTTYPE, SIMDWIDTH>::
+get_c()
+const
+{
+    return m_c;
+}
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE, uint_t SIMDWIDTH>
+FORCEINLINE
 bool
 PairwisePotts<COSTTYPE, SIMDWIDTH>::
-node_dependent()
+supports_enumerable_costs()
 const
 {
     return false;
@@ -56,23 +81,35 @@ const
 
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
-_v_t<COSTTYPE, SIMDWIDTH>
+std::unique_ptr<PairwiseCosts<COSTTYPE, SIMDWIDTH>>
 PairwisePotts<COSTTYPE, SIMDWIDTH>::
-get_binary_costs(
-    const luint_t& node_id_1, 
-    const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_1, 
-    const luint_t& node_id_2, 
-    const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_2)
+copy()
 const
-throw()
 {
-    /** 
-     * accessing location-independent costs by this method results 
-     * in an error 
-     */
-    throw ModeNotSupportedException("PairwiseTable::get_binary_costs("
-        "luint_t, _iv_t, luint_t, _iv_t): Node-dependent cost query "
-        "not supported for node-independent costs.");
+    std::unique_ptr<PairwiseCosts<COSTTYPE, SIMDWIDTH>> uptr(new
+        PairwisePotts<COSTTYPE, SIMDWIDTH>(m_c));
+    return std::move(uptr);
+}
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE, uint_t SIMDWIDTH>
+FORCEINLINE
+bool
+PairwisePotts<COSTTYPE, SIMDWIDTH>::
+eq(
+    const PairwiseCosts<COSTTYPE, SIMDWIDTH> * costs)
+const
+{
+    if(typeid(*costs) != typeid(PairwisePotts<COSTTYPE, 
+        SIMDWIDTH>))
+        return false;
+
+    const PairwisePotts<COSTTYPE, SIMDWIDTH> * oth = 
+        dynamic_cast<const PairwisePotts<COSTTYPE, SIMDWIDTH>*>(
+        costs);
+
+    return (m_c == oth->get_c());
 }
 
 /* ************************************************************************** */
@@ -81,11 +118,10 @@ template<typename COSTTYPE, uint_t SIMDWIDTH>
 FORCEINLINE
 _v_t<COSTTYPE, SIMDWIDTH>
 PairwisePotts<COSTTYPE, SIMDWIDTH>::
-get_binary_costs(
-    const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_1, 
+get_pairwise_costs(
+    const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_1,
     const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_2)
 const
-throw()
 {
     _v_t<COSTTYPE, SIMDWIDTH> lv1 = iv_reinterpret_v<COSTTYPE, SIMDWIDTH>(
         label_vec_1);
@@ -95,6 +131,20 @@ throw()
     neq = v_not<COSTTYPE, SIMDWIDTH>(neq);
 
     return v_and<COSTTYPE, SIMDWIDTH>(v_init<COSTTYPE, SIMDWIDTH>(m_c), neq);
+}
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE, uint_t SIMDWIDTH>
+_v_t<COSTTYPE, SIMDWIDTH>
+PairwisePotts<COSTTYPE, SIMDWIDTH>::
+get_pairwise_costs_enum_offsets(
+    const _iv_t<COSTTYPE, SIMDWIDTH>& label_ix_vec_1,
+    const _iv_t<COSTTYPE, SIMDWIDTH>& label_ix_vec_2)
+const
+{
+    throw new ModeNotSupportedException("PairwisePotts does not support " \
+        "enumerable costs");
 }
 
 NS_MAPMAP_END

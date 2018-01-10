@@ -7,8 +7,8 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#ifndef __MAPMAP_HEADER_TERMINATION_CRITERION_H_
-#define __MAPMAP_HEADER_TERMINATION_CRITERION_H_
+#ifndef __MAPMAP_TERMINATION_CRITERION_H_
+#define __MAPMAP_TERMINATION_CRITERION_H_
 
 #include <vector>
 #include <memory>
@@ -65,4 +65,4 @@ NS_MAPMAP_END
 
 #include "source/termination_criterion.impl.h"
 
-#endif /* __MAPMAP_HEADER_TERMINATION_CRITERION_H_ */
+#endif /* __MAPMAP_TERMINATION_CRITERION_H_ */

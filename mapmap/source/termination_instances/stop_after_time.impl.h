@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2016, Daniel Thuerck
+ * TU Darmstadt - Graphics, Capture and Massively Parallel Computing
  * All rights reserved.
  *
  * This software may be modified and distributed under the terms
@@ -42,14 +43,14 @@ check_termination(
     const SolverHistory<COSTTYPE, SIMDWIDTH> * history)
 {
     /* calculate average iteration length */
-    const luint_t num_iteration = history->acyclic_iterations + 
-        history->spanningtree_iterations + 
+    const luint_t num_iteration = history->acyclic_iterations +
+        history->spanningtree_iterations +
         history->multilevel_iterations;
-    const luint_t runtime = history->time_history->back(); 
+    const luint_t runtime = history->time_history->back();
 
     const COSTTYPE avg_iteration = runtime / (COSTTYPE) num_iteration;
 
-    return (runtime + (m_compute_before_iteration ? avg_iteration : 0) >= 
+    return (runtime + (m_compute_before_iteration ? avg_iteration : 0) >=
         m_max_seconds);
 }
 

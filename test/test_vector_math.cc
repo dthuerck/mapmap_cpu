@@ -45,7 +45,7 @@ public:
 
     }
 
-    void 
+    void
     SetUp()
     {
         fill_input();
@@ -57,7 +57,7 @@ public:
 
     }
 
-    void 
+    void
     fill_input()
     {
         /* fill in data: [0 1 2 3 ...] */
@@ -66,6 +66,12 @@ public:
             m_v_in[i] = (_s_t<COSTTYPE, SIMDWIDTH>) i;
             m_iv_in[i] = (_iv_st<COSTTYPE, SIMDWIDTH>) i;
         }
+
+        /* fill in mask: [0xFF, 0x0, 0xFF, 0x0, ...] */
+        for(uint_t i = 0; i < SIMDWIDTH; ++i)
+            m_iv_mask[i] = (i % 2 == 0) ? 
+                (_iv_st<COSTTYPE, SIMDWIDTH>) -1 : 
+                0x0;
     }
 
 protected:
@@ -74,6 +80,7 @@ protected:
     _s_t<COSTTYPE, SIMDWIDTH> m_v_out[T::Value];
     _iv_st<COSTTYPE, SIMDWIDTH> m_iv_in[T::Value];
     _iv_st<COSTTYPE, SIMDWIDTH> m_iv_out[T::Value];
+    _iv_st<COSTTYPE, SIMDWIDTH> m_iv_mask[T::Value];
 
     /* golden data */
     _s_t<COSTTYPE, SIMDWIDTH> m_v_ref[T::Value];
@@ -89,10 +96,11 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestMemory)
     /* commonly used variables */
     _v_t<COSTTYPE, SIMDWIDTH> utest;
     _iv_t<COSTTYPE, SIMDWIDTH> iutest;
+    _iv_t<COSTTYPE, SIMDWIDTH> imask;
 
     /* load and save real data */
     utest = v_load<COSTTYPE, SIMDWIDTH>(this->m_v_in);
-    v_store<COSTTYPE, SIMDWIDTH>(utest, this->m_v_out); 
+    v_store<COSTTYPE, SIMDWIDTH>(utest, this->m_v_out);
 
     for(uint_t i = 0; i < SIMDWIDTH; ++i)
         ASSERT_EQ(this->m_v_in[i], this->m_v_out[i]);
@@ -103,6 +111,16 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestMemory)
 
     for(uint_t i = 0; i < SIMDWIDTH; ++i)
         ASSERT_EQ(this->m_iv_in[i], this->m_iv_out[i]);
+
+    /* masked save */
+    utest = v_load<COSTTYPE, SIMDWIDTH>(this->m_v_in);
+    imask = iv_load<COSTTYPE, SIMDWIDTH>(this->m_iv_mask);
+
+    std::fill(this->m_v_out, this->m_v_out + SIMDWIDTH, 0);
+    v_masked_store<COSTTYPE, SIMDWIDTH>(utest, imask, this->m_v_out);
+
+    for(uint_t i = 0; i < SIMDWIDTH; ++i)
+        ASSERT_EQ((i % 2 == 0) ? this->m_v_in[i] : 0, this->m_v_out[i]);
 }
 
 TYPED_TEST_P(mapMAPTestVectorMath, TestInit)
@@ -116,7 +134,7 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestInit)
 
     /* test v_init */
     utest = v_init<COSTTYPE, SIMDWIDTH>();
-    v_store<COSTTYPE, SIMDWIDTH>(utest, this->m_v_out); 
+    v_store<COSTTYPE, SIMDWIDTH>(utest, this->m_v_out);
 
     for(uint_t i = 0; i < SIMDWIDTH; ++i)
         ASSERT_EQ((_s_t<COSTTYPE, SIMDWIDTH>) 0, this->m_v_out[i]);
@@ -124,14 +142,14 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestInit)
     /* test v_init(a) */
     utest = v_init<COSTTYPE, SIMDWIDTH>
         ((_s_t<COSTTYPE, SIMDWIDTH>) 1337.0);
-    v_store<COSTTYPE, SIMDWIDTH>(utest, this->m_v_out); 
+    v_store<COSTTYPE, SIMDWIDTH>(utest, this->m_v_out);
 
     for(uint_t i = 0; i < SIMDWIDTH; ++i)
         ASSERT_EQ((_s_t<COSTTYPE, SIMDWIDTH>) 1337.0, this->m_v_out[i]);
 
     /* test iv_init */
     iutest = iv_init<COSTTYPE, SIMDWIDTH>();
-    iv_store<COSTTYPE, SIMDWIDTH>(iutest, this->m_iv_out); 
+    iv_store<COSTTYPE, SIMDWIDTH>(iutest, this->m_iv_out);
 
     for(uint_t i = 0; i < SIMDWIDTH; ++i)
         ASSERT_EQ((_iv_st<COSTTYPE, SIMDWIDTH>) 0, this->m_iv_out[i]);
@@ -139,7 +157,7 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestInit)
     /* test iv_init(9)a) */
     iutest = iv_init<COSTTYPE, SIMDWIDTH>
         ((_iv_st<COSTTYPE, SIMDWIDTH>) 1337);
-    iv_store<COSTTYPE, SIMDWIDTH>(iutest, this->m_iv_out); 
+    iv_store<COSTTYPE, SIMDWIDTH>(iutest, this->m_iv_out);
 
     for(uint_t i = 0; i < SIMDWIDTH; ++i)
         ASSERT_EQ((_iv_st<COSTTYPE, SIMDWIDTH>) 1337, this->m_iv_out[i]);
@@ -224,6 +242,20 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestRealArithmetique)
     utest = v_load<COSTTYPE, SIMDWIDTH>(this->m_v_in);
     usecond = v_load<COSTTYPE, SIMDWIDTH>(m_second);
     utest = v_min<COSTTYPE, SIMDWIDTH>(utest, usecond);
+    v_store<COSTTYPE, SIMDWIDTH>(utest, this->m_v_out);
+
+    for(uint_t i = 0; i < SIMDWIDTH; ++i)
+        ASSERT_EQ(this->m_v_ref[i], this->m_v_out[i]);
+
+    /* test v_max */
+    this->fill_input();
+
+    for(uint_t i = 0; i < SIMDWIDTH; ++i)
+        this->m_v_ref[i] = std::max(this->m_v_in[i], m_second[i]);
+
+    utest = v_load<COSTTYPE, SIMDWIDTH>(this->m_v_in);
+    usecond = v_load<COSTTYPE, SIMDWIDTH>(m_second);
+    utest = v_max<COSTTYPE, SIMDWIDTH>(utest, usecond);
     v_store<COSTTYPE, SIMDWIDTH>(utest, this->m_v_out);
 
     for(uint_t i = 0; i < SIMDWIDTH; ++i)
@@ -313,6 +345,20 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestIntegerArithmetique)
 
     for(uint_t i = 0; i < SIMDWIDTH; ++i)
         ASSERT_EQ(this->m_iv_ref[i], this->m_iv_out[i]);
+
+    /* test iv_max */
+    this->fill_input();
+    
+    for(uint_t i = 0; i < SIMDWIDTH; ++i)
+        this->m_iv_ref[i] = std::max(this->m_iv_in[i], m_second[i]);
+
+    utest = iv_load<COSTTYPE, SIMDWIDTH>(this->m_iv_in);
+    usecond = iv_load<COSTTYPE, SIMDWIDTH>(m_second);
+    utest = iv_max<COSTTYPE, SIMDWIDTH>(utest, usecond);
+    iv_store<COSTTYPE, SIMDWIDTH>(utest, this->m_iv_out);
+
+    for(uint_t i = 0; i < SIMDWIDTH; ++i)
+        ASSERT_EQ(this->m_iv_ref[i], this->m_iv_out[i]);
 }
 
 TYPED_TEST_P(mapMAPTestVectorMath, TestLogical)
@@ -331,10 +377,10 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestLogical)
     _iv_t<COSTTYPE, SIMDWIDTH> iresult;
 
     _s_t<COSTTYPE, SIMDWIDTH> v_second[SIMDWIDTH];
-    _iv_st<COSTTYPE, SIMDWIDTH> v_i_second[SIMDWIDTH]; 
+    _iv_st<COSTTYPE, SIMDWIDTH> v_i_second[SIMDWIDTH];
 
     _s_t<COSTTYPE, SIMDWIDTH> v_mask[SIMDWIDTH];
-    _iv_st<COSTTYPE, SIMDWIDTH> v_i_mask[SIMDWIDTH]; 
+    _iv_st<COSTTYPE, SIMDWIDTH> v_i_mask[SIMDWIDTH];
 
     for(uint_t i = 0; i < SIMDWIDTH; ++i)
     {
@@ -347,11 +393,11 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestLogical)
 
     iutest = iv_load<COSTTYPE, SIMDWIDTH>(this->m_iv_in);
     result = iv_convert_v<COSTTYPE, SIMDWIDTH>(iutest);
-    v_store<COSTTYPE, SIMDWIDTH>(result, this->m_v_out); 
+    v_store<COSTTYPE, SIMDWIDTH>(result, this->m_v_out);
 
     for(uint_t i = 0; i < SIMDWIDTH; ++i)
-        ASSERT_TRUE((std::isnan(this->m_v_ref[i]) && 
-            std::isnan(this->m_v_out[i])) || 
+        ASSERT_TRUE((std::isnan(this->m_v_ref[i]) &&
+            std::isnan(this->m_v_out[i])) ||
             this->m_v_out[i] == this->m_v_in[i]);
 
     /* test v_convert_iv */
@@ -369,11 +415,11 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestLogical)
 
     for(uint_t i = 0; i < SIMDWIDTH; ++i)
     {
-        _iv_ust<COSTTYPE, SIMDWIDTH> res = (this->m_v_in[i] == 
+        _iv_ust<COSTTYPE, SIMDWIDTH> res = (this->m_v_in[i] ==
             v_second[i]) ? ~0x0 : 0x0;
-        std::memcpy(&this->m_v_ref[i], &res, 
+        std::memcpy(&this->m_v_ref[i], &res,
             sizeof(_iv_ust<COSTTYPE, SIMDWIDTH>));
-    } 
+    }
 
     utest = v_load<COSTTYPE, SIMDWIDTH>(this->m_v_in);
     usecond = v_load<COSTTYPE, SIMDWIDTH>(v_second);
@@ -382,8 +428,8 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestLogical)
 
     /* note: 0xFFFF... is -nan and nan == nan is false, thus the checks */
     for(uint_t i = 0; i < SIMDWIDTH; ++i)
-        ASSERT_TRUE((std::isnan(this->m_v_ref[i]) && 
-            std::isnan(this->m_v_out[i])) || 
+        ASSERT_TRUE((std::isnan(this->m_v_ref[i]) &&
+            std::isnan(this->m_v_out[i])) ||
             this->m_v_ref[i] == this->m_v_out[i]);
 
     /* test v_not */
@@ -397,7 +443,7 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestLogical)
         _iv_ust<COSTTYPE, SIMDWIDTH> tmp;
         std::memcpy(&tmp, &val, sizeof(_s_t<COSTTYPE, SIMDWIDTH>));
         tmp = ~tmp;
-        std::memcpy(&this->m_v_ref[i], &tmp, 
+        std::memcpy(&this->m_v_ref[i], &tmp,
             sizeof(_iv_ust<COSTTYPE, SIMDWIDTH>));
     }
 
@@ -406,8 +452,8 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestLogical)
     v_store<COSTTYPE, SIMDWIDTH>(result, this->m_v_out);
 
     for(uint_t i = 0; i < SIMDWIDTH; ++i)
-        ASSERT_TRUE((std::isnan(this->m_v_ref[i]) && 
-            std::isnan(this->m_v_out[i])) || 
+        ASSERT_TRUE((std::isnan(this->m_v_ref[i]) &&
+            std::isnan(this->m_v_out[i])) ||
             this->m_v_ref[i] == this->m_v_out[i]);
 
     /* test v_and */
@@ -425,7 +471,7 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestLogical)
         std::memcpy(&isecond, &second, sizeof(_s_t<COSTTYPE, SIMDWIDTH>));
 
         _iv_ust<COSTTYPE, SIMDWIDTH> tmp = ival & isecond;
-        std::memcpy(&this->m_v_ref[i], &tmp, 
+        std::memcpy(&this->m_v_ref[i], &tmp,
             sizeof(_iv_ust<COSTTYPE, SIMDWIDTH>));
     }
 
@@ -435,8 +481,8 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestLogical)
     v_store<COSTTYPE, SIMDWIDTH>(result, this->m_v_out);
 
     for(uint_t i = 0; i < SIMDWIDTH; ++i)
-        ASSERT_TRUE((std::isnan(this->m_v_ref[i]) && 
-            std::isnan(this->m_v_out[i])) || 
+        ASSERT_TRUE((std::isnan(this->m_v_ref[i]) &&
+            std::isnan(this->m_v_out[i])) ||
             this->m_v_ref[i] == this->m_v_out[i]);
 
     /* test v_le */
@@ -444,9 +490,9 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestLogical)
 
     for(uint_t i = 0; i < SIMDWIDTH; ++i)
     {
-        _iv_ust<COSTTYPE, SIMDWIDTH> res = (this->m_v_in[i] <= 
+        _iv_ust<COSTTYPE, SIMDWIDTH> res = (this->m_v_in[i] <=
             v_second[i]) ? ~0x0 : 0x0;
-        std::memcpy(&this->m_v_ref[i], &res, 
+        std::memcpy(&this->m_v_ref[i], &res,
             sizeof(_iv_ust<COSTTYPE, SIMDWIDTH>));
     }
 
@@ -456,8 +502,8 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestLogical)
     v_store<COSTTYPE, SIMDWIDTH>(result, this->m_v_out);
 
     for(uint_t i = 0; i < SIMDWIDTH; ++i)
-        ASSERT_TRUE((std::isnan(this->m_v_ref[i]) && 
-            std::isnan(this->m_v_out[i])) || 
+        ASSERT_TRUE((std::isnan(this->m_v_ref[i]) &&
+            std::isnan(this->m_v_out[i])) ||
             this->m_v_ref[i] == this->m_v_out[i]);
 
     /* test iv_le */
@@ -479,12 +525,31 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestLogical)
     for(uint_t i = 0; i < SIMDWIDTH; ++i)
         ASSERT_TRUE(this->m_iv_ref[i] == this->m_iv_out[i]);
 
+    /* test iv_eq */
+    this->fill_input();
+
+    for(uint_t i = 0; i < SIMDWIDTH; ++i)
+    {
+        _iv_ust<COSTTYPE, SIMDWIDTH> res = (this->m_iv_in[i] ==
+            v_i_second[i]) ? ~0x0 : 0x0;
+        std::memcpy(&this->m_iv_ref[i], &res,
+            sizeof(_iv_ust<COSTTYPE, SIMDWIDTH>));
+    }
+
+    iutest =  iv_load<COSTTYPE, SIMDWIDTH>(this->m_iv_in);
+    iusecond = iv_load<COSTTYPE, SIMDWIDTH>(v_i_second);
+    iresult = iv_eq<COSTTYPE, SIMDWIDTH>(iutest, iusecond);
+    iv_store<COSTTYPE, SIMDWIDTH>(iresult, this->m_iv_out);
+
+    for(uint_t i = 0; i < SIMDWIDTH; ++i)
+        ASSERT_TRUE(this->m_iv_ref[i] == this->m_iv_out[i]);
+
     /* test v_blend */
     this->fill_input();
 
     for(uint_t i = 0; i < SIMDWIDTH; ++i)
     {
-        _iv_st<COSTTYPE, SIMDWIDTH> tmp = (i % 2 == 1 ? ~0x0 : 0x0); 
+        _iv_st<COSTTYPE, SIMDWIDTH> tmp = (i % 2 == 1 ? ~0x0 : 0x0);
         std::memcpy(&v_mask[i], &tmp, sizeof(_iv_st<COSTTYPE, SIMDWIDTH>));
 
         this->m_v_ref[i] = (tmp == 0x0 ? this->m_v_in[i] : v_second[i]);
@@ -497,8 +562,8 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestLogical)
     v_store<COSTTYPE, SIMDWIDTH>(result, this->m_v_out);
 
     for(uint_t i = 0; i < SIMDWIDTH; ++i)
-        ASSERT_TRUE((std::isnan(this->m_v_ref[i]) && 
-                std::isnan(this->m_v_out[i])) || 
+        ASSERT_TRUE((std::isnan(this->m_v_ref[i]) &&
+                std::isnan(this->m_v_out[i])) ||
                 this->m_v_ref[i] == this->m_v_out[i]);
 
     /* test iv_blend */
@@ -508,7 +573,7 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestLogical)
     {
         v_i_mask[i] = (_iv_st<COSTTYPE, SIMDWIDTH>) (i % 2 == 1 ? ~0x0 : 0x0);
 
-        this->m_iv_ref[i] = (v_i_mask == 0x0 ? 
+        this->m_iv_ref[i] = (v_i_mask == 0x0 ?
             this->m_iv_in[i] : v_i_second[i]);
     }
 
@@ -519,8 +584,8 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestLogical)
     iv_store<COSTTYPE, SIMDWIDTH>(iresult, this->m_iv_out);
 
     for(uint_t i = 0; i < SIMDWIDTH; ++i)
-        ASSERT_TRUE((std::isnan(this->m_iv_ref[i]) && 
-                std::isnan(this->m_v_out[i])) || 
+        ASSERT_TRUE((std::isnan(this->m_iv_ref[i]) &&
+                std::isnan(this->m_v_out[i])) ||
                 this->m_v_ref[i] == this->m_v_out[i]);
 
     /* test iv_extract */
@@ -533,14 +598,29 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestLogical)
         const int8_t imm = (int8_t) i;
         _iv_st<COSTTYPE, SIMDWIDTH> ex = iv_extract<COSTTYPE, SIMDWIDTH>(
             iutest, imm);
-        ASSERT_TRUE((std::isnan(ex) && 
-                    std::isnan(this->m_iv_in[i])) || 
+        ASSERT_TRUE((std::isnan(ex) &&
+                    std::isnan(this->m_iv_in[i])) ||
                     ex == this->m_iv_in[i]);
+    }
+
+    /* test v_extract */
+    this->fill_input();
+
+    utest = v_load<COSTTYPE, SIMDWIDTH>(this->m_v_in);
+
+    for(uint_t i = 0; i < SIMDWIDTH; ++i)
+    {
+        const int8_t imm = (int8_t) i;
+        _s_t<COSTTYPE, SIMDWIDTH> ex = v_extract<COSTTYPE, SIMDWIDTH>(
+            utest, imm);
+        ASSERT_TRUE((std::isnan(ex) &&
+                    std::isnan(this->m_v_in[i])) ||
+                    ex == this->m_v_in[i]);
     }
 }
 
 /* register test cases */
-REGISTER_TYPED_TEST_CASE_P(mapMAPTestVectorMath, 
+REGISTER_TYPED_TEST_CASE_P(mapMAPTestVectorMath,
     TestMemory,
     TestInit,
     TestRealArithmetique,
@@ -564,7 +644,7 @@ typedef ::testing::Types<
     TestTuple<float, 1>,
     TestTuple<double, 1>
     > TestTupleInstances;
-INSTANTIATE_TYPED_TEST_CASE_P(VectorMathTest, mapMAPTestVectorMath, 
+INSTANTIATE_TYPED_TEST_CASE_P(VectorMathTest, mapMAPTestVectorMath,
     TestTupleInstances);
 
 NS_MAPMAP_END

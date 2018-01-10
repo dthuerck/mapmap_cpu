@@ -45,6 +45,7 @@ public:
     const luint_t num_nodes() const;
     const std::vector<luint_t>& inc_edges(const luint_t node) const;
     const std::vector<GraphEdge<COSTTYPE>>& edges() const;
+    const luint_t num_edges() const;
 
     void update_components();
     const std::vector<luint_t>& components() const;
@@ -54,6 +55,9 @@ public:
     void set_coloring(const std::vector<luint_t>& coloring);
     const std::vector<luint_t>& get_coloring();
     bool was_colored();
+
+    /* necessary for deterministic processing */
+    void sort_incidence_lists();
 
 protected:
 #if defined(BUILD_FOR_TEST)

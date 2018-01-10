@@ -7,15 +7,15 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#ifndef __MAPMAP_HEADER_COST_INSTANCES_PAIRWISE_TABLE_H_
-#define __MAPMAP_HEADER_COST_INSTANCES_PAIRWISE_TABLE_H_
+#ifndef __MAPMAP_PAIRWISE_TABLE_H_
+#define __MAPMAP_PAIRWISE_TABLE_H_
 
 #include <memory>
 #include <vector>
 
 #include "header/defines.h"
-#include "header/graph.h"
 #include "header/costs.h"
+#include "header/graph.h"
 #include "header/vector_types.h"
 #include "header/vector_math.h"
 
@@ -25,40 +25,49 @@ template<typename COSTTYPE, uint_t SIMDWIDTH>
 class PairwiseTable : public PairwiseCosts<COSTTYPE, SIMDWIDTH>
 {
 public:
-    PairwiseTable(const LabelSet<COSTTYPE, SIMDWIDTH> * label_set, 
-        const Graph<COSTTYPE> * graph,
+    PairwiseTable(
+        const luint_t node_a,
+        const luint_t node_b,
+        const LabelSet<COSTTYPE, SIMDWIDTH> * lbl_set);
+    PairwiseTable(
+        const luint_t node_a,
+        const luint_t node_b,
+        const LabelSet<COSTTYPE, SIMDWIDTH> * lbl_set,
         const std::vector<_s_t<COSTTYPE, SIMDWIDTH>>& packed_table);
-    PairwiseTable(const _iv_st<COSTTYPE, SIMDWIDTH>& num_labels,
-        const std::vector<_s_t<COSTTYPE, SIMDWIDTH>>& packed_table);
+    PairwiseTable(
+        const luint_t node_a,
+        const luint_t node_b,
+        const LabelSet<COSTTYPE, SIMDWIDTH> * lbl_set,
+        _s_t<COSTTYPE, SIMDWIDTH> * packed_table);
     ~PairwiseTable();
 
-    virtual bool node_dependent() const;
+    void set_costs(const std::vector<_s_t<COSTTYPE, SIMDWIDTH>>& packed_table);
+    _s_t<COSTTYPE, SIMDWIDTH> * get_raw_costs();
 
-    virtual _v_t<COSTTYPE, SIMDWIDTH> get_binary_costs(
-        const luint_t& node_id_1, 
-        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_1, 
-        const luint_t& node_id_2, 
-        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_2) const throw();
-    virtual _v_t<COSTTYPE, SIMDWIDTH> get_binary_costs(
-        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_1, 
-        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_2) const throw();
+    virtual std::unique_ptr<PairwiseCosts<COSTTYPE, SIMDWIDTH>> copy() const;
+
+    virtual bool supports_enumerable_costs() const;
+    virtual bool eq(const PairwiseCosts<COSTTYPE, SIMDWIDTH> * costs) const;
+
+    virtual _v_t<COSTTYPE, SIMDWIDTH> get_pairwise_costs(
+        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_1,
+        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_2) const;
+    virtual _v_t<COSTTYPE, SIMDWIDTH> get_pairwise_costs_enum_offsets(
+        const _iv_t<COSTTYPE, SIMDWIDTH>& label_ix_vec_1,
+        const _iv_t<COSTTYPE, SIMDWIDTH>& label_ix_vec_2) const;
 
 protected:
-    void construct_table(const bool node_dependent);
+    const luint_t m_node_a;
+    const luint_t m_node_b;
+    const LabelSet<COSTTYPE, SIMDWIDTH> * m_lbl_set;
 
-protected:
-    bool m_node_dependent;
-    _iv_st<COSTTYPE, SIMDWIDTH> m_num_labels;
-    
-    std::vector<luint_t> m_edge_offset;
-    const std::vector<_s_t<COSTTYPE, SIMDWIDTH>> m_packed_table;
-    
-    const LabelSet<COSTTYPE, SIMDWIDTH> * m_label_set;
-    const Graph<COSTTYPE> * m_graph;
+    _s_t<COSTTYPE, SIMDWIDTH> * m_packed_table;
+    std::unique_ptr<_s_t<COSTTYPE, SIMDWIDTH>> m_packed_table_storage;
 };
 
 NS_MAPMAP_END
 
+/* include function implementations */
 #include "source/cost_instances/pairwise_table.impl.h"
 
-#endif /* __MAPMAP_HEADER_COST_INSTANCES_PAIRWISE_TABLE_H_ */
+#endif /* __MAPMAP_PAIRWISE_TABLE_H_ */

@@ -188,8 +188,7 @@ throw()
         throw std::runtime_error("Graph::add_edge: "
                 "At least one ID larger than number of nodes in the graph.");
 
-    GraphEdge<COSTTYPE> edge = {node_a, node_b, weight};
-    m_edges.push_back(edge);
+    m_edges.emplace_back(GraphEdge<COSTTYPE>{node_a, node_b, weight});
 
     const lint_t new_edge_id = m_edges.size() - 1;
 
@@ -244,6 +243,18 @@ edges()
 const
 {
     return m_edges;
+}
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE>
+FORCEINLINE
+const luint_t
+Graph<COSTTYPE>::
+num_edges()
+const
+{
+    return m_edges.size();
 }
 
 /* ************************************************************************** */
@@ -450,6 +461,50 @@ Graph<COSTTYPE>::
 was_colored()
 {
     return m_was_colored;
+}
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE>
+FORCEINLINE
+void
+Graph<COSTTYPE>::
+sort_incidence_lists()
+{
+    /* sort incidence list after connected nodes */
+    struct inc_sorter {
+        inc_sorter(luint_t node, const GraphEdge<COSTTYPE> * edges) :
+            m_node(node), m_edges(edges) {};
+        ~inc_sorter() {};
+
+        bool operator()(const luint_t e_id1, const luint_t e_id2)
+        {
+            const GraphEdge<COSTTYPE>& e1 = m_edges[e_id1];
+            const luint_t o_node1 = (e1.node_a == m_node) ?
+                e1.node_b : e1.node_a;
+
+            const GraphEdge<COSTTYPE>& e2 = m_edges[e_id2];
+            const luint_t o_node2 = (e2.node_a == m_node) ?
+                e2.node_b : e2.node_a;
+
+            return (o_node1 < o_node2);
+        };
+
+        const luint_t m_node;
+        const GraphEdge<COSTTYPE> * m_edges;
+    };
+
+    tbb::blocked_range<luint_t> node_range(0, m_num_nodes);
+    tbb::parallel_for(node_range,
+        [&](const tbb::blocked_range<luint_t>& r)
+        {
+            for(luint_t n = r.begin(); n != r.end(); ++n)
+            {
+                std::sort(m_nodes[n].incident_edges.begin(),
+                    m_nodes[n].incident_edges.end(),
+                    inc_sorter(n, m_edges.data()));
+            }
+        });
 }
 
 NS_MAPMAP_END

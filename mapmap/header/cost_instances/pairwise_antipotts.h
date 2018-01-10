@@ -7,8 +7,8 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#ifndef __MAPMAP_COST_INSTANCES_PAIRWISE_ANTIPOTTS_H_
-#define __MAPMAP_COST_INSTANCES_PAIRWISE_ANTIPOTTS_H_
+#ifndef __MAPMAP_PAIRWISE_ANTIPOTTS_H_
+#define __MAPMAP_PAIRWISE_ANTIPOTTS_H_
 
 #include "header/costs.h"
 
@@ -20,27 +20,32 @@ class PairwiseAntipotts : public PairwiseCosts<COSTTYPE, SIMDWIDTH>
 public:
     PairwiseAntipotts();
     PairwiseAntipotts(const _s_t<COSTTYPE, SIMDWIDTH>& c);
+    PairwiseAntipotts(
+            const std::initializer_list<_s_t<COSTTYPE, SIMDWIDTH>>& ps);
     ~PairwiseAntipotts();
 
-    virtual bool node_dependent() const;
+    _s_t<COSTTYPE, SIMDWIDTH> get_c() const;
+    _s_t<COSTTYPE, SIMDWIDTH> get_label_diff_cap() const;
 
-    virtual _v_t<COSTTYPE, SIMDWIDTH> get_binary_costs(
-        const luint_t& node_id_1, 
-        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_1, 
-        const luint_t& node_id_2, 
-        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_2) const throw();
-    virtual _v_t<COSTTYPE, SIMDWIDTH> get_binary_costs(
-        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_1, 
-        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_2) const throw();
-    
-protected: 
-    COSTTYPE m_c = (COSTTYPE) 1;
+    virtual std::unique_ptr<PairwiseCosts<COSTTYPE, SIMDWIDTH>> copy() const;
 
-    _v_t<COSTTYPE, SIMDWIDTH> m_full_cost;
+    virtual bool supports_enumerable_costs() const;
+    virtual bool eq(const PairwiseCosts<COSTTYPE, SIMDWIDTH> * costs) const;
+
+    virtual _v_t<COSTTYPE, SIMDWIDTH> get_pairwise_costs(
+        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_1,
+        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_2) const;
+    virtual _v_t<COSTTYPE, SIMDWIDTH> get_pairwise_costs_enum_offsets(
+        const _iv_t<COSTTYPE, SIMDWIDTH>& label_ix_vec_1,
+        const _iv_t<COSTTYPE, SIMDWIDTH>& label_ix_vec_2) const;
+
+protected:
+    _s_t<COSTTYPE, SIMDWIDTH> m_c = (_s_t<COSTTYPE, SIMDWIDTH>) 1;
 };
 
 NS_MAPMAP_END
 
+/* include function implementations */
 #include "source/cost_instances/pairwise_antipotts.impl.h"
 
-#endif /* __MAPMAP_COST_INSTANCES_PAIRWISE_ANTIPOTTS_H_ */
+#endif /* __MAPMAP_PAIRWISE_ANTIPOTTS_H_ */

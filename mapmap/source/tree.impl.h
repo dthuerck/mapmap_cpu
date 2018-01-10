@@ -17,13 +17,13 @@
 #include "tbb/parallel_for.h"
 #include "tbb/blocked_range.h"
 #include "tbb/parallel_reduce.h"
-#include "tbb/parallel_scan.h"   
+#include "tbb/parallel_scan.h"
 
 #include "header/parallel_templates.h"
 
 NS_MAPMAP_BEGIN
 
-/** 
+/**
  * *****************************************************************************
  * *********************************** Tree ************************************
  * *****************************************************************************
@@ -38,6 +38,7 @@ Tree(
   m_graph_nodes(graph_num_nodes),
   m_enable_modify(true),
   m_parent_id(graph_num_nodes, invalid_luint_t),
+  m_parent_edge_id(graph_num_nodes, invalid_luint_t),
   m_degree(graph_num_nodes, (luint_t) 0u),
   m_children_offset(graph_num_nodes, (luint_t) 0u),
   m_children_list(graph_num_nodes, invalid_luint_t),
@@ -45,6 +46,7 @@ Tree(
   m_dependency_degree(graph_num_nodes, (luint_t) 0u),
   m_dependency_offset(graph_num_nodes, (luint_t) 0u),
   m_dependency_list(graph_num_edges, invalid_luint_t),
+  m_dependency_edge_id_list(graph_num_edges, invalid_luint_t),
   m_dependency_weight(graph_num_edges, (COSTTYPE) 1.0)
 {
 
@@ -75,6 +77,7 @@ const
 
     node.node_id = node_id;
     node.parent_id = m_parent_id[node_id];
+    node.to_parent_edge_id = m_parent_edge_id[node_id];
     node.to_parent_weight = m_weight[node_id];
     node.degree = m_degree[node_id];
     node.dependency_degree = m_dependency_degree[node_id];
@@ -83,9 +86,9 @@ const
     node.children_ids = &m_children_list[0] + offset;
     const luint_t d_offset = m_dependency_offset[node_id];
     node.dependency_ids = &m_dependency_list[0] + d_offset;
+    node.dependency_edge_ids = &m_dependency_edge_id_list[0] + d_offset;
     node.dependency_weights = &m_dependency_weight[0] + d_offset;
 
-    node.is_root = (node.parent_id == node_id);
     node.is_in_tree = (node.parent_id != invalid_luint_t);
 
     return node;
@@ -117,7 +120,7 @@ const
 
 template<typename COSTTYPE>
 void
-Tree<COSTTYPE>:: 
+Tree<COSTTYPE>::
 finalize(
     const bool compute_dependencies,
     const Graph<COSTTYPE> * graph)
@@ -149,7 +152,7 @@ finalize(
     m_degree = hist(node_range);
 
     /* set 0 for nodes not in the tree and subtract 1 per root */
-    tbb::parallel_for(node_range, 
+    tbb::parallel_for(node_range,
         [&](const tbb::blocked_range<luint_t>& r)
         {
             for(luint_t i = r.begin(); i != r.end(); ++i)
@@ -161,7 +164,7 @@ finalize(
                     m_degree[i] = 0;
             }
         });
-    
+
     /* scan to get offsets */
     PlusScan<luint_t, luint_t> scan(&m_degree[0], &m_children_offset[0]);
     tbb::parallel_scan(node_range, scan);
@@ -169,13 +172,13 @@ finalize(
     /* save children in list and copy node degree */
     std::vector<tbb::atomic<luint_t>> loc_offsets(m_graph_nodes);
     std::fill(loc_offsets.begin(), loc_offsets.end(), 0u);
-    tbb::parallel_for(node_range, 
+    tbb::parallel_for(node_range,
         [&](const tbb::blocked_range<luint_t>& r)
         {
             for(luint_t i = r.begin(); i != r.end(); ++i)
             {
                 const luint_t my_parent = m_parent_id[i];
-                
+
                 /* do not record as child if node is a root */
                 if ((my_parent != invalid_luint_t) && (my_parent != i))
                 {
@@ -192,18 +195,32 @@ finalize(
      * Collect dependencies in parallel (infer from parent ids)
      */
 
-    /** 
-     * determine dependency degree per node: node degree in graph, 
+    if(!compute_dependencies)
+    {
+        std::fill(m_dependency_degree.begin(), m_dependency_degree.end(), 0);
+        return;
+    }
+
+    /**
+     * determine dependency degree per node: node degree in graph,
      * subtract number of children and subtract 1 parent if node
      * is not the root
+     *
+     * Nodes that are not in the tree can't have dependencies and
+     * shall be skipped.
      */
      tbb::parallel_for(node_range,
         [&](const tbb::blocked_range<luint_t>& n)
         {
             for(luint_t i = n.begin(); i != n.end(); ++i)
             {
-                m_dependency_degree[i] = 
-                    graph->inc_edges(i).size();
+                m_dependency_degree[i] = 0;
+
+                /* skip inactive nodes */
+                if(m_parent_id[i] == invalid_luint_t)
+                    continue;
+
+                m_dependency_degree[i] += graph->inc_edges(i).size();
                 m_dependency_degree[i] -= m_degree[i];
 
                 /* handle non-root nodes */
@@ -221,12 +238,16 @@ finalize(
     tbb::parallel_for(node_range,
         [&](const tbb::blocked_range<luint_t>& r)
         {
-            /** 
-             * for each node, neither the parent nor the child is 
-             * a dependency 
+            /**
+             * for each node, neither the parent nor the child is
+             * a dependency
              */
             for(luint_t i = r.begin(); i != r.end(); ++i)
             {
+                /* skip inactive nodes */
+                if(m_parent_id[i] == invalid_luint_t)
+                    continue;
+
                 luint_t d_offset = 0;
                 const luint_t i_parent = m_parent_id[i];
 
@@ -235,21 +256,23 @@ finalize(
                 {
                     const luint_t j_edge = graph->inc_edges(i)[j];
                     const COSTTYPE j_weight = graph->edges()[j_edge].weight;
-                    const luint_t j_node = 
+                    const luint_t j_node =
                         (graph->edges()[j_edge].node_a == i) ?
-                        graph->edges()[j_edge].node_b : 
+                        graph->edges()[j_edge].node_b :
                         graph->edges()[j_edge].node_a;
                     const luint_t j_parent = m_parent_id[j_node];
 
-                    /** 
+                    /**
                      * a node j is a dependency if it is not i's parent and
                      * j is not i's parent
                      */
                     if(j_parent != i && i_parent != j_node)
                     {
-                        m_dependency_list[m_dependency_offset[i] + d_offset] = 
+                        m_dependency_list[m_dependency_offset[i] + d_offset] =
                             j_node;
-                        m_dependency_weight[m_dependency_offset[i] + d_offset] = 
+                        m_dependency_edge_id_list[m_dependency_offset[i] +
+                            d_offset] = j_edge;
+                        m_dependency_weight[m_dependency_offset[i] + d_offset] =
                             j_weight;
 
                         ++d_offset;
@@ -265,13 +288,26 @@ finalize(
 
 template<typename COSTTYPE>
 std::vector<luint_t>&
-Tree<COSTTYPE>:: 
+Tree<COSTTYPE>::
 raw_parent_ids()
 {
     if(!m_enable_modify)
         throw std::invalid_argument("Tree modification disabled.");
 
     return m_parent_id;
+}
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE>
+std::vector<luint_t>&
+Tree<COSTTYPE>::
+raw_to_parent_edge_ids()
+{
+    if(!m_enable_modify)
+        throw std::invalid_argument("Tree modification disabled.");
+
+    return m_parent_edge_id;
 }
 
 /* ************************************************************************** */
@@ -291,7 +327,7 @@ raw_degrees()
 
 template<typename COSTTYPE>
 std::vector<COSTTYPE>&
-Tree<COSTTYPE>:: 
+Tree<COSTTYPE>::
 raw_weights()
 {
     if(!m_enable_modify)
@@ -348,8 +384,21 @@ raw_dependency_list()
 {
     if(!m_enable_modify)
         throw std::invalid_argument("Tree modification disabled.");
-    
+
     return m_dependency_list;
+}
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE>
+std::vector<luint_t>&
+Tree<COSTTYPE>::
+raw_dependency_edge_id_list()
+{
+    if(!m_enable_modify)
+        throw std::invalid_argument("Tree modification disabled.");
+
+    return m_dependency_edge_id_list;
 }
 
 /* ************************************************************************** */

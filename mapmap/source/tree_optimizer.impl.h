@@ -15,13 +15,12 @@
 
 NS_MAPMAP_BEGIN
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
-TreeOptimizer<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+template<typename COSTTYPE, uint_t SIMDWIDTH>
+TreeOptimizer<COSTTYPE, SIMDWIDTH>::
 TreeOptimizer()
 : m_has_tree(false),
   m_has_label_set(false),
-  m_has_unaries(false),
-  m_has_pairwise(false),
+  m_has_costs(false),
   m_uses_dependencies(false)
 {
 
@@ -29,18 +28,18 @@ TreeOptimizer()
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
-TreeOptimizer<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+template<typename COSTTYPE, uint_t SIMDWIDTH>
+TreeOptimizer<COSTTYPE, SIMDWIDTH>::
 ~TreeOptimizer()
 {
-    
+
 }
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 void
-TreeOptimizer<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+TreeOptimizer<COSTTYPE, SIMDWIDTH>::
 set_graph(
     const Graph<COSTTYPE> * graph)
 {
@@ -50,9 +49,9 @@ set_graph(
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 void
-TreeOptimizer<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+TreeOptimizer<COSTTYPE, SIMDWIDTH>::
 set_tree(
     const Tree<COSTTYPE> * tree)
 {
@@ -62,9 +61,9 @@ set_tree(
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 void
-TreeOptimizer<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+TreeOptimizer<COSTTYPE, SIMDWIDTH>::
 set_label_set(
     const LabelSet<COSTTYPE, SIMDWIDTH> * label_set)
 {
@@ -74,25 +73,21 @@ set_label_set(
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 void
-TreeOptimizer<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+TreeOptimizer<COSTTYPE, SIMDWIDTH>::
 set_costs(
-    const UNARY * unary,
-    const PAIRWISE * pairwise)
+    const CostBundle<COSTTYPE, SIMDWIDTH> * cbundle)
 {
-    m_unaries = unary;
-    m_pairwise = pairwise;
-
-    m_has_unaries = true;
-    m_has_pairwise = true;
+    m_cbundle = cbundle;
+    m_has_costs = true;
 }
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 void
-TreeOptimizer<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+TreeOptimizer<COSTTYPE, SIMDWIDTH>::
 use_dependencies(
     const std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& current_solution)
 {
@@ -102,9 +97,9 @@ use_dependencies(
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 _s_t<COSTTYPE, SIMDWIDTH>
-TreeOptimizer<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+TreeOptimizer<COSTTYPE, SIMDWIDTH>::
 objective(
     const std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& solution)
 {
@@ -113,7 +108,7 @@ objective(
     tbb::blocked_range<luint_t> edge_range(0, m_graph->edges().size());
 
     /* unary costs */
-    objective += tbb::parallel_reduce(node_range, (COSTTYPE) 0,
+    objective += tbb::parallel_deterministic_reduce(node_range, (COSTTYPE) 0,
         [&](const tbb::blocked_range<luint_t>& r, COSTTYPE reduced)
         {
             _s_t<COSTTYPE, SIMDWIDTH> tmp[SIMDWIDTH];
@@ -121,28 +116,29 @@ objective(
 
             for(luint_t n = r.begin(); n != r.end(); ++n)
             {
+                const UnaryCosts<COSTTYPE, SIMDWIDTH> * ucosts =
+                    m_cbundle->get_unary_costs(n);
+
                 /* determine label index for node n */
                 const uint_t n_l = solution[n];
 
                 _v_t<COSTTYPE, SIMDWIDTH> u_costs;
-                if(m_unaries->supports_enumerable_costs())
+                if(ucosts->supports_enumerable_costs())
                 {
-                    u_costs = m_unaries->get_unary_costs_enum_offset(n, n_l);
+                    u_costs = ucosts->get_unary_costs_enum_offset(n_l);
                 }
                 else
                 {
                     /* translate to label */
-                    const _iv_st<COSTTYPE, SIMDWIDTH> l = 
-                        m_label_set->label_from_offset(n, n_l); 
+                    const _iv_st<COSTTYPE, SIMDWIDTH> l =
+                        m_label_set->label_from_offset(n, n_l);
 
                     /* get cost vector */
-                    u_costs = m_unaries->get_unary_costs(n, iv_init<COSTTYPE,
-                        SIMDWIDTH>(l));
+                    u_costs = ucosts->
+                        get_unary_costs(iv_init<COSTTYPE, SIMDWIDTH>(l));
                 }
 
-                /* extract first element of vector */
                 v_store<COSTTYPE, SIMDWIDTH>(u_costs, tmp);
-
                 my_chunk += tmp[0];
             }
 
@@ -150,8 +146,8 @@ objective(
         },
         std::plus<COSTTYPE>());
 
-    /* pairwise costs */ 
-    objective += tbb::parallel_reduce(edge_range, (COSTTYPE) 0,
+    /* pairwise costs */
+    objective += tbb::parallel_deterministic_reduce(edge_range, (COSTTYPE) 0,
         [&](const tbb::blocked_range<luint_t>& r, COSTTYPE reduced)
         {
             _s_t<COSTTYPE, SIMDWIDTH> tmp[SIMDWIDTH];
@@ -159,37 +155,36 @@ objective(
 
             for(luint_t e = r.begin(); e != r.end(); ++e)
             {
+                const PairwiseCosts<COSTTYPE, SIMDWIDTH> * pcosts =
+                    m_cbundle->get_pairwise_costs(e);
+
                 /* determine label (indices) for both nodes */
                 const luint_t n_a = m_graph->edges()[e].node_a;
                 const luint_t n_b = m_graph->edges()[e].node_b;
-                const _s_t<COSTTYPE, SIMDWIDTH> e_weight = 
+                const _s_t<COSTTYPE, SIMDWIDTH> e_weight =
                     m_graph->edges()[e].weight;
 
                 const _iv_st<COSTTYPE, SIMDWIDTH> n_a_l_i = solution[n_a];
                 const _iv_st<COSTTYPE, SIMDWIDTH> n_b_l_i = solution[n_b];
 
                 /* translate to labels */
-                const _iv_st<COSTTYPE, SIMDWIDTH> n_a_l = 
+                const _iv_st<COSTTYPE, SIMDWIDTH> n_a_l =
                     m_label_set->label_from_offset(n_a, n_a_l_i);
-                const _iv_st<COSTTYPE, SIMDWIDTH> n_b_l = 
+                const _iv_st<COSTTYPE, SIMDWIDTH> n_b_l =
                     m_label_set->label_from_offset(n_b, n_b_l_i);
 
                 /* get cost vector */
-                _v_t<COSTTYPE, SIMDWIDTH> p_costs = 
+                _v_t<COSTTYPE, SIMDWIDTH> p_costs =
                     v_init<COSTTYPE, SIMDWIDTH>();
 
-                if(m_pairwise->node_dependent())
-                    p_costs = m_pairwise->get_binary_costs(n_a, 
-                        iv_init<COSTTYPE, SIMDWIDTH>(n_a_l),
-                        n_b, iv_init<COSTTYPE, SIMDWIDTH>(n_b_l));
-                else
-                    p_costs = m_pairwise->get_binary_costs(
-                        iv_init<COSTTYPE, SIMDWIDTH>(n_a_l),
-                        iv_init<COSTTYPE, SIMDWIDTH>(n_b_l));
-                        
+                p_costs = pcosts->get_pairwise_costs(
+                    iv_init<COSTTYPE, SIMDWIDTH>(n_a_l),
+                    iv_init<COSTTYPE, SIMDWIDTH>(n_b_l));
+
                 /* multiply with edge weight */
-                p_costs = v_mult<COSTTYPE, SIMDWIDTH>(p_costs, 
+                p_costs = v_mult<COSTTYPE, SIMDWIDTH>(p_costs,
                     v_init<COSTTYPE, SIMDWIDTH>(e_weight));
+
 
                 /* extract first element of vector */
                 v_store<COSTTYPE, SIMDWIDTH>(p_costs, tmp);
@@ -201,18 +196,17 @@ objective(
         },
         std::plus<COSTTYPE>());
 
-    return objective; 
+    return objective;
 }
 
 /* ************************************************************************** */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 bool
-TreeOptimizer<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
+TreeOptimizer<COSTTYPE, SIMDWIDTH>::
 data_complete()
 {
-    return (m_has_graph && m_has_tree && m_has_label_set && m_has_unaries && 
-        m_has_pairwise);
+    return (m_has_graph && m_has_tree && m_has_label_set && m_has_costs);
 }
 
 NS_MAPMAP_END

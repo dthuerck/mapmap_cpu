@@ -15,8 +15,23 @@ template<typename COSTTYPE, bool ACYCLIC>
 TreeSampler<COSTTYPE, ACYCLIC>::
 TreeSampler(
     Graph<COSTTYPE> * graph)
+: TreeSampler<COSTTYPE, ACYCLIC>(graph, false, 0)
+{
+
+}
+
+/* ************************************************************************** */
+
+template<typename COSTTYPE, bool ACYCLIC>
+TreeSampler<COSTTYPE, ACYCLIC>::
+TreeSampler(
+    Graph<COSTTYPE> * graph,
+    const bool deterministic,
+    const uint_t initial_seed)
 : m_graph(graph),
-  m_rnd_dev()
+  m_rnd_dev(),
+  m_deterministic(deterministic),
+  m_initial_seed(initial_seed)
 {
 
 }

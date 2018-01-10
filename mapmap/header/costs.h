@@ -7,8 +7,8 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#ifndef __MAPMAP_HEADER_COSTS_H_
-#define __MAPMAP_HEADER_COSTS_H_
+#ifndef __MAPMAP_COSTS_H_
+#define __MAPMAP_COSTS_H_
 
 #include <memory>
 #include <exception>
@@ -16,6 +16,7 @@
 #include <vector>
 #include <limits>
 #include <algorithm>
+#include <typeinfo>
 
 #include "header/defines.h"
 #include "header/vector_types.h"
@@ -42,12 +43,14 @@ public:
     const _iv_st<COSTTYPE, SIMDWIDTH> max_label() const;
     const _iv_st<COSTTYPE, SIMDWIDTH> label_set_size(const luint_t& node_id)
         const;
-    _iv_t<COSTTYPE, SIMDWIDTH> labels_from_offset(const luint_t& node_id, 
+    _iv_t<COSTTYPE, SIMDWIDTH> labels_from_offset(const luint_t& node_id,
         const _iv_st<COSTTYPE, SIMDWIDTH>& offset) const;
     _iv_st<COSTTYPE, SIMDWIDTH> label_from_offset(const luint_t& node_id,
         const _iv_st<COSTTYPE, SIMDWIDTH>& offset) const;
     const _iv_st<COSTTYPE, SIMDWIDTH> offset_for_label(const luint_t& node_id,
         const _iv_st<COSTTYPE, SIMDWIDTH>& offset) const;
+    const _iv_t<COSTTYPE, SIMDWIDTH> offsets_for_labels(const luint_t& node_id,
+            const _iv_t<COSTTYPE, SIMDWIDTH>& offset) const;
 
     /**
      * Label set construction functions.
@@ -65,11 +68,11 @@ protected:
     _iv_st<COSTTYPE, SIMDWIDTH> m_max_label;
 
     /**
-     * Note: for aligned vector access, all addresses must 
+     * Note: for aligned vector access, all addresses must
      * be aligned.
-     * 
-     * - For most compilers, all std::vectors are aligned. 
-     */ 
+     *
+     * - For most compilers, all std::vectors are aligned.
+     */
     std::vector<std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>> m_label_sets;
     std::vector<luint_t> m_label_set_ids;
     std::vector<uint_t> m_label_set_hashes;
@@ -80,7 +83,7 @@ protected:
     bool m_mutable = true;
 };
 
-/******************************************************************************/
+/* ************************************************************************** */
 
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 class UnaryCosts
@@ -88,17 +91,17 @@ class UnaryCosts
 public:
     virtual ~UnaryCosts() {};
 
-    /* enumerable: pass indices instead of labels */
+    /* enumerable: offers _enum_offset funstion for indices */
     virtual bool supports_enumerable_costs() const = 0;
 
-    virtual _v_t<COSTTYPE, SIMDWIDTH> get_unary_costs(const luint_t& node_id, 
-        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec) const throw() = 0;
+    virtual _v_t<COSTTYPE, SIMDWIDTH> get_unary_costs(
+        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec) const = 0;
     virtual _v_t<COSTTYPE, SIMDWIDTH> get_unary_costs_enum_offset(
-        const luint_t& node_id, const _iv_st<COSTTYPE, SIMDWIDTH>& offset) 
-        const throw() = 0;
+        const _iv_st<COSTTYPE, SIMDWIDTH>& offset) const = 0;
 };
 
-/******************************************************************************/
+
+/* ************************************************************************** */
 
 template<typename COSTTYPE, uint_t SIMDWIDTH>
 class PairwiseCosts
@@ -106,17 +109,21 @@ class PairwiseCosts
 public:
     virtual ~PairwiseCosts() {};
 
-    virtual bool node_dependent() const = 0; 
+    virtual std::unique_ptr<PairwiseCosts<COSTTYPE, SIMDWIDTH>> copy() const 
+        = 0;
 
-    virtual _v_t<COSTTYPE, SIMDWIDTH> get_binary_costs(const luint_t& node_id_1, 
-        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_1, const luint_t& node_id_2, 
-        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_2) const throw() = 0;
-    virtual _v_t<COSTTYPE, SIMDWIDTH> get_binary_costs(
-        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_1, 
-        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_2) const throw() = 0;
+    virtual bool supports_enumerable_costs() const = 0;
+    virtual bool eq(const PairwiseCosts<COSTTYPE, SIMDWIDTH> * costs) const = 0;
+
+    virtual _v_t<COSTTYPE, SIMDWIDTH> get_pairwise_costs(
+        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_1,
+        const _iv_t<COSTTYPE, SIMDWIDTH>& label_vec_2) const = 0;
+    virtual _v_t<COSTTYPE, SIMDWIDTH> get_pairwise_costs_enum_offsets(
+        const _iv_t<COSTTYPE, SIMDWIDTH>& label_ix_vec_1,
+        const _iv_t<COSTTYPE, SIMDWIDTH>& label_ix_vec_2) const = 0;
 };
 
-/******************************************************************************/
+/* ************************************************************************** */
 
 class ModeNotSupportedException : public std::exception
 {
@@ -135,4 +142,4 @@ NS_MAPMAP_END
 
 #include "source/costs.impl.h"
 
-#endif /* __MAPMAP_HEADER_COSTS_H_ */
+#endif /* __MAPMAP_COSTS_H_ */

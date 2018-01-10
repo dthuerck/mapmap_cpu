@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 
 set(CMAKE_C_COMPILER "gcc-5")
 set(CMAKE_CXX_COMPILER "g++-5")
@@ -8,22 +8,31 @@ list(APPEND CMAKE_MODULE_PATH "$ENV{CMAKE_MODULE_PATH}")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 project(mapMAP)
+include(ExternalProject)
 
 # selection what to build
 option(BUILD_MEMSAVE "Use memory-saving mode. Might influence performance negatively." OFF)
-option(BUILD_TEST "Build Google Tests for mapMAP modules." OFF)
+option(BUILD_TEST "Build Google Tests for mapMAP modules." ON)
 option(BUILD_DEMO "Build a demo, reading SHIMF datasets into mapMAP." ON)
 
 set(TBB_INCLUDE_DIRS "/usr/include" CACHE PATH "Path to where the TBB include files (tbb/) reside")
 set(TBB_LIBRARY "/usr/lib" CACHE PATH "Path to where the TBB library files (libtbb.so etc.) reside")
 
-set(GTEST_ROOT "/usr/lib" CACHE PATH "Path to GoogleTest's root folder")
+# default to Release build and C++11 mode
+set(CMAKE_CXX_STANDARD 11)
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release")
+endif(NOT CMAKE_BUILD_TYPE)
 
 # set optimization options for GCC on unixoid systems
 # uses -march=native to make the compiler set __SSE4_2__, __AVX__ and
-# __AVX2__ to fit the binary to the computer
-set(CMAKE_BUILD_TYPE "Release")
-set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -march=native -O2 -flto -funroll-loops")
+# __AVX2__ to fit to the computer (only in release mode)
+set(CMAKE_CXX_FLAGS "-Wall -march=native")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g")
+else(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -funroll-loops -mfpmath=sse")
+endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
 
 # augment build parameters for optional builds
 if(BUILD_TEST)
@@ -47,7 +56,6 @@ include_directories(
 	${PROJECT_SOURCE_DIR}
 	${PROJECT_SOURCE_DIR}/mapmap)
 include_directories(SYSTEM
-    ${GTEST_INCLUDE_DIR}
 	${TBB_INCLUDE_DIR})
 
 set(header_dir "mapmap/header")
@@ -58,15 +66,13 @@ set(demo_dir "demo")
 # base files
 set(header_base
 	${header_dir}/color.h
-	${header_dir}/costs.h
+    ${header_dir}/costs.h
+    ${header_dir}/cost_bundle.h
     ${header_dir}/defines.h
-	${header_dir}/dynamic_programming.h
     ${header_dir}/graph.h
 	${header_dir}/instance_factory.h
-	${header_dir}/lock_free_tree_sampler.h
 	${header_dir}/mapmap.h
 	${header_dir}/multilevel.h
-	${header_dir}/optimistic_tree_sampler.h
 	${header_dir}/parallel_templates.h
 	${header_dir}/termination_criterion.h
 	${header_dir}/timer.h
@@ -78,14 +84,12 @@ set(header_base
 
 set(impl_base
 	${impl_dir}/color.impl.h
-	${impl_dir}/costs.impl.h
-	${impl_dir}/dynamic_programming.impl.h
+    ${impl_dir}/costs.impl.h
+    ${impl_dir}/cost_bundle.impl.h
     ${impl_dir}/graph.impl.h
 	${impl_dir}/instance_factory.impl.h
-	${impl_dir}/lock_free_tree_sampler.impl.h
 	${impl_dir}/mapmap.impl.h
 	${impl_dir}/multilevel.impl.h
-	${impl_dir}/optimistic_tree_sampler.impl.h
 	${impl_dir}/parallel_templates.impl.h
 	${impl_dir}/timer.impl.h
     ${impl_dir}/tree.impl.h
@@ -95,18 +99,37 @@ set(impl_base
 
 # cost instance files
 set(header_cost_instances
-	${header_dir}/cost_instances/pairwise_antipotts.h
 	${header_dir}/cost_instances/pairwise_potts.h
 	${header_dir}/cost_instances/pairwise_table.h
 	${header_dir}/cost_instances/pairwise_truncated_linear.h
+	${header_dir}/cost_instances/pairwise_truncated_quadratic.h
 	${header_dir}/cost_instances/unary_table.h)
 
 set(impl_cost_instances
-	${impl_dir}/cost_instances/pairwise_antipotts.impl.h
 	${impl_dir}/cost_instances/pairwise_potts.impl.h
 	${impl_dir}/cost_instances/pairwise_table.impl.h
-	${impl_dir}/cost_instances/pairwise_truncated_linear.h
+	${impl_dir}/cost_instances/pairwise_truncated_linear.impl.h
+	${impl_dir}/cost_instances/pairwise_truncated_quadratic.impl.h
 	${impl_dir}/cost_instances/unary_table.impl.h)
+
+# optimizer
+set(header_optimizer_instances
+	${header_dir}/optimizer_instances/envelope_instances/pairwise_potts_envelope.h
+	${header_dir}/optimizer_instances/envelope_instances/pairwise_truncated_linear_envelope.h
+	${header_dir}/optimizer_instances/envelope_instances/pairwise_truncated_quadratic_envelope.h
+	${header_dir}/optimizer_instances/dp_node.h
+	${header_dir}/optimizer_instances/dp_node_solver.h
+	${header_dir}/optimizer_instances/dp_node_solver_factory.h
+	${header_dir}/optimizer_instances/dynamic_programming.h
+	${header_dir}/optimizer_instances/envelope.h)
+
+set(impl_optimizer_instances
+	${impl_dir}/optimizer_instances/envelope_instances/pairwise_potts_envelope.impl.h
+	${impl_dir}/optimizer_instances/envelope_instances/pairwise_truncated_linear_envelope.impl.h
+	${impl_dir}/optimizer_instances/envelope_instances/pairwise_truncated_quadratic_envelope.impl.h
+	${impl_dir}/optimizer_instances/dp_node_solver.impl.h
+	${impl_dir}/optimizer_instances/dp_node_solver_factory.impl.h
+	${impl_dir}/optimizer_instances/dynamic_programming.impl.h)
 
 # multilevel instance files
 set(header_multilevel_instances
@@ -128,6 +151,15 @@ set(impl_termination_instances
 	${impl_dir}/termination_instances/stop_when_flat.impl.h
 	${impl_dir}/termination_instances/stop_when_returns_diminish.impl.h)
 
+# tree sampler instances
+set(header_tree_sampler_instances
+	${header_dir}/tree_sampler_instances/lock_free_tree_sampler.h
+	${header_dir}/tree_sampler_instances/optimistic_tree_sampler.h)
+
+set(impl_tree_sampler_instances
+	${impl_dir}/tree_sampler_instances/lock_free_tree_sampler.impl.h
+	${impl_dir}/tree_sampler_instances/optimistic_tree_sampler.impl.h)
+
 # test files
 set(header_test
 	${test_dir}/util_test.h)
@@ -139,6 +171,7 @@ set(src_test
 	${test_dir}/test_coloring.cc
     ${test_dir}/test_coordinate_set.cc
 	${test_dir}/test_dynamic_programming.cc
+	${test_dir}/test_envelope.cc
     ${test_dir}/test_graph.cc
 	${test_dir}/test_multilevel.cc
     ${test_dir}/test_spanning_tree.cc
@@ -146,8 +179,10 @@ set(src_test
 
 set_source_files_properties(${header_base} PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties(${header_cost_instances} PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties(${header_optimizer_instances} PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties(${header_multilevel_instances} PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties(${header_termination_instances} PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties(${tree_sampler_instances} PROPERTIES HEADER_FILE_ONLY TRUE)
 
 source_group("Base" FILES
     ${header_base}
@@ -155,12 +190,18 @@ source_group("Base" FILES
 source_group("Costs" FILES
 	${header_cost_instances}
 	${impl_cost_instances})
+source_group("Optimizer" FILES
+	${header_optimizer_instances}
+	${impl_optimizer_instances})
 source_group("Multilevel" FILES
     ${header_multilevel_instances}
     ${impl_multilevel_instances})
 source_group("Termination" FILES
 	${header_termination_instances}
 	${impl_termination_instances})
+source_group("TreeSampler" FILES
+	${header_tree_sampler_instances}
+	${impl_tree_sampler_instances})
 source_group("Coloring" FILES
 	${header_coloring_instances}
 	${impl_coloring_instances})
@@ -169,14 +210,32 @@ source_group("Test" FILES
     ${impl_test}
 	${src_test})
 
-# build gtest executable (and find Gtest, which is now necessary)
+# build tests
 if(BUILD_TEST)
-find_package(GTest REQUIRED)
+
+# CMake as dependency: download and build
+externalproject_add(googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG master
+    PREFIX ${PROJECT_SOURCE_DIR}/gtest
+    CMAKE_ARGS -DBUILD_GTEST=ON -DBUILD_SHARED_LIBS=ON -Dgtest_build_tests=ON
+    INSTALL_COMMAND ""
+    LOG_DOWNLOAD ON
+    LOG_CONFIGURE ON
+    LOG_BUILD ON
+    LOG_TEST ON)
+
+include_directories(SYSTEM
+    ${PROJECT_SOURCE_DIR}/gtest/src/googletest/googletest/include)
+link_directories(
+    ${PROJECT_SOURCE_DIR}/gtest/src/googletest-build/googlemock/gtest)
+
 add_executable(mapmap_test
     ${src_test})
 target_link_libraries(mapmap_test
     ${TBB_LIBRARIES}
-    ${GTEST_BOTH_LIBRARIES}
+    gtest
+    gtest_main
     pthread)
 endif(BUILD_TEST)
 

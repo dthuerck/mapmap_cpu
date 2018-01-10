@@ -6,14 +6,14 @@
  * This software may be modified and distributed under the terms
  * of the BSD license. See the LICENSE file for details.
  */
- 
-#ifndef __MAPMAP_HEADER_VECTOR_TYPES_H_
-#define __MAPMAP_HEADER_VECTOR_TYPES_H_
- 
-#include <cstdint> 
- 
-#include "header/defines.h" 
- 
+
+#ifndef __MAPMAP_VECTOR_TYPES_H_
+#define __MAPMAP_VECTOR_TYPES_H_
+
+#include <cstdint>
+
+#include "header/defines.h"
+
 #if defined(__SSE4_2__)
     #include <smmintrin.h>
 #endif
@@ -24,7 +24,7 @@
 
 NS_MAPMAP_BEGIN
 
-/** 
+/**
  * *****************************************************************************
  * *************************** Scalar types (scalar_t) *************************
  * *****************************************************************************
@@ -41,34 +41,34 @@ using luint_t = uint64_t;
 template<typename COSTTYPE, uint_t SIMDWIDTH = 1>
 using scalar_t = COSTTYPE;
 
-/** 
+/**
  * *****************************************************************************
  * ************************** Real vector types (vector_t) *********************
  * *****************************************************************************
  */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH> 
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 struct _vector_traits
 {
     typedef COSTTYPE type;
-    unsigned int mask; 
+    unsigned int mask;
 };
 
-template<> 
+template<>
 struct _vector_traits<float, 1>
 {
     typedef float type;
     unsigned int mask = 0x4;
 };
 #if defined(__SSE4_2__)
-template<> 
+template<>
 struct _vector_traits<float, 4>
 {
     typedef __m128 type;
     unsigned int mask = 0xF;
 }; /* __SSE4_2__ */
 #if defined(__AVX__)
-template<> 
+template<>
 struct _vector_traits<float, 8>
 {
     typedef __m256 type;
@@ -77,21 +77,21 @@ struct _vector_traits<float, 8>
 #endif
 #endif
 
-template<> 
+template<>
 struct _vector_traits<double, 1>
 {
     typedef double type;
     unsigned int mask = 0x8;
 };
 #if defined(__SSE4_2__)
-template<> 
+template<>
 struct _vector_traits<double, 2>
 {
     typedef __m128d type;
     unsigned int mask = 0xF;
 }; /* __SSE4_2__ */
 #if defined(__AVX__)
-template<> 
+template<>
 struct _vector_traits<double, 4>
 {
     typedef __m256d type;
@@ -112,13 +112,13 @@ v_get_mask()
     return vt.mask;
 }
 
-/** 
+/**
  * *****************************************************************************
  * ************************* Int vector types (ivector_t) **********************
  * *****************************************************************************
  */
 
-template<typename COSTTYPE, uint_t SIMDWIDTH> 
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 struct _i_vector_traits
 {
     typedef uint32_t utype;
@@ -126,7 +126,7 @@ struct _i_vector_traits
     typedef int32_t type;
 };
 
-template<> 
+template<>
 struct _i_vector_traits<float, 1>
 {
     typedef int32_t uitype;
@@ -135,17 +135,17 @@ struct _i_vector_traits<float, 1>
     unsigned int mask = 0x4;
 };
 #if defined(__SSE4_2__)
-template<> 
+template<>
 struct _i_vector_traits<float, 4>
 {
     typedef uint32_t uitype;
     typedef int32_t itype;
     typedef __m128i type;
     unsigned int mask = 0xF;
-}; 
+};
 #endif /* __SSE4_2__ */
 #if defined(__AVX__)
-template<> 
+template<>
 struct _i_vector_traits<float, 8>
 {
     typedef uint32_t uitype;
@@ -155,7 +155,7 @@ struct _i_vector_traits<float, 8>
 }; /* __AVX__ */
 #endif
 
-template<> 
+template<>
 struct _i_vector_traits<double, 1>
 {
     typedef uint64_t uitype;
@@ -164,17 +164,17 @@ struct _i_vector_traits<double, 1>
     unsigned int mask = 0x4;
 };
 #if defined(__SSE4_2__)
-template<> 
+template<>
 struct _i_vector_traits<double, 2>
 {
     typedef uint64_t uitype;
     typedef int64_t itype;
     typedef __m128i type;
     unsigned int mask = 0xF;
-}; 
+};
 #endif /* __SSE3 */
 #if defined(__AVX__)
-template<> 
+template<>
 struct _i_vector_traits<double, 4>
 {
     typedef uint64_t uitype;
@@ -203,5 +203,5 @@ iv_get_mask()
 }
 
 NS_MAPMAP_END
- 
-#endif /* __VECTOR_TYPES_H_ */
+
+#endif /* __MAPMAP_VECTOR_TYPES_H_ */

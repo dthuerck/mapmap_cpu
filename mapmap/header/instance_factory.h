@@ -7,8 +7,8 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#ifndef __MAPMAP_HEADER_INSTANCE_FACTORY_H_
-#define __MAPMAP_HEADER_INSTANCE_FACTORY_H_
+#ifndef __MAPMAP_INSTANCE_FACTORY_H_
+#define __MAPMAP_INSTANCE_FACTORY_H_
 
 #include "header/defines.h"
 #include "header/graph.h"
@@ -35,7 +35,9 @@ public:
     static std::unique_ptr<TreeSampler<COSTTYPE, ACYCLIC>>
         get_sampler_instance(
             const TREE_SAMPLER_ALGORITHM& alg,
-            Graph<COSTTYPE> * graph);
+            Graph<COSTTYPE> * graph,
+            const bool deterministic,
+            const uint_t seed);
 };
 
 NS_MAPMAP_END
@@ -43,4 +45,4 @@ NS_MAPMAP_END
 /* include function implementations */
 #include "source/instance_factory.impl.h"
 
-#endif /* __MAPMAP_HEADER_INSTANCE_FACTORY_H_ */
+#endif /* __MAPMAP_INSTANCE_FACTORY_H_ */

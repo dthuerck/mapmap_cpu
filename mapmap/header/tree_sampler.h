@@ -7,8 +7,8 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#ifndef __MAPMAP_HEADER_TREE_SAMPLER_H_
-#define __MAPMAP_HEADER_TREE_SAMPLER_H_
+#ifndef __MAPMAP_TREE_SAMPLER_H_
+#define __MAPMAP_TREE_SAMPLER_H_
 
 #include "header/defines.h"
 #include "header/tree.h"
@@ -22,6 +22,8 @@ class TreeSampler
 {
 public:
     TreeSampler(Graph<COSTTYPE> * graph);
+    TreeSampler(Graph<COSTTYPE> * graph, const bool m_deterministic,
+        const uint_t initial_seed);
     ~TreeSampler();
 
     virtual void
@@ -37,6 +39,10 @@ protected:
     Graph<COSTTYPE> * m_graph;
     std::random_device m_rnd_dev;
 
+    /* deterministic sampling with external seed */
+    const bool m_deterministic;
+    const uint_t m_initial_seed;
+
     /* data needed in all derived classes */
     std::vector<std::vector<luint_t>> m_component_lists;
 
@@ -49,4 +55,4 @@ NS_MAPMAP_END
 /* include function implementations */
 #include "source/tree_sampler.impl.h"
 
-#endif /* __MAPMAP_HEADER_TREE_SAMPLER_H_ */
+#endif /* __MAPMAP_TREE_SAMPLER_H_ */

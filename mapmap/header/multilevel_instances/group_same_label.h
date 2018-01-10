@@ -7,8 +7,8 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#ifndef __MAPMAP_HEADER_MULTILEVEL_INSTANCES_GROUP_SAME_LABEL_H_
-#define __MAPMAP_HEADER_MULTILEVEL_INSTANCES_GROUP_SAME_LABEL_H_
+#ifndef __MAPMAP_GROUP_SAME_LABEL_H_
+#define __MAPMAP_GROUP_SAME_LABEL_H_
 
 #include <memory>
 #include <vector>
@@ -20,7 +20,7 @@
 NS_MAPMAP_BEGIN
 
 template<typename COSTTYPE, uint_t SIMDWIDTH>
-class GroupSameLabel : 
+class GroupSameLabel :
     public MultilevelCriterion<COSTTYPE, SIMDWIDTH>
 {
 public:
@@ -35,6 +35,7 @@ public:
 
 NS_MAPMAP_END
 
+/* include function implementations */
 #include "source/multilevel_instances/group_same_label.impl.h"
 
-#endif /* __MAPMAP_HEADER_MULTILEVEL_INSTANCES_GRUP_SAME_LABEL_H_ */
+#endif /* __MAPMAP_GROUP_SAME_LABEL_H_ */

@@ -56,7 +56,7 @@ public:
             m_roots.push_back(c * component_dim * component_dim);
 
         m_sampler = InstanceFactory<cost_t, true>::get_sampler_instance(
-            GetParam(), m_graph.get());
+            GetParam(), m_graph.get(), true, 0);
 
         m_tree = m_sampler->sample(m_roots, true, false);
 
@@ -65,7 +65,7 @@ public:
         for(luint_t n = 0; n < num_nodes; ++n)
         {
             const TreeNode<cost_t> node = m_tree->node(n);
-            if (node.is_root)
+            if(node.parent_id == node.node_id)
                 m_actual_roots.push_back(n);
         }
     }

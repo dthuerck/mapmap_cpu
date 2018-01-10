@@ -9,8 +9,8 @@
 
 #include "header/instance_factory.h"
 
-#include "header/optimistic_tree_sampler.h"
-#include "header/lock_free_tree_sampler.h"
+#include "header/tree_sampler_instances/optimistic_tree_sampler.h"
+#include "header/tree_sampler_instances/lock_free_tree_sampler.h"
 
 NS_MAPMAP_BEGIN
 
@@ -19,18 +19,22 @@ std::unique_ptr<TreeSampler<COSTTYPE, ACYCLIC>>
 InstanceFactory<COSTTYPE, ACYCLIC>::
 get_sampler_instance(
     const TREE_SAMPLER_ALGORITHM& alg,
-    Graph<COSTTYPE> * graph)
+    Graph<COSTTYPE> * graph,
+    const bool deterministic,
+    const uint_t seed)
 {
     if(alg == OPTIMISTIC_TREE_SAMPLER)
     {
         return std::unique_ptr<TreeSampler<COSTTYPE, ACYCLIC>>(
-            new OptimisticTreeSampler<COSTTYPE, ACYCLIC>(graph));
+            new OptimisticTreeSampler<COSTTYPE, ACYCLIC>(graph, deterministic,
+                seed));
     }
 
     if(alg == LOCK_FREE_TREE_SAMPLER)
     {
         return std::unique_ptr<TreeSampler<COSTTYPE, ACYCLIC>>(
-            new LockFreeTreeSampler<COSTTYPE, ACYCLIC>(graph));
+            new LockFreeTreeSampler<COSTTYPE, ACYCLIC>(graph, deterministic,
+                seed));
     }
 
     return std::unique_ptr<TreeSampler<COSTTYPE, ACYCLIC>>(nullptr);

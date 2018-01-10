@@ -7,8 +7,8 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#ifndef __MAPMAP_HEADER_MAPMAP_H_
-#define __MAPMAP_HEADER_MAPMAP_H_
+#ifndef __MAPMAP_MAPMAP_H_
+#define __MAPMAP_MAPMAP_H_
 
 #include <vector>
 #include <memory>
@@ -17,9 +17,10 @@
 #include <chrono>
 
 #include "header/defines.h"
+#include "header/cost_bundle.h"
 #include "header/instance_factory.h"
 #include "header/vector_types.h"
-#include "header/dynamic_programming.h"
+#include "header/optimizer_instances/dynamic_programming.h"
 #include "header/graph.h"
 #include "header/multilevel.h"
 #include "header/termination_criterion.h"
@@ -54,7 +55,7 @@ const char * const UNIX_COLOR_RESET = "\033[0m";
 struct mapMAP_control;
 
 /* MAPMAP main class */
-template<typename COSTTYPE, uint_t SIMDWIDTH, typename UNARY, typename PAIRWISE>
+template<typename COSTTYPE, uint_t SIMDWIDTH>
 class mapMAP
 {
 public:
@@ -75,9 +76,15 @@ public:
     void set_node_label_set(const luint_t node_id, const
         std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& label_set) throw();
 
-    /* set MRF cost functions */
-    void set_unaries(const UNARY * unaries);
-    void set_pairwise(const PAIRWISE * pairwise);
+    /* set MRF cost functions (compatibility mode) */
+    void set_unaries(const UnaryCosts<COSTTYPE, SIMDWIDTH> * unaries);
+    void set_pairwise(const PairwiseCosts<COSTTYPE, SIMDWIDTH> * pairwise);
+
+    /* set MRF cost functions (individual mode) */
+    void set_unary(const luint_t node_id,
+        const UnaryCosts<COSTTYPE, SIMDWIDTH> * unary);
+    void set_pairwise(const luint_t edge_id,
+        const PairwiseCosts<COSTTYPE, SIMDWIDTH> * pairwise);
 
     /* configuration */
     void set_multilevel_criterion(MultilevelCriterion<COSTTYPE, SIMDWIDTH> *
@@ -129,8 +136,7 @@ protected:
     luint_t m_num_labels;
 
     /* cost functions */
-    const UNARY * m_unaries;
-    const PAIRWISE * m_pairwise;
+    std::unique_ptr<CostBundle<COSTTYPE, SIMDWIDTH>> m_cbundle;
 
     /* underlying graph (may be augmented by coloring) */
     Graph<COSTTYPE> * m_graph;
@@ -144,11 +150,13 @@ protected:
 
     /* algorithms */
     TREE_SAMPLER_ALGORITHM m_tree_sampler_algo;
+    bool m_sample_deterministic;
+    std::mt19937 m_seeder;
 
     luint_t m_num_roots = 64u;
 
     /* storage for functional modules */
-    std::unique_ptr<Multilevel<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>>
+    std::unique_ptr<Multilevel<COSTTYPE, SIMDWIDTH>>
         m_multilevel;
     std::unique_ptr<MultilevelCriterion<COSTTYPE, SIMDWIDTH>>
         m_storage_multilevel_criterion;
@@ -202,12 +210,14 @@ struct mapMAP_control
     uint_t min_acyclic_iterations;
     bool relax_acyclic_maximal;
 
-    /* algorithmic settings */
+    /* settings for tree sampling */
     TREE_SAMPLER_ALGORITHM tree_algorithm;
+    bool sample_deterministic;
+    uint_t initial_seed;
 };
 
 NS_MAPMAP_END
 
 #include "source/mapmap.impl.h"
 
-#endif /* __MAPMAP_HEADER_MAPMAP_H_ */
+#endif /* __MAPMAP_MAPMAP_H_ */
