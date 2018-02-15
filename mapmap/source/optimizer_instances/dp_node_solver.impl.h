@@ -106,7 +106,7 @@ optimize_node()
                 v_load<COSTTYPE, SIMDWIDTH>(&m_icost_table[l_i]);
 
             /* retrieve label index vector for this offset */
-            const _iv_t<COSTTYPE, SIMDWIDTH> v_l_i =
+            _iv_t<COSTTYPE, SIMDWIDTH> v_l_i =
                 iv_sequence<COSTTYPE, SIMDWIDTH>(l_i);
 
             /* retrieve label vector for this offset */
@@ -116,6 +116,8 @@ optimize_node()
             /* mask out label indices exceeding num_node_labels */
             valid_labels = iv_le<COSTTYPE, SIMDWIDTH>
                 (v_l_i, iv_init<COSTTYPE, SIMDWIDTH>(num_node_labels - 1));
+            v_l_i = iv_blend<COSTTYPE, SIMDWIDTH>(
+                iv_init<COSTTYPE, SIMDWIDTH>(0), v_l_i, valid_labels);
             l = iv_blend<COSTTYPE, SIMDWIDTH>(
                 iv_init<COSTTYPE, SIMDWIDTH>(exceed_l), l, valid_labels);
 
@@ -251,12 +253,13 @@ get_independent_of_parent_costs(
         labels_from_offset(node_id, l_i);
 
     /* retrieve label index vector for this offset */
-    const _iv_t<COSTTYPE, SIMDWIDTH> v_l_i =
-        iv_sequence<COSTTYPE, SIMDWIDTH>(l_i);
+    _iv_t<COSTTYPE, SIMDWIDTH> v_l_i = iv_sequence<COSTTYPE, SIMDWIDTH>(l_i);
 
     /* mask for excluding invalid labels */
     _iv_t<COSTTYPE, SIMDWIDTH> valid_labels = iv_le<COSTTYPE, SIMDWIDTH>(
         v_l_i, iv_init<COSTTYPE, SIMDWIDTH>(num_node_labels - 1));
+    v_l_i = iv_blend<COSTTYPE, SIMDWIDTH>(iv_init<COSTTYPE, SIMDWIDTH>(0),
+        v_l_i, valid_labels);
     l = iv_blend<COSTTYPE, SIMDWIDTH>(iv_init<COSTTYPE, SIMDWIDTH>(exceed_l), l,
         valid_labels);
 

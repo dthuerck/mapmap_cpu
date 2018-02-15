@@ -601,7 +601,7 @@ compute_level_label_set()
 
                     /* intersect with common vector */
                     for(_iv_st<COSTTYPE, SIMDWIDTH> l = 0; l <= max_label; ++l)
-                        iset_labels[l] = (iset_labels[l] && inc_o_n[l]);
+                        iset_labels[l] = (iset_labels[l] & inc_o_n[l]);
                 }
 
                 /* create label set from incidence vector */
@@ -789,17 +789,32 @@ compute_level_unaries()
 
                         if(ep_sn == ep_so && o_n < other_node)
                         {
+                            const _iv_st<COSTTYPE, SIMDWIDTH> exceed_l =
+                                m_current->level_label_set->
+                                    label_from_offset(s_n, 0);
+
                             /**
                              * add all costs for the edge - labels
                              * restricted to that label set of the supernode
                              * in question which was already computed
                              */
+                            _iv_t<COSTTYPE, SIMDWIDTH> l_ix, valid_labels;
                             for(l_i = 0; l_i < supernode_labels; l_i
                                 += SIMDWIDTH)
                             {
                                 l = m_current->level_label_set->
                                     labels_from_offset(s_n, l_i);
+                                l_ix = iv_sequence<COSTTYPE, SIMDWIDTH>(l_i);
 
+                                /* mask out invalid labels */
+                                valid_labels = iv_le<COSTTYPE, SIMDWIDTH>
+                                    (l_ix, iv_init<COSTTYPE, SIMDWIDTH>(
+                                    supernode_labels - 1));
+                                l = iv_blend<COSTTYPE, SIMDWIDTH>(
+                                    iv_init<COSTTYPE, SIMDWIDTH>(exceed_l),
+                                    l, valid_labels);
+
+                                /* compute costs for valid labels */
                                 c = v_mult<COSTTYPE, SIMDWIDTH>(
                                     m_previous->level_cost_bundle->
                                     get_pairwise_costs(e_id)->
@@ -892,13 +907,15 @@ compute_level_pairwise()
                     store_offset + se_id].get())->get_raw_costs();
 
                 /* retrieve level label indices */
+                const _iv_st<COSTTYPE, SIMDWIDTH> pad_size =
+                    DIV_UP(m_current->level_label_set->max_label_set_size(),
+                    SIMDWIDTH) * SIMDWIDTH;
                 _s_t<COSTTYPE, SIMDWIDTH> * buf = m_value_allocator->allocate(
-                    2 * m_current->level_label_set->max_label_set_size());
+                    2 * pad_size);
                 _iv_st<COSTTYPE, SIMDWIDTH> * lbl_assoc =
                     (_iv_st<COSTTYPE, SIMDWIDTH> *) buf;
                 _iv_st<COSTTYPE, SIMDWIDTH> * lbl_assoc_mask =
-                    (_iv_st<COSTTYPE, SIMDWIDTH> *) (buf +
-                    m_current->level_label_set->max_label_set_size());
+                    (_iv_st<COSTTYPE, SIMDWIDTH> *) (buf + pad_size);
 
                 /* information regarding the superedge */
                 const _iv_st<COSTTYPE, SIMDWIDTH> s_num_l1 =
@@ -946,7 +963,8 @@ compute_level_pairwise()
 
                         /* match labels from original node and supernode */
                         _iv_st<COSTTYPE, SIMDWIDTH> l1_i, l2_i;
-                        _iv_t<COSTTYPE, SIMDWIDTH> l1, l2, mask;
+                        _iv_t<COSTTYPE, SIMDWIDTH> l1, l2, l2_ix, mask,
+                            valid_labels;
                         _v_t<COSTTYPE, SIMDWIDTH> c;
 
                         /* for each supernode B label, fix corr. ix in node b */
@@ -970,15 +988,17 @@ compute_level_pairwise()
                         }
 
                         /* overflow to next SIMD multiple */
-                        for(l2_i = s_num_l2; l2_i < (_iv_st<COSTTYPE,
-                            SIMDWIDTH>) (DIV_UP(s_num_l2,  SIMDWIDTH) *
-                            SIMDWIDTH); ++l2_i)
+                        for(l2_i = s_num_l2; l2_i < pad_l2; ++l2_i)
                         {
                             lbl_assoc[l2_i] = 0;
                             lbl_assoc_mask[l2_i] = 0x0;
                         }
 
                         /* now use indexed pairwise costs for l2 */
+                        const _iv_st<COSTTYPE, SIMDWIDTH> exceed_l =
+                            m_current->level_label_set->label_from_offset(
+                            s_e.node_b, 0);
+
                         o_e_ptr = 0;
                         for(l1_i = 0; l1_i < s_num_l1; ++l1_i)
                         {
@@ -1003,8 +1023,14 @@ compute_level_pairwise()
                             {
                                 l2 = iv_load<COSTTYPE, SIMDWIDTH>(
                                     &lbl_assoc[l2_i]);
-                                mask = iv_load<COSTTYPE, SIMDWIDTH>(
-                                    &lbl_assoc_mask[l2_i]);
+                                l2_ix = iv_sequence<COSTTYPE, SIMDWIDTH>(l2_i);
+
+                                /* mask out exceeding label indices */
+                                valid_labels = iv_le<COSTTYPE, SIMDWIDTH>(l2_ix,
+                                    iv_init<COSTTYPE, SIMDWIDTH>(s_num_l2 - 1));
+                                l2 = iv_blend<COSTTYPE, SIMDWIDTH>(
+                                    iv_init<COSTTYPE, SIMDWIDTH>(exceed_l), l2,
+                                    valid_labels);
 
                                 /* retrieve original costs */
                                 c = v_mult<COSTTYPE, SIMDWIDTH>(
@@ -1014,6 +1040,8 @@ compute_level_pairwise()
                                     v_init<COSTTYPE, SIMDWIDTH>(e.weight));
 
                                 /* mask out invalid labels */
+                                mask = iv_load<COSTTYPE, SIMDWIDTH>(
+                                    &lbl_assoc_mask[l2_i]);
                                 c = v_and<COSTTYPE, SIMDWIDTH>(
                                     c, iv_reinterpret_v<COSTTYPE,
                                     SIMDWIDTH>(mask));
@@ -1031,8 +1059,13 @@ compute_level_pairwise()
                     {
                         /* non - enumerable: use actual labels for query */
                         _iv_st<COSTTYPE, SIMDWIDTH> l1_i, l2_i;
-                        _iv_t<COSTTYPE, SIMDWIDTH> l1, l2;
+                        _iv_t<COSTTYPE, SIMDWIDTH> l1, l2, l2_ix, valid_labels;
                         _v_t<COSTTYPE, SIMDWIDTH> c, c_o;
+
+                        /* label for masking out invalid indices */
+                        const _iv_st<COSTTYPE, SIMDWIDTH> exceed_l =
+                            m_current->level_label_set->label_from_offset(
+                            s_e.node_b, 0);
 
                         /* iterate over supernode labels directly */
                         for(l1_i = 0; l1_i < s_num_l1; ++l1_i)
@@ -1045,6 +1078,16 @@ compute_level_pairwise()
                             {
                                 l2 = m_current->level_label_set->
                                     labels_from_offset(s_e.node_b, l2_i);
+                                l2_ix = iv_sequence<COSTTYPE, SIMDWIDTH>(
+                                    l2_i);
+
+                                /* mask out exceeding labels */
+                                valid_labels = iv_le<COSTTYPE, SIMDWIDTH>
+                                    (l2_ix, iv_init<COSTTYPE, SIMDWIDTH>(
+                                    s_num_l2 - 1));
+                                l2 = iv_blend<COSTTYPE, SIMDWIDTH>(
+                                    iv_init<COSTTYPE, SIMDWIDTH>(exceed_l), l2,
+                                    valid_labels);
 
                                 /* retrieve costs for original edge */
                                 c = v_mult<COSTTYPE, SIMDWIDTH>(
