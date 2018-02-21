@@ -436,8 +436,9 @@ Graph<COSTTYPE>::
 set_coloring(
     const std::vector<luint_t>& coloring)
 {
-    std::copy(coloring.begin(), coloring.begin() + std::min(coloring.size(),
-        m_num_nodes), m_coloring.begin());
+    std::copy(coloring.begin(),
+        coloring.begin() + std::min((luint_t) coloring.size(), m_num_nodes),
+        m_coloring.begin());
     m_was_colored = true;
 }
 
