@@ -109,7 +109,7 @@ class PairwiseCosts
 public:
     virtual ~PairwiseCosts() {};
 
-    virtual std::unique_ptr<PairwiseCosts<COSTTYPE, SIMDWIDTH>> copy() const 
+    virtual std::unique_ptr<PairwiseCosts<COSTTYPE, SIMDWIDTH>> copy() const
         = 0;
 
     virtual bool supports_enumerable_costs() const = 0;
@@ -130,7 +130,7 @@ class ModeNotSupportedException : public std::exception
 public:
     ModeNotSupportedException(const char* err_msg);
     ModeNotSupportedException(const std::string& err_msg);
-    ~ModeNotSupportedException() throw();
+    ~ModeNotSupportedException();
 
     const char* what() const throw();
 

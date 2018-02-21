@@ -69,8 +69,7 @@ mapMAP(
   m_hist_acyclic_iterations(0),
   m_hist_spanningtree_iterations(0),
   m_hist_multilevel_iterations(0),
-  m_use_callback(false),
-  m_cbundle(nullptr)
+  m_use_callback(false)
 {
 
 }

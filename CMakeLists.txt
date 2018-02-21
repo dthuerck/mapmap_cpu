@@ -31,16 +31,16 @@ set(CMAKE_CXX_FLAGS "-Wall -march=native")
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g")
 else(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -funroll-loops -mfpmath=sse")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -funroll-loops -mfpmath=sse -flto")
 endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
 
 # augment build parameters for optional builds
 if(BUILD_TEST)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_FOR_TEST")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_FOR_TEST")
 endif(BUILD_TEST)
 
 if(BUILD_MEMSAVE)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_MEMORY_SAVE")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_MEMORY_SAVE")
 endif(BUILD_MEMSAVE)
 
 # if DEMO is built, download a demo dataset (planesweep)

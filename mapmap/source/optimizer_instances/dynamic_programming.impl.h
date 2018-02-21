@@ -229,7 +229,6 @@ void
 CombinatorialDynamicProgramming<COSTTYPE, SIMDWIDTH>::
 allocate_memory()
 {
-    tbb::blocked_range<luint_t> leaf_range(0, m_leaf_ids.size(), 32u);
     tbb::blocked_range<luint_t> node_range(0, this->m_tree->num_graph_nodes(),
         32u);
 

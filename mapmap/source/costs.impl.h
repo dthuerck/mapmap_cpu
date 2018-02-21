@@ -224,7 +224,7 @@ const
             tmp[i] = 0;
             const _iv_st<COSTTYPE, SIMDWIDTH> label = iv_extract<COSTTYPE,
                 SIMDWIDTH>(labels, i);
-                        
+
             /* linear search */
             const auto it = std::find(m_label_sets[label_set_id].begin(),
                 m_label_sets[label_set_id].end(), label);
