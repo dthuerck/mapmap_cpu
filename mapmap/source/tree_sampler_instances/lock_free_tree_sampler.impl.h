@@ -292,7 +292,7 @@ select_random_roots(
     for(luint_t c = 0; c < num_components; ++c)
     {
         /* determine k proportional to component size */
-const luint_t c_k =
+        const luint_t c_k =
             std::min(num_nodes, std::max((luint_t) 1, (luint_t) std::floor(k *
                 this->m_component_lists[c].size() / num_nodes)));
 
@@ -325,7 +325,7 @@ const luint_t c_k =
                 feasible_roots.push_back(n);
 
         /* select nodes until happy */
-        for(luint_t i = 0; i < std::min(c_k, feasible_roots.size()); ++i)
+        for(luint_t i = 0; i < std::min(c_k, (luint_t) feasible_roots.size()); ++i)
         {
             /* select next root */
             std::uniform_int_distribution<luint_t> rd(0,
