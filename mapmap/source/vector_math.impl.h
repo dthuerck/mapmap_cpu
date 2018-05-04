@@ -1045,10 +1045,25 @@ v_masked_store<float, 4>(
     const _iv_t<float, 4>& mask,
 	_s_t<float, 4>* ptr)
 {
-    if(!((unsigned long) ptr & v_get_mask<float, 4>()))
-        _mm_maskstore_ps(ptr, mask, a);
-    else
-        _mm_maskmoveu_si128(v_reinterpret_iv<float, 4>(a), mask, (char *) ptr);
+	union {
+		int64_t i;
+		__m64 v;
+	} a1, m1, a2, m2;
+
+	if(!((unsigned long) ptr & v_get_mask<float, 4>()))
+	{
+		/* split and store both parts */
+		a1.i = _mm_extract_epi64(v_reinterpret_iv<float, 4>(a), 0);
+		a2.i = _mm_extract_epi64(v_reinterpret_iv<float, 4>(a), 1);
+		m1.i = _mm_extract_epi64(mask, 0);
+		m2.i = _mm_extract_epi64(mask, 1);
+		_mm_maskmove_si64(a1.v, m1.v, (char *) ptr);
+		_mm_maskmove_si64(a2.v, m2.v, (char *) ptr + 8);
+	}
+	else
+	{
+		_mm_maskmoveu_si128(v_reinterpret_iv<float, 4>(a), mask, (char *) ptr);
+	}
 }
 
 /* ************************************************************************** */
@@ -2851,10 +2866,25 @@ v_masked_store<double, 2>(
     const _iv_t<double, 2>& mask,
 	_s_t<double, 2> * ptr)
 {
-    if(!((unsigned long) ptr & v_get_mask<double, 2>()))
-        _mm_maskstore_pd(ptr, mask, a);
-    else
-        _mm_maskmoveu_si128(v_reinterpret_iv<double, 2>(a), mask, (char *) ptr);
+	union {
+		int64_t i;
+		__m64 v;
+	} a1, m1, a2, m2;
+
+	if(!((unsigned long) ptr & v_get_mask<double, 2>()))
+	{
+		/* split and store both parts */
+		a1.i = _mm_extract_epi64(v_reinterpret_iv<double, 2>(a), 0);
+		a2.i = _mm_extract_epi64(v_reinterpret_iv<double, 2>(a), 1);
+	   	m1.i = _mm_extract_epi64(mask, 0);
+		m2.i = _mm_extract_epi64(mask, 1);
+		_mm_maskmove_si64(a1.v, m1.v, (char *) ptr);
+		_mm_maskmove_si64(a2.v, m2.v, (char *) ptr + 8);
+	}
+	else
+	{
+		_mm_maskmoveu_si128(v_reinterpret_iv<double, 2>(a), mask, (char *) ptr);
+	}
 }
 
 /* ************************************************************************** */
