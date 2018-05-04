@@ -518,12 +518,12 @@ template<>
 FORCEINLINE
 void
 v_masked_store<float, 1>(
-    const _v_t<float, 1>& a,
-    const _iv_t<float, 1>& mask,
+	const _v_t<float, 1>& a,
+	const _iv_t<float, 1>& mask,
 	_s_t<float, 1>* ptr)
 {
-    if(mask)
-	    *ptr = a;
+	if(mask)
+		*ptr = a;
 }
 
 /* ************************************************************************** */
@@ -544,10 +544,10 @@ template<>
 FORCEINLINE
 _v_t<float, 1>
 v_gather<float, 1>(
-    const _s_t<float, 1> * base,
-    const _iv_t<float, 1>& offsets)
+	const _s_t<float, 1> * base,
+	const _iv_t<float, 1>& offsets)
 {
-    return base[offsets];
+	return base[offsets];
 }
 
 /* ************************************************************************** */
@@ -1041,8 +1041,8 @@ template<>
 FORCEINLINE
 void
 v_masked_store<float, 4>(
-    const _v_t<float, 4>& a,
-    const _iv_t<float, 4>& mask,
+	const _v_t<float, 4>& a,
+	const _iv_t<float, 4>& mask,
 	_s_t<float, 4>* ptr)
 {
 	union {
@@ -1072,23 +1072,23 @@ template<>
 FORCEINLINE
 _v_t<float, 4>
 v_gather<float, 4>(
-    const _s_t<float, 4> * base,
-    const _iv_t<float, 4>& offsets)
+	const _s_t<float, 4> * base,
+	const _iv_t<float, 4>& offsets)
 {
 #ifndef HAS___AVX2__
-    /* no intrinsic available */
-    _s_t<float, 4> tmp[4];
-    _iv_st<float, 4> tmpi[4];
+	/* no intrinsic available */
+	_s_t<float, 4> tmp[4];
+	_iv_st<float, 4> tmpi[4];
 
-    iv_store<float, 4>(offsets, tmpi);
-    tmp[0] = base[tmpi[0]];
-    tmp[1] = base[tmpi[1]];
-    tmp[2] = base[tmpi[2]];
-    tmp[3] = base[tmpi[3]];
+	iv_store<float, 4>(offsets, tmpi);
+	tmp[0] = base[tmpi[0]];
+	tmp[1] = base[tmpi[1]];
+	tmp[2] = base[tmpi[2]];
+	tmp[3] = base[tmpi[3]];
 
-    return v_load<float, 4>(tmp);
+	return v_load<float, 4>(tmp);
 #else
-    return _mm_i32gather_ps(base, offsets, 1);
+	return _mm_i32gather_ps(base, offsets, 1);
 #endif
 }
 
@@ -1646,12 +1646,12 @@ v_extract<float, 8>(
 	const _v_t<float, 8>& a,
 	const int8_t imm)
 {
-    _v_t<float, 4> tmp = v_init<float, 4>();
+	_v_t<float, 4> tmp = v_init<float, 4>();
 
-    if(imm < 4)
-        tmp = _mm256_extractf128_ps(a, 0);
-    else if (imm < 8)
-        tmp = _mm256_extractf128_ps(a, 1);
+	if(imm < 4)
+		tmp = _mm256_extractf128_ps(a, 0);
+	else if (imm < 8)
+		tmp = _mm256_extractf128_ps(a, 1);
 
 	switch(imm)
 	{
@@ -1759,28 +1759,28 @@ template<>
 FORCEINLINE
 void
 v_masked_store<float, 8>(
-    const _v_t<float, 8>& a,
-    const _iv_t<float, 8>& mask,
+	const _v_t<float, 8>& a,
+	const _iv_t<float, 8>& mask,
 	_s_t<float, 8> * ptr)
 {
-    if(!((unsigned long) ptr & v_get_mask<float, 8>()))
-    {
-        _mm256_maskstore_ps(ptr, mask, a);
-    }
-    else
-    {
-        const _iv_t<float, 8> ia = v_reinterpret_iv<float, 8>(a);
+	if(!((unsigned long) ptr & v_get_mask<float, 8>()))
+	{
+		_mm256_maskstore_ps(ptr, mask, a);
+	}
+	else
+	{
+		const _iv_t<float, 8> ia = v_reinterpret_iv<float, 8>(a);
 
-        /* split and store both parts */
-        const __m128i a1 = _mm256_extractf128_si256(ia, 0);
-        const __m128i a2 = _mm256_extractf128_si256(ia, 1);
+		/* split and store both parts */
+		const __m128i a1 = _mm256_extractf128_si256(ia, 0);
+		const __m128i a2 = _mm256_extractf128_si256(ia, 1);
 
-        const __m128i mask1 = _mm256_extractf128_si256(mask, 0);
-        const __m128i mask2 = _mm256_extractf128_si256(mask, 1);
+		const __m128i mask1 = _mm256_extractf128_si256(mask, 0);
+		const __m128i mask2 = _mm256_extractf128_si256(mask, 1);
 
-        _mm_maskmoveu_si128(a1, mask1, (char *) ptr);
-        _mm_maskmoveu_si128(a2, mask2, (char *) (ptr + 4));
-    }
+		_mm_maskmoveu_si128(a1, mask1, (char *) ptr);
+		_mm_maskmoveu_si128(a2, mask2, (char *) (ptr + 4));
+	}
 }
 
 /* ************************************************************************** */
@@ -1804,27 +1804,27 @@ template<>
 FORCEINLINE
 _v_t<float, 8>
 v_gather<float, 8>(
-    const _s_t<float, 8> * base,
-    const _iv_t<float, 8>& offsets)
+	const _s_t<float, 8> * base,
+	const _iv_t<float, 8>& offsets)
 {
 #ifndef HAS___AVX2__
-    /* no intrinsic available */
-    _s_t<float, 8> tmp[8];
-    _iv_st<float, 8> tmpi[8];
+	/* no intrinsic available */
+	_s_t<float, 8> tmp[8];
+	_iv_st<float, 8> tmpi[8];
 
-    iv_store<float, 8>(offsets, tmpi);
-    tmp[0] = base[tmpi[0]];
-    tmp[1] = base[tmpi[1]];
-    tmp[2] = base[tmpi[2]];
-    tmp[3] = base[tmpi[3]];
-    tmp[4] = base[tmpi[4]];
-    tmp[5] = base[tmpi[5]];
-    tmp[6] = base[tmpi[6]];
-    tmp[7] = base[tmpi[7]];
+	iv_store<float, 8>(offsets, tmpi);
+	tmp[0] = base[tmpi[0]];
+	tmp[1] = base[tmpi[1]];
+	tmp[2] = base[tmpi[2]];
+	tmp[3] = base[tmpi[3]];
+	tmp[4] = base[tmpi[4]];
+	tmp[5] = base[tmpi[5]];
+	tmp[6] = base[tmpi[6]];
+	tmp[7] = base[tmpi[7]];
 
-    return v_load<float, 8>(tmp);
+	return v_load<float, 8>(tmp);
 #else
-    return _mm256_i32gather_ps(base, offsets, 1);
+	return _mm256_i32gather_ps(base, offsets, 1);
 #endif
 }
 
@@ -2312,12 +2312,12 @@ template<>
 FORCEINLINE
 void
 v_masked_store<double, 1>(
-    const _v_t<double, 1>& a,
-    const _iv_t<double, 1>& mask,
+	const _v_t<double, 1>& a,
+	const _iv_t<double, 1>& mask,
 	_s_t<double, 1> * ptr)
 {
-    if(mask)
-        *ptr = a;
+	if(mask)
+		*ptr = a;
 }
 
 /* ************************************************************************** */
@@ -2338,13 +2338,13 @@ template<>
 FORCEINLINE
 _v_t<double, 1>
 v_gather<double, 1>(
-    const _s_t<double, 1> * base,
-    const _iv_t<double, 1>& offsets)
+	const _s_t<double, 1> * base,
+	const _iv_t<double, 1>& offsets)
 {
-    _iv_st<double, 1> tmpi[1];
-    iv_store<double, 1>(offsets, tmpi);
+	_iv_st<double, 1> tmpi[1];
+	iv_store<double, 1>(offsets, tmpi);
 
-    return base[tmpi[0]];
+	return base[tmpi[0]];
 }
 
 /* ************************************************************************** */
@@ -2764,16 +2764,16 @@ v_extract<double, 2>(
 	const _v_t<double, 2>& a,
 	const int8_t imm)
 {
-    _iv_t<double, 2> tmp = v_reinterpret_iv<double, 2>(a);
+	_iv_t<double, 2> tmp = v_reinterpret_iv<double, 2>(a);
 
-    _iv_st<double, 2> b;
+	_iv_st<double, 2> b;
 	switch(imm)
 	{
-        case 0:
-            b = _mm_extract_epi64(tmp, 0);
+		case 0:
+			b = _mm_extract_epi64(tmp, 0);
 			return iv_reinterpret_v<double, 1>(b);
 		case 1:
-            b = _mm_extract_epi64(tmp, 1);
+			b = _mm_extract_epi64(tmp, 1);
 			return iv_reinterpret_v<double, 1>(b);
 		default:
 			return ((_s_t<double, 2>) 0);
@@ -2862,8 +2862,8 @@ template<>
 FORCEINLINE
 void
 v_masked_store<double, 2>(
-    const _v_t<double, 2>& a,
-    const _iv_t<double, 2>& mask,
+	const _v_t<double, 2>& a,
+	const _iv_t<double, 2>& mask,
 	_s_t<double, 2> * ptr)
 {
 	union {
@@ -2893,21 +2893,21 @@ template<>
 FORCEINLINE
 _v_t<double, 2>
 v_gather<double, 2>(
-    const _s_t<double, 2> * base,
-    const _iv_t<double, 2>& offsets)
+	const _s_t<double, 2> * base,
+	const _iv_t<double, 2>& offsets)
 {
 #ifndef HAS___AVX2__
-    /* no intrinsic available */
-    _s_t<double, 2> tmp[4];
-    _iv_st<double, 2> tmpi[4];
+	/* no intrinsic available */
+	_s_t<double, 2> tmp[4];
+	_iv_st<double, 2> tmpi[4];
 
-    iv_store<double, 2>(offsets, tmpi);
-    tmp[0] = base[tmpi[0]];
-    tmp[1] = base[tmpi[1]];
+	iv_store<double, 2>(offsets, tmpi);
+	tmp[0] = base[tmpi[0]];
+	tmp[1] = base[tmpi[1]];
 
-    return v_load<double, 2>(tmp);
+	return v_load<double, 2>(tmp);
 #else
-    return _mm_i64gather_pd(base, offsets, 1);
+	return _mm_i64gather_pd(base, offsets, 1);
 #endif
 }
 
@@ -3514,29 +3514,29 @@ template<>
 FORCEINLINE
 _s_t<double, 4>
 v_extract<double, 4>(
-    const _v_t<double, 4>& a,
-    const int8_t imm)
+	const _v_t<double, 4>& a,
+	const int8_t imm)
 {
-    _iv_t<double, 4> tmp = v_reinterpret_iv<double, 4>(a);
+	_iv_t<double, 4> tmp = v_reinterpret_iv<double, 4>(a);
 
-    _iv_st<double, 2> b;
-    switch(imm)
-    {
-        case 0:
-            b = _mm256_extract_epi64(tmp, 0);
-            return iv_reinterpret_v<double, 1>(b);
-        case 1:
-            b = _mm256_extract_epi64(tmp, 1);
-            return iv_reinterpret_v<double, 1>(b);
-        case 2:
-            b = _mm256_extract_epi64(tmp, 2);
-            return iv_reinterpret_v<double, 1>(b);
-        case 3:
-            b = _mm256_extract_epi64(tmp, 3);
-            return iv_reinterpret_v<double, 1>(b);
-        default:
-            return ((_iv_st<double, 4>) 0);
-    }
+	_iv_st<double, 2> b;
+	switch(imm)
+	{
+		case 0:
+			b = _mm256_extract_epi64(tmp, 0);
+			return iv_reinterpret_v<double, 1>(b);
+		case 1:
+			b = _mm256_extract_epi64(tmp, 1);
+			return iv_reinterpret_v<double, 1>(b);
+		case 2:
+			b = _mm256_extract_epi64(tmp, 2);
+			return iv_reinterpret_v<double, 1>(b);
+		case 3:
+			b = _mm256_extract_epi64(tmp, 3);
+			return iv_reinterpret_v<double, 1>(b);
+		default:
+			return ((_iv_st<double, 4>) 0);
+	}
 }
 
 /* ************************************************************************** */
@@ -3611,28 +3611,28 @@ template<>
 FORCEINLINE
 void
 v_masked_store<double, 4>(
-    const _v_t<double, 4>& a,
-    const _iv_t<double, 4>& mask,
+	const _v_t<double, 4>& a,
+	const _iv_t<double, 4>& mask,
 	_s_t<double, 4> * ptr)
 {
-    if(!((unsigned long) ptr & v_get_mask<double, 4>()))
-    {
-        _mm256_maskstore_pd(ptr, mask, a);
-    }
-    else
-    {
-        const _iv_t<double, 4> ia = v_reinterpret_iv<double, 4>(a);
+	if(!((unsigned long) ptr & v_get_mask<double, 4>()))
+	{
+		_mm256_maskstore_pd(ptr, mask, a);
+	}
+	else
+	{
+		const _iv_t<double, 4> ia = v_reinterpret_iv<double, 4>(a);
 
-        /* split and store both parts */
-        const __m128i a1 = _mm256_extractf128_si256(ia, 0);
-        const __m128i a2 = _mm256_extractf128_si256(ia, 1);
+		/* split and store both parts */
+		const __m128i a1 = _mm256_extractf128_si256(ia, 0);
+		const __m128i a2 = _mm256_extractf128_si256(ia, 1);
 
-        const __m128i mask1 = _mm256_extractf128_si256(mask, 0);
-        const __m128i mask2 = _mm256_extractf128_si256(mask, 1);
+		const __m128i mask1 = _mm256_extractf128_si256(mask, 0);
+		const __m128i mask2 = _mm256_extractf128_si256(mask, 1);
 
-        _mm_maskmoveu_si128(a1, mask1, (char *) ptr);
-        _mm_maskmoveu_si128(a2, mask2, (char *) (ptr + 2));
-    }
+		_mm_maskmoveu_si128(a1, mask1, (char *) ptr);
+		_mm_maskmoveu_si128(a2, mask2, (char *) (ptr + 2));
+	}
 }
 
 /* ************************************************************************** */
@@ -3656,23 +3656,23 @@ template<>
 FORCEINLINE
 _v_t<double, 4>
 v_gather<double, 4>(
-    const _s_t<double, 4> * base,
-    const _iv_t<double, 4>& offsets)
+	const _s_t<double, 4> * base,
+	const _iv_t<double, 4>& offsets)
 {
 #ifndef HAS___AVX2__
-    /* no intrinsic available */
-    _s_t<double, 4> tmp[4];
-    _iv_st<double, 4> tmpi[4];
+	/* no intrinsic available */
+	_s_t<double, 4> tmp[4];
+	_iv_st<double, 4> tmpi[4];
 
-    iv_store<double, 4>(offsets, tmpi);
-    tmp[0] = base[tmpi[0]];
-    tmp[1] = base[tmpi[1]];
-    tmp[2] = base[tmpi[2]];
-    tmp[3] = base[tmpi[3]];
+	iv_store<double, 4>(offsets, tmpi);
+	tmp[0] = base[tmpi[0]];
+	tmp[1] = base[tmpi[1]];
+	tmp[2] = base[tmpi[2]];
+	tmp[3] = base[tmpi[3]];
 
-    return v_load<double, 4>(tmp);
+	return v_load<double, 4>(tmp);
 #else
-    return _mm256_i64gather_pd(base, offsets, 1);
+	return _mm256_i64gather_pd(base, offsets, 1);
 #endif
 }
 
