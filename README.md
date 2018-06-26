@@ -5,6 +5,11 @@ Change Log
 ------
 Compared with the development version from our HPG paper (cf. below).
 
+* v1.2 (6/25/2018):
+  - Added tech report for new tree selection algorithm (from v1.2) in doc/.
+  - Added novel envelopes for supermodular cost function types ("Antipotts",
+    "LinearPeak"). A tech report will follow.
+  - Several bugfixes.
 * v1.4 (1/10/2018):
   - Deterministic solver path with user-provided seed.
   - Several bugfixes and smaller improvements.
@@ -52,7 +57,8 @@ Currently, this code implements the following modules and features:
   - [x] Templated SIMD width (1, 4, 8 for float; 1, 2, 4 for double)
   - [x] Automatically setting SIMD width at compile time
   - [x] Supports SSE4/AVX/AVX2, autodetected during build
-  - [x] Automatically using linear-time optimization for certain cost functions
+  - [x] Automatically using linear-time optimization for certain submodular cost functions
+  - [x] Novel linear-time optimization for vertain supermodular cost functions
   - [x] Two algorithms for parallel tree sampling
 - [x] Extensible interfaces for all components, providing user hooks
   - [x] Cost functions (unary and pairwise)

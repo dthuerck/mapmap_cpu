@@ -17,6 +17,8 @@
 #include "header/optimizer_instances/dynamic_programming.h"
 #include "header/optimizer_instances/dp_node_solver_factory.h"
 #include "header/cost_instances/pairwise_potts.h"
+#include "header/cost_instances/pairwise_antipotts.h"
+#include "header/cost_instances/pairwise_linear_peak.h"
 #include "header/cost_instances/pairwise_truncated_linear.h"
 #include "header/cost_instances/pairwise_truncated_quadratic.h"
 #include "header/cost_instances/pairwise_table.h"
@@ -258,29 +260,41 @@ typedef ::testing::Types<
     TestTuple<float, 4, PairwisePotts<float, 4>>,
     TestTuple<float, 4, PairwiseTruncatedLinear<float, 4>>,
     TestTuple<float, 4, PairwiseTruncatedQuadratic<float, 4>>,
+    TestTuple<float, 4, PairwiseAntipotts<float, 4>>,
+    TestTuple<float, 4, PairwiseLinearPeak<float, 4>>,
     #endif /* __SSE4_2__ */
     #if defined(__AVX__)
     TestTuple<float, 8, PairwisePotts<float, 8>>,
     TestTuple<float, 8, PairwiseTruncatedLinear<float, 8>>,
     TestTuple<float, 8, PairwiseTruncatedQuadratic<float, 8>>,
+    TestTuple<float, 8, PairwiseAntipotts<float, 8>>,
+    TestTuple<float, 8, PairwiseLinearPeak<float, 8>>,
     #endif /* __AVX__ */
     #if defined(__SSE4_2__)
     TestTuple<double, 2, PairwisePotts<double, 2>>,
     TestTuple<double, 2, PairwiseTruncatedLinear<double, 2>>,
     TestTuple<double, 2, PairwiseTruncatedQuadratic<double, 2>>,
+    TestTuple<double, 2, PairwiseAntipotts<double, 2>>,
+    TestTuple<double, 2, PairwiseLinearPeak<double, 2>>,
     #endif /* __SSE4_2__ */
     #if defined(__AVX__)
     TestTuple<double, 4, PairwisePotts<double, 4>>,
     TestTuple<double, 4, PairwiseTruncatedLinear<double, 4>>,
     TestTuple<double, 4, PairwiseTruncatedQuadratic<double, 4>>,
+    TestTuple<double, 4, PairwiseAntipotts<double, 4>>,
+    TestTuple<double, 4, PairwiseLinearPeak<double, 4>>,
     #endif /* __AVX__ */
     /* Scalar */
     TestTuple<float, 1, PairwisePotts<float, 1>>,
     TestTuple<float, 1, PairwiseTruncatedLinear<float, 1>>,
     TestTuple<float, 1, PairwiseTruncatedQuadratic<float, 1>>,
+    TestTuple<float, 1, PairwiseAntipotts<float, 1>>,
+    TestTuple<float, 1, PairwiseLinearPeak<float, 1>>,
     TestTuple<double, 1, PairwisePotts<double, 1>>,
     TestTuple<double, 1, PairwiseTruncatedLinear<double, 1>>,
-    TestTuple<double, 1, PairwiseTruncatedQuadratic<double, 1>>
+    TestTuple<double, 1, PairwiseTruncatedQuadratic<double, 1>>,
+    TestTuple<double, 1, PairwiseAntipotts<double, 1>>,
+    TestTuple<double, 1, PairwiseLinearPeak<double, 1>>
     > TestTupleInstances;
 INSTANTIATE_TYPED_TEST_CASE_P(EnvelopeTest,
     mapMAPTestEnvelope, TestTupleInstances);

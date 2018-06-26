@@ -28,6 +28,7 @@
 
 /* cost functions */
 #include "header/cost_instances/pairwise_antipotts.h"
+#include "header/cost_instances/pairwise_linear_peak.h"
 #include "header/cost_instances/pairwise_potts.h"
 #include "header/cost_instances/pairwise_table.h"
 #include "header/cost_instances/pairwise_truncated_linear.h"

@@ -12,6 +12,10 @@
 #include "header/cost_instances/unary_table.h"
 
 #include "header/cost_instances/pairwise_antipotts.h"
+#include "header/optimizer_instances/envelope_instances/pairwise_antipotts_envelope.h"
+
+#include "header/cost_instances/pairwise_linear_peak.h"
+#include "header/optimizer_instances/envelope_instances/pairwise_linear_peak_envelope.h"
 
 #include "header/cost_instances/pairwise_potts.h"
 #include "header/optimizer_instances/envelope_instances/pairwise_potts_envelope.h"

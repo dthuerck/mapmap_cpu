@@ -17,6 +17,7 @@
 
 #include "header/optimizer_instances/dynamic_programming.h"
 #include "header/cost_instances/pairwise_antipotts.h"
+#include "header/cost_instances/pairwise_linear_peak.h"
 #include "header/cost_instances/pairwise_potts.h"
 #include "header/cost_instances/pairwise_truncated_linear.h"
 #include "header/cost_instances/pairwise_truncated_quadratic.h"
@@ -292,6 +293,41 @@ TYPED_TEST_P(mapMAPTestDynamicProgramming, TestPairwiseAntiPotts)
     }
 }
 
+TYPED_TEST_P(mapMAPTestDynamicProgramming, TestPairwiseLinearPeak)
+{
+    typedef typename TypeParam::Type COSTTYPE;
+    static const uint_t SIMDWIDTH = TypeParam::Value;
+
+    std::unique_ptr<PairwiseCosts<COSTTYPE, SIMDWIDTH>> pairwise(
+        new PairwiseLinearPeak<COSTTYPE, SIMDWIDTH>);
+
+    _iv_st<COSTTYPE, SIMDWIDTH> l_i, i;
+    for(l_i = 0; l_i < 15; ++l_i)
+    {
+        /* compute costs with one label fixed */
+        for(uint_t c = 0; c < DIV_UP(15, SIMDWIDTH); ++c)
+        {
+            _iv_t<COSTTYPE, SIMDWIDTH> l = iv_load<COSTTYPE, SIMDWIDTH>(
+                &this->m_labels[c * SIMDWIDTH]);
+
+            _v_t<COSTTYPE, SIMDWIDTH> cost = pairwise->get_pairwise_costs(l,
+                iv_init<COSTTYPE, SIMDWIDTH>(l_i));
+            v_store<COSTTYPE, SIMDWIDTH>(cost,
+                &this->m_cost_out[c * SIMDWIDTH]);
+        }
+
+        /* compare costs to ground truth */
+        for(i = 0; i < 15; ++i)
+            ASSERT_NEAR(this->m_cost_out[i], 
+                std::max(0.0, 1.0 * (2 - std::abs(i - l_i))),
+                0.01);
+
+        /* reset cost values for next loop iteration */
+        std::fill(this->m_cost_out.begin(), this->m_cost_out.end(),
+            std::numeric_limits<_s_t<COSTTYPE, SIMDWIDTH>>::max());
+    }
+}
+
 TYPED_TEST_P(mapMAPTestDynamicProgramming, TestPairwiseTruncatedLinear)
 {
     typedef typename TypeParam::Type COSTTYPE;
@@ -487,6 +523,7 @@ TYPED_TEST_P(mapMAPTestDynamicProgramming, TestTreeIndependentTable)
 REGISTER_TYPED_TEST_CASE_P(mapMAPTestDynamicProgramming,
     TestPairwisePotts,
     TestPairwiseAntiPotts,
+    TestPairwiseLinearPeak,
     TestPairwiseTruncatedLinear,
     TestPairwiseTruncatedQuadratic,
     TestPairwiseIndependentTable,
