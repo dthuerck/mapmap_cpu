@@ -5,7 +5,7 @@ Change Log
 ------
 Compared with the development version from our HPG paper (cf. below).
 
-* v1.2 (6/25/2018):
+* v1.5 (6/25/2018):
   - Added tech report for new tree selection algorithm (from v1.2) in doc/.
   - Added novel envelopes for supermodular cost function types ("Antipotts",
     "LinearPeak"). A tech report will follow.
