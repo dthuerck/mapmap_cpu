@@ -25,6 +25,7 @@ template<typename COSTTYPE, uint_t SIMDWIDTH>
 class PairwiseTable : public PairwiseCosts<COSTTYPE, SIMDWIDTH>
 {
 public:
+    /* these two constructors allocate memory */
     PairwiseTable(
         const luint_t node_a,
         const luint_t node_b,
@@ -34,6 +35,8 @@ public:
         const luint_t node_b,
         const LabelSet<COSTTYPE, SIMDWIDTH> * lbl_set,
         const std::vector<_s_t<COSTTYPE, SIMDWIDTH>>& packed_table);
+        
+    /* this - third - constructor only saves a raw pointer */
     PairwiseTable(
         const luint_t node_a,
         const luint_t node_b,
@@ -62,7 +65,7 @@ protected:
     const LabelSet<COSTTYPE, SIMDWIDTH> * m_lbl_set;
 
     _s_t<COSTTYPE, SIMDWIDTH> * m_packed_table;
-    std::unique_ptr<_s_t<COSTTYPE, SIMDWIDTH>> m_packed_table_storage;
+    std::unique_ptr<_s_t<COSTTYPE, SIMDWIDTH>[]> m_packed_table_storage;
 };
 
 NS_MAPMAP_END

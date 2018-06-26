@@ -15,7 +15,7 @@
 #include "header/defines.h"
 
 #if defined(__SSE4_2__)
-    #include <smmintrin.h>
+    #include <smmintrin.h>  
 #endif
 
 #if defined(__AVX__)

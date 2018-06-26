@@ -28,9 +28,9 @@ PairwiseTable(
   m_lbl_set(lbl_set)
 {
     const luint_t padded_size = 
-        (DIV_UP(lbl_set->label_set_size(node_a), SIMDWIDTH) * SIMDWIDTH) *
+        lbl_set->label_set_size(node_a) *
         (DIV_UP(lbl_set->label_set_size(node_b), SIMDWIDTH) * SIMDWIDTH);
-    m_packed_table_storage = std::unique_ptr<_s_t<COSTTYPE, SIMDWIDTH>>(new
+    m_packed_table_storage = std::unique_ptr<_s_t<COSTTYPE, SIMDWIDTH>[]>(new
         _s_t<COSTTYPE, SIMDWIDTH>[padded_size]);
 
     m_packed_table = m_packed_table_storage.get();

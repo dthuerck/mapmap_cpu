@@ -995,11 +995,8 @@ compute_level_pairwise()
                         }
 
                         /* now use indexed pairwise costs for l2 */
-                        const _iv_st<COSTTYPE, SIMDWIDTH> exceed_l =
-                            m_current->level_label_set->label_from_offset(
-                            s_e.node_b, 0);
-
                         o_e_ptr = 0;
+
                         for(l1_i = 0; l1_i < s_num_l1; ++l1_i)
                         {
                             const _iv_st<COSTTYPE, SIMDWIDTH> ls =
@@ -1029,7 +1026,7 @@ compute_level_pairwise()
                                 valid_labels = iv_le<COSTTYPE, SIMDWIDTH>(l2_ix,
                                     iv_init<COSTTYPE, SIMDWIDTH>(s_num_l2 - 1));
                                 l2 = iv_blend<COSTTYPE, SIMDWIDTH>(
-                                    iv_init<COSTTYPE, SIMDWIDTH>(exceed_l), l2,
+                                    iv_init<COSTTYPE, SIMDWIDTH>(0), l2,
                                     valid_labels);
 
                                 /* retrieve original costs */

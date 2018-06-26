@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
-set(CMAKE_C_COMPILER "gcc-5")
-set(CMAKE_CXX_COMPILER "g++-5")
+set(CMAKE_C_COMPILER "gcc")
+set(CMAKE_CXX_COMPILER "g++")
 
 # include included FindTBB module
 list(APPEND CMAKE_MODULE_PATH "$ENV{CMAKE_MODULE_PATH}")
@@ -26,10 +26,12 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 # set optimization options for GCC on unixoid systems
 # uses -march=native to make the compiler set __SSE4_2__, __AVX__ and
-# __AVX2__ to fit to the computer (only in release mode)
+# __AVX2__ to fit to the computer
 set(CMAKE_CXX_FLAGS "-Wall -march=native")
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g")
+elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -funroll-loops -mfpmath=sse -flto -g")
 else(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -funroll-loops -mfpmath=sse -flto")
 endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -210,14 +212,11 @@ source_group("Test" FILES
     ${impl_test}
 	${src_test})
 
-# build tests
-if(BUILD_TEST)
-
 # CMake as dependency: download and build
 externalproject_add(googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
     GIT_TAG master
-    PREFIX ${PROJECT_SOURCE_DIR}/gtest
+    PREFIX ${PROJECT_BINARY_DIR}/gtest
     CMAKE_ARGS -DBUILD_GTEST=ON -DBUILD_SHARED_LIBS=ON -Dgtest_build_tests=ON
     INSTALL_COMMAND ""
     LOG_DOWNLOAD ON
@@ -226,12 +225,16 @@ externalproject_add(googletest
     LOG_TEST ON)
 
 include_directories(SYSTEM
-    ${PROJECT_SOURCE_DIR}/gtest/src/googletest/googletest/include)
+    ${PROJECT_BINARY_DIR}/gtest/src/googletest/googletest/include)
 link_directories(
-    ${PROJECT_SOURCE_DIR}/gtest/src/googletest-build/googlemock/gtest)
+    ${PROJECT_BINARY_DIR}/gtest/src/googletest-build/googlemock/gtest)
+
+# build tests
+if(BUILD_TEST)
 
 add_executable(mapmap_test
     ${src_test})
+add_dependencies(mapmap_test googletest)
 target_link_libraries(mapmap_test
     ${TBB_LIBRARIES}
     gtest
@@ -244,6 +247,11 @@ if(BUILD_DEMO)
 add_executable(mapmap_demo
 	${src_base}
 	${demo_dir}/mapmap_demo.cc)
+
+if(BUILD_TEST)
+	add_dependencies(mapmap_demo googletest)
+endif(BUILD_TEST)
+
 target_link_libraries(mapmap_demo
 	${TBB_LIBRARIES})
 endif(BUILD_DEMO)

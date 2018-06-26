@@ -289,7 +289,7 @@ get_independent_of_parent_costs(
 
         const _v_t<COSTTYPE, SIMDWIDTH> d_c =
             m_node->c_dep_costs[d_i]->supports_enumerable_costs() ?
-            m_node->c_dep_costs[d_i]->get_pairwise_costs(
+            m_node->c_dep_costs[d_i]->get_pairwise_costs_enum_offsets(
                 node_is_node_a ?
                 v_l_i : iv_init<COSTTYPE, SIMDWIDTH>(l_d_i),
                 node_is_node_a ?

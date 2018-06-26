@@ -1053,8 +1053,9 @@ v_masked_store<float, 4>(
 	if(!((unsigned long) ptr & v_get_mask<float, 4>()))
 	{
 		/* split and store both parts */
-		a1.i = _mm_extract_epi64(v_reinterpret_iv<float, 4>(a), 0);
-		a2.i = _mm_extract_epi64(v_reinterpret_iv<float, 4>(a), 1);
+		const __m128i aa = v_reinterpret_iv<float, 4>(a);
+		a1.i = _mm_extract_epi64(aa, 0);
+		a2.i = _mm_extract_epi64(aa, 1);
 		m1.i = _mm_extract_epi64(mask, 0);
 		m2.i = _mm_extract_epi64(mask, 1);
 		_mm_maskmove_si64(a1.v, m1.v, (char *) ptr);
@@ -2874,8 +2875,9 @@ v_masked_store<double, 2>(
 	if(!((unsigned long) ptr & v_get_mask<double, 2>()))
 	{
 		/* split and store both parts */
-		a1.i = _mm_extract_epi64(v_reinterpret_iv<double, 2>(a), 0);
-		a2.i = _mm_extract_epi64(v_reinterpret_iv<double, 2>(a), 1);
+		const __m128i aa = v_reinterpret_iv<double, 2>(a);
+		a1.i = _mm_extract_epi64(aa, 0);
+		a2.i = _mm_extract_epi64(aa, 1);
 	   	m1.i = _mm_extract_epi64(mask, 0);
 		m2.i = _mm_extract_epi64(mask, 1);
 		_mm_maskmove_si64(a1.v, m1.v, (char *) ptr);

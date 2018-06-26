@@ -24,7 +24,7 @@ public:
     TreeSampler(Graph<COSTTYPE> * graph);
     TreeSampler(Graph<COSTTYPE> * graph, const bool m_deterministic,
         const uint_t initial_seed);
-    ~TreeSampler();
+    virtual ~TreeSampler();
 
     virtual void
         select_random_roots(const luint_t k, std::vector<luint_t>& roots) = 0;

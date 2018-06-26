@@ -411,7 +411,7 @@ raw_dependency_degrees()
     if(!m_enable_modify)
         throw std::invalid_argument("Tree modification disabled.");
 
-        return m_dependency_degree;
+    return m_dependency_degree;
 }
 
 NS_MAPMAP_END
