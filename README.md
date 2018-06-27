@@ -58,7 +58,7 @@ Currently, this code implements the following modules and features:
   - [x] Automatically setting SIMD width at compile time
   - [x] Supports SSE4/AVX/AVX2, autodetected during build
   - [x] Automatically using linear-time optimization for certain submodular cost functions
-  - [x] Novel linear-time optimization for vertain supermodular cost functions
+  - [x] Novel linear-time optimization for certain supermodular cost functions
   - [x] Two algorithms for parallel tree sampling
 - [x] Extensible interfaces for all components, providing user hooks
   - [x] Cost functions (unary and pairwise)
