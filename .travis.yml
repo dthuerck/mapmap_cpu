@@ -11,15 +11,16 @@ before_script:
     - sudo add-apt-repository -y ppa:krzysztof-trzepla/onedata
     - sudo apt-get update
     - sudo apt-get --allow-unauthenticated install -qq gcc-5
+    - sudo apt-get --allow-unauthenticated install -qq g++-5
     - sudo apt-get --allow-unauthenticated install -qq git
     - export CXX="g++-5"
     - export CC="gcc-5"
-    - sudo apt-get --allow-unauthenticated install -qq libtbb-dev=4.4~20151115-0ubuntu3ppa1~trusty libtbb2=4.4~20151115-0ubuntu3ppa1~trusty libtbb2-dbg=4.4~20151115-0ubuntu3ppa1~trusty libgtest-dev
+    - sudo apt-get --allow-unauthenticated install -qq libtbb-dev=4.4~20151115-0ubuntu3ppa1~trusty libtbb2=4.4~20151115-0ubuntu3ppa1~trusty libtbb2-dbg=4.4~20151115-0ubuntu3ppa1~trusty
     - cd $a
     - mkdir build
     - cd build
 
 script:
-    - cmake -DBUILD_MEMSAVE=OFF -DBUILD_TEST=ON -DBUILD_DEMO=ON .. && make && ./mapmap_test
-    - cmake -DBUILD_MEMSAVE=ON -DBUILD_TEST=ON -DBUILD_DEMO=ON .. && make && ./mapmap_test
+    - cmake -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DBUILD_MEMSAVE=OFF -DBUILD_TEST=ON -DBUILD_DEMO=ON .. && make && ./mapmap_test
+    - cmake -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DBUILD_MEMSAVE=ON -DBUILD_TEST=ON -DBUILD_DEMO=ON .. && make && ./mapmap_test
 
