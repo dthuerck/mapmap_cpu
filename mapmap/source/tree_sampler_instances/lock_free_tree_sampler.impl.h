@@ -472,8 +472,8 @@ sample_phase_I()
     const auto fn_phaseI = [&](const tbb::blocked_range<luint_t>& r)
     {
         std::mt19937 rnd_gen(seed + 1 + r.begin());
-        std::unique_ptr<luint_t> buf =
-            std::unique_ptr<luint_t>(new luint_t[m_buf_edges]);
+        std::unique_ptr<luint_t[]> buf =
+            std::unique_ptr<luint_t[]>(new luint_t[m_buf_edges]);
         luint_t num_buf = 0;
 
         for(luint_t ix = r.begin(); ix != r.end(); ++ix)
