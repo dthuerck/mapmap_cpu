@@ -56,7 +56,8 @@ find_package(TBB COMPONENTS tbbmalloc_proxy tbbmalloc tbb REQUIRED)
 # include headers
 include_directories(
     ${PROJECT_SOURCE_DIR}
-    ${PROJECT_SOURCE_DIR}/mapmap)
+    ${PROJECT_SOURCE_DIR}/mapmap
+    ${PROJECT_SOURCE_DIR}/ext/dset)
 include_directories(SYSTEM
     ${TBB_INCLUDE_DIR})
 
