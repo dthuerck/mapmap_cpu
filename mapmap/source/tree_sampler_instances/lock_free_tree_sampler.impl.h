@@ -472,7 +472,8 @@ sample_phase_I()
     const auto fn_phaseI = [&](const tbb::blocked_range<luint_t>& r)
     {
         std::mt19937 rnd_gen(seed + 1 + r.begin());
-        luint_t buf[m_buf_edges];
+        std::unique_ptr<luint_t[]> buf =
+            std::unique_ptr<luint_t[]>(new luint_t[m_buf_edges]);
         luint_t num_buf = 0;
 
         for(luint_t ix = r.begin(); ix != r.end(); ++ix)
@@ -498,12 +499,12 @@ sample_phase_I()
                     /* save all nodes in tree (potential parents) */
                     if(m_tree->raw_parent_ids()[o_node] != invalid_luint_t
                         && num_buf < m_buf_edges)
-                        buf[num_buf++] = e_ix;
+                        buf.get()[num_buf++] = e_ix;
                 }
 
                 /* select edge at random */
                 std::uniform_int_distribution<luint_t> d(0, num_buf - 1);
-                const luint_t o_id = buf[d(rnd_gen)];
+                const luint_t o_id = buf.get()[d(rnd_gen)];
 
                 /* extract corresponding adjacent node */
                 const GraphEdge<COSTTYPE> e = this->m_graph->edges()[o_id];
