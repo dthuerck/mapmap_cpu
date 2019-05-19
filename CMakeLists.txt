@@ -229,7 +229,7 @@ include_directories(SYSTEM
     ${source_dir}/googletest/include)
 ExternalProject_Get_Property(googletest binary_dir)
 link_directories(
-    ${binary_dir}/googlemock/gtest)
+    ${binary_dir}/lib)
 
 # build tests
 if(BUILD_TEST)

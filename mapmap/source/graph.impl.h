@@ -322,7 +322,6 @@ update_components()
                        parallel code.
 
                     assert(comp_id_list[new_component_id] == old_component_id); */
-                    uint32_t j = i;
                     m_components[i] = (luint_t) new_component_id;
                 }
             });
