@@ -60,11 +60,20 @@ check_termination(
 
     oldest_val = (*history->energy_history)[oldest_pos];
 
+    /* avoid nondecreasing objective */
+    if(newest_val >= oldest_val)
+        return true;
+
+    /* in order to support negative costs, handle the magnitudes only */
+    const _s_t<COSTTYPE, SIMDWIDTH> max_val = std::max(
+        oldest_val, newest_val);
+    const _s_t<COSTTYPE, SIMDWIDTH> min_val = std::min(
+        oldest_val, newest_val);
+
     /* avoid 0-division when objective stays constant */
-    const _s_t<COSTTYPE, SIMDWIDTH> improv =
-        (newest_val == oldest_val) ? 
-        0 : 
-        (oldest_val - newest_val) / oldest_val;
+    const _s_t<COSTTYPE, SIMDWIDTH> improv = 
+        (max_val - min_val) / (static_cast<_s_t<COSTTYPE, SIMDWIDTH>(0.5) * 
+        (std::abs(max_val) + std::abs(min_val)));
 
     return (improv < m_improv_threshold);
 }
