@@ -18,12 +18,15 @@
 
 #include "tbb/concurrent_queue.h"
 #include "tbb/concurrent_vector.h"
+#include "tbb/concurrent_unordered_set.h"
 #include "tbb/atomic.h"
 #include "tbb/task.h"
 #include "tbb/blocked_range.h"
 #include "tbb/parallel_for.h"
 
 #include "header/graph.h"
+
+#include "dset.h"
 
 NS_MAPMAP_BEGIN
 
@@ -265,142 +268,206 @@ void
 Graph<COSTTYPE>::
 update_components()
 {
-    m_num_components = 0;
+
     m_components.resize(m_nodes.size());
 
-    /* Start by assigning each node its ID as component */
-    std::iota(m_components.begin(), m_components.end(), 0);
-
-    /*
-     * BFS until all nodes are marked by lazy algorithm: each thread discovers
-     * part of the graph, defers building of the components until later
-     */
-
-    tbb::concurrent_vector<complet> accrued_complets;
-    std::vector<tbb::atomic<uint_t>> visited(m_nodes.size());
-    for (uint_t i = 0; i < m_nodes.size(); ++i)
-        visited[i] = 0;
-    tbb::atomic<luint_t> nodes_left;
-    nodes_left = (luint_t) m_nodes.size();
-
-    /* find random oder for start nodes */
-    std::vector<luint_t> nodes(m_nodes.size());
-    std::iota(nodes.begin(), nodes.end(), 0);
-    std::random_shuffle(nodes.begin(), nodes.end());
-
-    tbb::blocked_range<luint_t> node_range(0, m_nodes.size(), 32);
-    while(nodes_left > 0)
+    if(m_nodes.size() < UINT32_MAX) 
     {
-        /* select start nodes for this round of BFS */
-        std::vector<luint_t> start_nodes(BFS_ROOTS);
-        tbb::atomic<luint_t> start_nodes_selected;
-        start_nodes_selected = (luint_t) 0;
+        /* use disjoint-set datastructure if node ids fit into 32bit */
 
-        tbb::parallel_for(node_range,
-            [&] (const tbb::blocked_range<luint_t>& range)
+        DisjointSets comp_set(m_nodes.size());
+        tbb::concurrent_unordered_set<uint32_t> comp_id_set(0);
+
+        tbb::blocked_range<uint32_t> edge_range(0, m_edges.size(), 1024);
+        tbb::blocked_range<uint32_t> node_range(0, m_nodes.size(), 1024);
+
+        /* Create assigment of nodes to the representative node
+         * of the connected component */
+        tbb::parallel_for(edge_range, 
+            [&] (const tbb::blocked_range<uint32_t>& range)
             {
-                if(start_nodes_selected >= BFS_ROOTS)
-                    return;
-
-                for(luint_t i = range.begin(); i < range.end(); ++i)
+                for (auto i = range.begin(); i != range.end(); ++i)
                 {
-                    const luint_t node_id = nodes[i];
-                    if(visited[node_id] == (uint_t) 0)
-                    {
-                        const luint_t pos = start_nodes_selected++;
-                        if(pos < BFS_ROOTS)
-                            start_nodes[pos] = node_id;
-                        else
-                            return;
-                    }
-
+                    auto edge = m_edges[i];
+                    comp_set.unite(edge.node_a, edge.node_b);
                 }
             });
 
-        /* create tasks */
-        const luint_t s_nodes = start_nodes_selected;
-        const luint_t real_tasks = (std::min)((luint_t) BFS_ROOTS, s_nodes);
-        tbb::task_list round_tasks;
-        for(uint_t i = 0; i < real_tasks; ++i)
+        /* Collect all ids represantating the components */
+        tbb::parallel_for(node_range, 
+            [&] (const tbb::blocked_range<uint32_t>& range)
+            {
+                for (auto i = range.begin(); i != range.end(); ++i)
+                {
+                    comp_id_set.insert(comp_set.find(i));
+                }
+            });
+
+        /* Sorting the representative ids into an array to map them to a contiguous
+         * index via binary search */
+        std::vector<uint32_t> comp_id_list(comp_id_set.begin(), comp_id_set.end());
+
+        std::sort(comp_id_list.begin(), comp_id_list.end());
+
+        /* Store the contiguous components ids for each node into m_components */
+        tbb::parallel_for(node_range, 
+            [&] (const tbb::blocked_range<uint32_t>& range)
+            {
+                for (auto i = range.begin(); i != range.end(); ++i)
+                {
+                    auto old_component_id = comp_set.find(i);
+                    uint32_t new_component_id = std::lower_bound(comp_id_list.begin(),
+                            comp_id_list.end(), old_component_id) - comp_id_list.begin();
+                    /* If this fails, something went very wrong in the previous
+                       parallel code.
+
+                    assert(comp_id_list[new_component_id] == old_component_id); */
+                    m_components[i] = (luint_t) new_component_id;
+                }
+            });
+
+        m_num_components = comp_id_list.size();
+    }
+    else 
+    {
+        /* Use BFS as usual if we can't use the disjoint-set datastructure */
+
+        m_num_components = 0;
+
+        /* Start by assigning each node its ID as component */
+        std::iota(m_components.begin(), m_components.end(), 0);
+
+        /*
+         * BFS until all nodes are marked by lazy algorithm: each thread discovers
+         * part of the graph, defers building of the components until later
+         */
+
+        tbb::concurrent_vector<complet> accrued_complets;
+        std::vector<tbb::atomic<uint_t>> visited(m_nodes.size());
+        for (uint_t i = 0; i < m_nodes.size(); ++i)
+            visited[i] = 0;
+        tbb::atomic<luint_t> nodes_left;
+        nodes_left = (luint_t) m_nodes.size();
+
+        /* find random oder for start nodes */
+        std::vector<luint_t> nodes(m_nodes.size());
+        std::iota(nodes.begin(), nodes.end(), 0);
+        std::random_shuffle(nodes.begin(), nodes.end());
+
+        tbb::blocked_range<luint_t> node_range(0, m_nodes.size(), 32);
+        while(nodes_left > 0)
         {
-            round_tasks.push_back(*new(tbb::task::allocate_root())
-                LazyBFSTask<COSTTYPE>(
-                    start_nodes[i],
-                    this,
-                    &visited,
-                    &m_components,
-                    &nodes_left,
-                    &accrued_complets));
+            /* select start nodes for this round of BFS */
+            std::vector<luint_t> start_nodes(BFS_ROOTS);
+            tbb::atomic<luint_t> start_nodes_selected;
+            start_nodes_selected = (luint_t) 0;
+
+            tbb::parallel_for(node_range,
+                [&] (const tbb::blocked_range<luint_t>& range)
+                {
+                    if(start_nodes_selected >= BFS_ROOTS)
+                        return;
+
+                    for(luint_t i = range.begin(); i < range.end(); ++i)
+                    {
+                        const luint_t node_id = nodes[i];
+                        if(visited[node_id] == (uint_t) 0)
+                        {
+                            const luint_t pos = start_nodes_selected++;
+                            if(pos < BFS_ROOTS)
+                                start_nodes[pos] = node_id;
+                            else
+                                return;
+                        }
+
+                    }
+                });
+
+            /* create tasks */
+            const luint_t s_nodes = start_nodes_selected;
+            const luint_t real_tasks = (std::min)((luint_t) BFS_ROOTS, s_nodes);
+            tbb::task_list round_tasks;
+            for(uint_t i = 0; i < real_tasks; ++i)
+            {
+                round_tasks.push_back(*new(tbb::task::allocate_root())
+                    LazyBFSTask<COSTTYPE>(
+                        start_nodes[i],
+                        this,
+                        &visited,
+                        &m_components,
+                        &nodes_left,
+                        &accrued_complets));
+            }
+
+            /* spawn tasks and wait for completion */
+            tbb::task::spawn_root_and_wait(round_tasks);
         }
 
-        /* spawn tasks and wait for completion */
-        tbb::task::spawn_root_and_wait(round_tasks);
-    }
-
-    /* find unique ID mapping for components */
-    std::map<luint_t, luint_t> comp_map;
-    for (const complet& clet : accrued_complets)
-    {
-        const luint_t clet_id = std::get<1>(clet);
-        const std::set<luint_t>& clet_join = std::get<2>(clet);
-
-        if(clet_join.empty())
-            comp_map[clet_id] = clet_id;
-        else
-            comp_map[clet_id] = invalid_luint_t;
-
-        for(const luint_t& c : clet_join)
-            comp_map[clet_id] = std::min(c, comp_map[clet_id]);
-    }
-
-    /* join complets */
-    bool changed = true;
-    while(changed)
-    {
-        changed = false;
-
+        /* find unique ID mapping for components */
+        std::map<luint_t, luint_t> comp_map;
         for (const complet& clet : accrued_complets)
         {
             const luint_t clet_id = std::get<1>(clet);
             const std::set<luint_t>& clet_join = std::get<2>(clet);
 
-            for(const luint_t& c : clet_join)
-            {
-                const luint_t cur_component = comp_map[clet_id];
-                const luint_t tr_component = comp_map[c];
+            if(clet_join.empty())
+                comp_map[clet_id] = clet_id;
+            else
+                comp_map[clet_id] = invalid_luint_t;
 
-                if(tr_component < cur_component)
+            for(const luint_t& c : clet_join)
+                comp_map[clet_id] = std::min(c, comp_map[clet_id]);
+        }
+
+        /* join complets */
+        bool changed = true;
+        while(changed)
+        {
+            changed = false;
+
+            for (const complet& clet : accrued_complets)
+            {
+                const luint_t clet_id = std::get<1>(clet);
+                const std::set<luint_t>& clet_join = std::get<2>(clet);
+
+                for(const luint_t& c : clet_join)
                 {
-                    changed = true;
-                    comp_map[clet_id] = tr_component;
+                    const luint_t cur_component = comp_map[clet_id];
+                    const luint_t tr_component = comp_map[c];
+
+                    if(tr_component < cur_component)
+                    {
+                        changed = true;
+                        comp_map[clet_id] = tr_component;
+                    }
                 }
             }
         }
-    }
 
-    /* assign contiguous IDs to components */
-    luint_t id_counter = 0;
-    std::map<luint_t, luint_t> new_ids;
-    for(auto const& tuple : comp_map)
-    {
-        const luint_t val = tuple.second;
-        if (new_ids.count(val) == 0)
+        /* assign contiguous IDs to components */
+        luint_t id_counter = 0;
+        std::map<luint_t, luint_t> new_ids;
+        for(auto const& tuple : comp_map)
         {
-            new_ids[val] = id_counter++;
+            const luint_t val = tuple.second;
+            if (new_ids.count(val) == 0)
+            {
+                new_ids[val] = id_counter++;
+            }
         }
+
+        /* mark all nodes with the new component ID */
+        for (const complet& clet : accrued_complets)
+        {
+            const std::vector<luint_t> node_lst = std::get<0>(clet);
+            const luint_t cmp_id = new_ids[comp_map[std::get<1>(clet)]];
+
+            for (const luint_t& n : node_lst)
+                m_components[n] = cmp_id;
+        }
+
+        m_num_components = id_counter;
     }
-
-    /* mark all nodes with the new component ID */
-    for (const complet& clet : accrued_complets)
-    {
-        const std::vector<luint_t> node_lst = std::get<0>(clet);
-        const luint_t cmp_id = new_ids[comp_map[std::get<1>(clet)]];
-
-        for (const luint_t& n : node_lst)
-            m_components[n] = cmp_id;
-    }
-
-    m_num_components = id_counter;
 }
 
 /* ************************************************************************** */

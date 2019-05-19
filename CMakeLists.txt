@@ -56,7 +56,8 @@ find_package(TBB COMPONENTS tbbmalloc_proxy tbbmalloc tbb REQUIRED)
 # include headers
 include_directories(
     ${PROJECT_SOURCE_DIR}
-    ${PROJECT_SOURCE_DIR}/mapmap)
+    ${PROJECT_SOURCE_DIR}/mapmap
+    ${PROJECT_SOURCE_DIR}/ext/dset)
 include_directories(SYSTEM
     ${TBB_INCLUDE_DIR})
 
@@ -228,7 +229,7 @@ include_directories(SYSTEM
     ${source_dir}/googletest/include)
 ExternalProject_Get_Property(googletest binary_dir)
 link_directories(
-    ${binary_dir}/googlemock/gtest)
+    ${binary_dir}/lib)
 
 # build tests
 if(BUILD_TEST)

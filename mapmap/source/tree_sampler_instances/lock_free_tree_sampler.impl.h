@@ -288,6 +288,7 @@ select_random_roots(
     const luint_t num_components = this->m_component_lists.size();
     const luint_t num_colors = m_qu.num_queues();
     const luint_t * coloring = this->m_graph->get_coloring().data();
+    std::vector<luint_t> feasible_colors(num_colors, 0);
 
     for(luint_t c = 0; c < num_components; ++c)
     {
@@ -297,7 +298,7 @@ select_random_roots(
                 this->m_component_lists[c].size() / num_nodes)));
 
         /* select a color at random with >= c_k nodes */
-        std::vector<luint_t> feasible_colors(num_colors, 0);
+	feasible_colors.assign(num_colors, 0);
 
         /* count nodes per color */
         for(const luint_t n : this->m_component_lists[c])
@@ -319,7 +320,6 @@ select_random_roots(
         std::vector<luint_t> feasible_roots;
         feasible_roots.reserve(m_qu.queue_capacity(root_c));
 
-        const std::vector<luint_t>& coloring = this->m_graph->get_coloring();
         for(const luint_t n : this->m_component_lists[c])
             if(coloring[n] == root_c)
                 feasible_roots.push_back(n);
