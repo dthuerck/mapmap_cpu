@@ -118,8 +118,6 @@ should be somewhat similar, though GUI-based.
     include files, e.g. `/usr/include`
   * `TBB_LIBRARY` - path containing the TBB library files, e.g.
     `/lib`
-  * `GTEST_ROOT` - path containing the Google Test library files,
-    e.g. `/lib`
   * `BUILD_MEMSAVE` - determines if the dynamic programming should
     allocate memory as needed (`ON`), saving memory but causing
     slightly longer execution times or preallocate the whole table
@@ -177,7 +175,8 @@ please make sure to cite our HPG 2016 paper:
     year = {2016},
 }
 ```
-A PDF reprint is available on the project page (see below).
+A PDF reprint is available here: [PDF reprint](https://culip.org/files/2016_thuerck_mapmap.pdf) and
+[PDF Supplementary Material](https://culip.org/files/2016_thuerck_mapmap_supplemental.pdf).
 
 Contact
 ------
@@ -185,21 +184,3 @@ Contact
 For any trouble with building, using or extending this software, please use
 the project's integrated issue tracker. We'll be happy to help you there or
 discuss feature requests.
-
-For requests not matching the above, please contact the developer team and
-maintainer at mapmap(at)gcc.tu-darmstadt.de.
-
-Contributors (including preceding project)
-------
-
-* Daniel Thuerck ([Homepage](http://www.gcc.tu-darmstadt.de/home/we/daniel_thuerck/index.en.jsp))
-* Max von Buelow
-* Patrick Seemann
-* Nils Moehrle
-* Nick Heppert
-
-Further material
-------
-
-Please see our project page at
-[GCC, TU Darmstadt](http://www.gcc.tu-darmstadt.de/home/proj/mapmap).
