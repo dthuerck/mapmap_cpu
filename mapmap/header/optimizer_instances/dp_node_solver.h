@@ -20,7 +20,7 @@ template<typename COSTTYPE, uint_t SIMDWIDTH>
 class DPNodeSolver
 {
 public:
-    ~DPNodeSolver() {};
+    virtual ~DPNodeSolver() {};
 
     virtual void optimize_node() = 0;
     virtual luint_t scratch_bytes_needed() = 0;
@@ -38,7 +38,7 @@ class GeneralDPNodeSolver :
 public:
     GeneralDPNodeSolver(
         DPNode<COSTTYPE, SIMDWIDTH> * node);
-    ~GeneralDPNodeSolver();
+    virtual ~GeneralDPNodeSolver();
 
     virtual void optimize_node();
     virtual luint_t scratch_bytes_needed();
@@ -63,7 +63,7 @@ public:
     SubmodularDPNodeSolver(
         DPNode<COSTTYPE, SIMDWIDTH> * node,
         PairwiseCostsEnvelope_ptr<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>& env);
-    ~SubmodularDPNodeSolver();
+    virtual ~SubmodularDPNodeSolver();
 
     virtual void optimize_node();
     virtual luint_t scratch_bytes_needed();
@@ -97,7 +97,7 @@ public:
     SupermodularDPNodeSolver(
         DPNode<COSTTYPE, SIMDWIDTH> * node,
         PairwiseCostsEnvelope_ptr<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>& env);
-    ~SupermodularDPNodeSolver();
+    virtual ~SupermodularDPNodeSolver();
 
     virtual void optimize_node();
     virtual luint_t scratch_bytes_needed();

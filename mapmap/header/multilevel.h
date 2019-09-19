@@ -52,7 +52,7 @@ template<typename COSTTYPE, uint_t SIMDWIDTH>
 class MultilevelCriterion
 {
 public:
-    ~MultilevelCriterion() {}
+    virtual ~MultilevelCriterion() {}
 
     virtual void group_nodes(std::vector<luint_t>& node_in_group,
         const LevelSet<COSTTYPE, SIMDWIDTH> * current_level,

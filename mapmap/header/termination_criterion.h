@@ -55,7 +55,7 @@ class TerminationCriterion
 {
 public:
     TerminationCriterion();
-    ~TerminationCriterion();
+    virtual ~TerminationCriterion();
 
     virtual bool check_termination(const SolverHistory<COSTTYPE,
         SIMDWIDTH> * history) = 0;
