@@ -158,7 +158,7 @@ prev_level()
     m_levels.pop_back();
 
     m_current = &m_levels[m_level];
-    m_previous = &m_levels[m_level - 1];
+    m_previous = (m_level ? &m_levels[m_level - 1] : nullptr);
 
     return true;
 }
