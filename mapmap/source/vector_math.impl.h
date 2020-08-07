@@ -989,7 +989,7 @@ _v_t<float, 4>
 v_load<float, 4>(
 	const _s_t<float, 4>* ptr)
 {
-	return (!((unsigned long) ptr & v_get_mask<float, 4>()) ? 
+	return (!((uintptr_t) ptr & v_get_mask<float, 4>()) ? 
 		_mm_load_ps(ptr) : _mm_loadu_ps(ptr));
 }
 
@@ -1001,7 +1001,7 @@ _iv_t<float, 4>
 iv_load<float, 4>(
 	const _iv_st<float, 4>* ptr)
 {
-	return (!((unsigned long) ptr & iv_get_mask<float, 4>()) ? 
+	return (!((uintptr_t) ptr & iv_get_mask<float, 4>()) ? 
 		_mm_load_si128((__m128i*) ptr) : _mm_loadu_si128((__m128i*)ptr));
 }
 
@@ -1014,7 +1014,7 @@ v_store<float, 4>(
 	const _v_t<float, 4>& a,
 	_s_t<float, 4>* ptr)
 {
-	if(!((unsigned long) ptr & v_get_mask<float, 4>()))
+	if(!((uintptr_t) ptr & v_get_mask<float, 4>()))
 		_mm_store_ps(ptr, a);
 	else
 		_mm_storeu_ps(ptr, a);
@@ -1029,7 +1029,7 @@ iv_store<float, 4>(
 	const _iv_t<float, 4>& a,
 	_iv_st<float, 4>* ptr)
 {
-	if(!((unsigned long) ptr & iv_get_mask<float, 4>()))
+	if(!((uintptr_t) ptr & iv_get_mask<float, 4>()))
 		_mm_store_si128((__m128i*) ptr, a);
 	else
 		_mm_storeu_si128((__m128i*) ptr, a);
@@ -1050,7 +1050,7 @@ v_masked_store<float, 4>(
 		__m64 v;
 	} a1, m1, a2, m2;
 
-	if(!((unsigned long) ptr & v_get_mask<float, 4>()))
+	if(!((uintptr_t) ptr & v_get_mask<float, 4>()))
 	{
 		/* split and store both parts */
 		const __m128i aa = v_reinterpret_iv<float, 4>(a);
@@ -1719,7 +1719,7 @@ _v_t<float, 8>
 v_load<float, 8>(
 	const _s_t<float, 8>* ptr)
 {
-	if (!((unsigned long) ptr & v_get_mask<float, 8>())) 
+	if (!((uintptr_t) ptr & v_get_mask<float, 8>())) 
 		return _mm256_load_ps(ptr);
 	else
 		return _mm256_loadu_ps(ptr);
@@ -1733,7 +1733,7 @@ _iv_t<float, 8>
 iv_load<float, 8>(
 	const _iv_st<float, 8>* ptr)
 {
-	if (!((unsigned long) ptr & iv_get_mask<float, 8>())) 
+	if (!((uintptr_t) ptr & iv_get_mask<float, 8>())) 
 		return _mm256_load_si256((__m256i*) ptr);
 	else
 		return _mm256_loadu_si256((__m256i*) ptr);
@@ -1748,7 +1748,7 @@ v_store<float, 8>(
 	const _v_t<float, 8>& a,
 	_s_t<float, 8>* ptr)
 {
-	if(!((unsigned long) ptr & v_get_mask<float, 8>()))
+	if(!((uintptr_t) ptr & v_get_mask<float, 8>()))
 		_mm256_store_ps(ptr, a);
 	else
 		_mm256_storeu_ps(ptr, a);
@@ -1764,7 +1764,7 @@ v_masked_store<float, 8>(
 	const _iv_t<float, 8>& mask,
 	_s_t<float, 8> * ptr)
 {
-	if(!((unsigned long) ptr & v_get_mask<float, 8>()))
+	if(!((uintptr_t) ptr & v_get_mask<float, 8>()))
 	{
 		_mm256_maskstore_ps(ptr, mask, a);
 	}
@@ -1793,7 +1793,7 @@ iv_store<float, 8>(
 	const _iv_t<float, 8>& a,
 	_iv_st<float, 8>* ptr)
 {
-	if(!((unsigned long) ptr & iv_get_mask<float, 8>()))
+	if(!((uintptr_t) ptr & iv_get_mask<float, 8>()))
 		_mm256_store_si256((__m256i*) ptr, a);
 	else
 		_mm256_storeu_si256((__m256i*) ptr, a);
@@ -2811,7 +2811,7 @@ _v_t<double, 2>
 v_load<double, 2>(
 	const _s_t<double, 2>* ptr)
 {
-	return (!((unsigned long) ptr & v_get_mask<double, 2>()) ? 
+	return (!((uintptr_t) ptr & v_get_mask<double, 2>()) ? 
 		_mm_load_pd(ptr) : _mm_loadu_pd(ptr));
 }
 
@@ -2823,7 +2823,7 @@ _iv_t<double, 2>
 iv_load<double, 2>(
 	const _iv_st<double, 2>* ptr)
 {
-	return (!((unsigned long) ptr & iv_get_mask<double, 2>()) ? 
+	return (!((uintptr_t) ptr & iv_get_mask<double, 2>()) ? 
 		_mm_load_si128((__m128i *) ptr) : _mm_loadu_si128((__m128i *) ptr));
 }
 
@@ -2836,7 +2836,7 @@ v_store<double, 2>(
 	const _v_t<double, 2>& a,
 	_s_t<double, 2>* ptr)
 {
-	if(!((unsigned long) ptr & v_get_mask<double, 2>()))
+	if(!((uintptr_t) ptr & v_get_mask<double, 2>()))
 		_mm_store_pd(ptr, a);
 	else
 		_mm_storeu_pd(ptr, a);
@@ -2851,7 +2851,7 @@ iv_store<double, 2>(
 	const _iv_t<double, 2>& a,
 	_iv_st<double, 2>* ptr)
 {
-	if(!((unsigned long) ptr & iv_get_mask<double, 2>()))
+	if(!((uintptr_t) ptr & iv_get_mask<double, 2>()))
 		_mm_store_si128((__m128i *) ptr, a);
 	else
 		_mm_storeu_si128((__m128i *) ptr, a);
@@ -2872,7 +2872,7 @@ v_masked_store<double, 2>(
 		__m64 v;
 	} a1, m1, a2, m2;
 
-	if(!((unsigned long) ptr & v_get_mask<double, 2>()))
+	if(!((uintptr_t) ptr & v_get_mask<double, 2>()))
 	{
 		/* split and store both parts */
 		const __m128i aa = v_reinterpret_iv<double, 2>(a);
@@ -3575,7 +3575,7 @@ _v_t<double, 4>
 v_load<double, 4>(
 	const _s_t<double, 4>* ptr)
 {
-	return (!((unsigned long) ptr & v_get_mask<double, 4>()) ? 
+	return (!((uintptr_t) ptr & v_get_mask<double, 4>()) ? 
 		_mm256_load_pd(ptr) : _mm256_loadu_pd(ptr));
 }
 
@@ -3587,7 +3587,7 @@ _iv_t<double, 4>
 iv_load<double, 4>(
 	const _iv_st<double, 4>* ptr)
 {
-	return (!((unsigned long) ptr & iv_get_mask<double, 4>()) ? 
+	return (!((uintptr_t) ptr & iv_get_mask<double, 4>()) ? 
 		_mm256_load_si256((__m256i *) ptr) : _mm256_loadu_si256((__m256i *) 
 		ptr));  
 }
@@ -3601,7 +3601,7 @@ v_store<double, 4>(
 	const _v_t<double, 4>& a,
 	_s_t<double, 4>* ptr)
 {
-	if(!((unsigned long) ptr & v_get_mask<double, 4>()))
+	if(!((uintptr_t) ptr & v_get_mask<double, 4>()))
 		_mm256_store_pd(ptr, a);
 	else
 		_mm256_storeu_pd(ptr, a);
@@ -3617,7 +3617,7 @@ v_masked_store<double, 4>(
 	const _iv_t<double, 4>& mask,
 	_s_t<double, 4> * ptr)
 {
-	if(!((unsigned long) ptr & v_get_mask<double, 4>()))
+	if(!((uintptr_t) ptr & v_get_mask<double, 4>()))
 	{
 		_mm256_maskstore_pd(ptr, mask, a);
 	}
@@ -3646,7 +3646,7 @@ iv_store<double, 4>(
 	const _iv_t<double, 4>& a,
 	_iv_st<double, 4>* ptr)
 {
-	if(!((unsigned long) ptr & iv_get_mask<double, 4>()))
+	if(!((uintptr_t) ptr & iv_get_mask<double, 4>()))
 		_mm256_store_si256((__m256i *) ptr, a);
 	else
 		_mm256_storeu_si256((__m256i *) ptr, a);
