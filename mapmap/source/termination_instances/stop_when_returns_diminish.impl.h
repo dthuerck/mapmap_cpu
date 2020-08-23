@@ -54,6 +54,10 @@ check_termination(
     /* determine improvement in the last couple of iterations */
     newest_val = history->energy_history->back();
 
+    /* terminate if objective is already 0 */
+    if (newest_val == static_cast<_s_t<COSTTYPE, SIMDWIDTH>>(0))
+        return true;
+
     luint_t oldest_pos = 0;
     if(hist_size > m_iteration_span)
         oldest_pos = (hist_size - 1) - m_iteration_span;
