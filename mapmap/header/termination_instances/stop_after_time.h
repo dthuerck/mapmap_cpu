@@ -10,7 +10,7 @@
 #ifndef __MAPMAP_STOP_AFTER_TIME_H_
 #define __MAPMAP_STOP_AFTER_TIME_H_
 
-#include "header/termination_criterion.h"
+#include <mapmap/header/termination_criterion.h>
 
 NS_MAPMAP_BEGIN
 
@@ -33,6 +33,6 @@ protected:
 NS_MAPMAP_END
 
 /* include function implementations */
-#include "source/termination_instances/stop_after_time.impl.h"
+#include <mapmap/source/termination_instances/stop_after_time.impl.h>
 
 #endif /* __MAPMAP_STOP_AFTER_TIME_H_ */

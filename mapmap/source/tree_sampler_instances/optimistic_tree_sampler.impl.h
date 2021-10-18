@@ -7,15 +7,15 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#include "header/tree_sampler_instances/optimistic_tree_sampler.h"
+#include <mapmap/header/tree_sampler_instances/optimistic_tree_sampler.h>
 
 #include <iostream>
 
-#include "tbb/blocked_range.h"
-#include "tbb/parallel_for.h"
-#include "tbb/parallel_do.h"
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
+#include <tbb/parallel_do.h>
 
-#include "header/parallel_templates.h"
+#include <mapmap/header/parallel_templates.h>
 
 NS_MAPMAP_BEGIN
 

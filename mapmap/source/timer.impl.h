@@ -7,7 +7,7 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#include "header/timer.h"
+#include <mapmap/header/timer.h>
 
 NS_MAPMAP_BEGIN
 

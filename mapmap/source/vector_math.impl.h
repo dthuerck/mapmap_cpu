@@ -7,7 +7,7 @@
  * of the BSD license. See the LICENSE file for details.
  */
  
-#include "header/vector_math.h"
+#include <mapmap/header/vector_math.h>
 
 #include <cstring>
 #include <algorithm>

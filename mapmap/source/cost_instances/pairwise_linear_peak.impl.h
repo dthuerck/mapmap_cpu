@@ -7,7 +7,7 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#include "header/cost_instances/pairwise_linear_peak.h"
+#include <mapmap/header/cost_instances/pairwise_linear_peak.h>
 
 NS_MAPMAP_BEGIN
 

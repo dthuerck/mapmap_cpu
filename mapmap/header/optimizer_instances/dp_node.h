@@ -10,11 +10,11 @@
 #ifndef __MAPMAP_HEADER_OPTIMIZER_INSTANCES_DP_NODE_H_
 #define __MAPMAP_HEADER_OPTIMIZER_INSTANCES_DP_NODE_H_
 
-#include "header/defines.h"
-#include "header/vector_types.h"
-#include "header/vector_math.h"
-#include "header/parallel_templates.h"
-#include "header/costs.h"
+#include <mapmap/header/defines.h>
+#include <mapmap/header/vector_types.h>
+#include <mapmap/header/vector_math.h>
+#include <mapmap/header/parallel_templates.h>
+#include <mapmap/header/costs.h>
 
 NS_MAPMAP_BEGIN
 

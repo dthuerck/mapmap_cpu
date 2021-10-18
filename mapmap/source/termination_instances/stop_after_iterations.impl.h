@@ -7,7 +7,7 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#include "header/termination_instances/stop_after_iterations.h"
+#include <mapmap/header/termination_instances/stop_after_iterations.h>
 
 NS_MAPMAP_BEGIN
 

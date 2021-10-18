@@ -7,7 +7,7 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#include "header/optimizer_instances/dp_node_solver.h"
+#include <mapmap/header/optimizer_instances/dp_node_solver.h>
 
 #include <limits>
 

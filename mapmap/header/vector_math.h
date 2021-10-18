@@ -14,8 +14,8 @@
 #include <cstdio>
 #include <cstring>
 
-#include "header/defines.h"
-#include "header/vector_types.h"
+#include <mapmap/header/defines.h>
+#include <mapmap/header/vector_types.h>
 
 NS_MAPMAP_BEGIN
 
@@ -351,6 +351,6 @@ v_alignment();
 
 NS_MAPMAP_END 
 
-#include "source/vector_math.impl.h"
+#include <mapmap/source/vector_math.impl.h>
  
 #endif /* MAPMAP_HEADER_VECTOR_MATH_H_ */

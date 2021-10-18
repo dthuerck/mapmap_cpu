@@ -7,16 +7,16 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#include "header/multilevel_instances/group_same_label.h"
+#include <mapmap/header/multilevel_instances/group_same_label.h>
 
 #include <algorithm>
 #include <queue>
 #include <iostream>
 
-#include "tbb/atomic.h"
-#include "tbb/blocked_range.h"
-#include "tbb/parallel_for.h"
-#include "tbb/parallel_do.h"
+#include <tbb/atomic.h>
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
+#include <tbb/parallel_do.h>
 
 NS_MAPMAP_BEGIN
 

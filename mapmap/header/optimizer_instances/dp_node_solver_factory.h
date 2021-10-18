@@ -10,11 +10,11 @@
 #ifndef __MAPMAP_DP_NODE_SOLVER_FACTORY_H_
 #define __MAPMAP_DP_NODE_SOLVER_FACTORY_H_
 
-#include "header/defines.h"
-#include "header/costs.h"
+#include <mapmap/header/defines.h>
+#include <mapmap/header/costs.h>
 
-#include "header/optimizer_instances/envelope.h"
-#include "header/optimizer_instances/dp_node_solver.h"
+#include <mapmap/header/optimizer_instances/envelope.h>
+#include <mapmap/header/optimizer_instances/dp_node_solver.h>
 
 NS_MAPMAP_BEGIN
 
@@ -31,6 +31,6 @@ public:
 NS_MAPMAP_END
 
 /* include function implementations */
-#include "source/optimizer_instances/dp_node_solver_factory.impl.h"
+#include <mapmap/source/optimizer_instances/dp_node_solver_factory.impl.h>
 
 #endif /* __MAPMAP_DP_NODE_SOLVER_FACTORY_H_ */

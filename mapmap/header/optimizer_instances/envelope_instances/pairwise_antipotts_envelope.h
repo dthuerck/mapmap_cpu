@@ -10,9 +10,9 @@
 #ifndef __MAPMAP_PAIRWISE_ANTIPOTTS_ENVELOPE_H_
 #define __MAPMAP_PAIRWISE_ANTIPOTTS_ENVELOPE_H_
 
-#include "header/defines.h"
-#include "header/optimizer_instances/envelope.h"
-#include "header/cost_instances/pairwise_antipotts.h"
+#include <mapmap/header/defines.h>
+#include <mapmap/header/optimizer_instances/envelope.h>
+#include <mapmap/header/cost_instances/pairwise_antipotts.h>
 
 NS_MAPMAP_BEGIN
 
@@ -48,6 +48,6 @@ using PairwiseAntipottsEnvelope_ptr = std::unique_ptr<PairwiseAntipottsEnvelope<
 NS_MAPMAP_END
 
 /* include function implementations */
-#include "source/optimizer_instances/envelope_instances/pairwise_antipotts_envelope.impl.h"
+#include <mapmap/source/optimizer_instances/envelope_instances/pairwise_antipotts_envelope.impl.h>
 
 #endif /* __MAPMAP_AIRWISE_ANTIPOTTS_ENVELOPE_H_ */

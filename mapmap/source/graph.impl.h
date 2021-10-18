@@ -17,17 +17,17 @@
 #include <algorithm>
 #include <random>
 
-#include "tbb/concurrent_queue.h"
-#include "tbb/concurrent_vector.h"
-#include "tbb/concurrent_unordered_set.h"
-#include "tbb/atomic.h"
-#include "tbb/task.h"
-#include "tbb/blocked_range.h"
-#include "tbb/parallel_for.h"
+#include <tbb/concurrent_queue.h>
+#include <tbb/concurrent_vector.h>
+#include <tbb/concurrent_unordered_set.h>
+#include <tbb/atomic.h>
+#include <tbb/task.h>
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
 
-#include "header/graph.h"
+#include <mapmap/header/graph.h>
 
-#include "dset.h"
+#include <mapmap/dset.h>
 
 NS_MAPMAP_BEGIN
 

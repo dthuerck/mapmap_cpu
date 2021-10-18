@@ -10,10 +10,10 @@
 #ifndef __MAPMAP_INSTANCE_FACTORY_H_
 #define __MAPMAP_INSTANCE_FACTORY_H_
 
-#include "header/defines.h"
-#include "header/graph.h"
+#include <mapmap/header/defines.h>
+#include <mapmap/header/graph.h>
 
-#include "header/tree_sampler.h"
+#include <mapmap/header/tree_sampler.h>
 
 #include <memory>
 
@@ -43,6 +43,6 @@ public:
 NS_MAPMAP_END
 
 /* include function implementations */
-#include "source/instance_factory.impl.h"
+#include <mapmap/source/instance_factory.impl.h>
 
 #endif /* __MAPMAP_INSTANCE_FACTORY_H_ */

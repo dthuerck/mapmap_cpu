@@ -7,7 +7,7 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#include "header/cost_bundle.h"
+#include <mapmap/header/cost_bundle.h>
 
 NS_MAPMAP_BEGIN
 

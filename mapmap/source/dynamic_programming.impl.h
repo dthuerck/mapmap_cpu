@@ -11,10 +11,10 @@
 #include <functional>
 #include <iostream>
 
-#include "tbb/tbb.h"
+#include <tbb/tbb.h>
 
 
-#include "header/dynamic_programming.h"
+#include <mapmap/header/dynamic_programming.h>
 
 NS_MAPMAP_BEGIN
 

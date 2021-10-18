@@ -10,13 +10,13 @@
 #ifndef __MAPMAP_LOCK_FREE_TREE_SAMPLER_H_
 #define __MAPMAP_LOCK_FREE_TREE_SAMPLER_H_
 
-#include "header/defines.h"
-#include "header/graph.h"
-#include "header/tree.h"
-#include "header/tree_sampler.h"
+#include <mapmap/header/defines.h>
+#include <mapmap/header/graph.h>
+#include <mapmap/header/tree.h>
+#include <mapmap/header/tree_sampler.h>
 
-#include "tbb/atomic.h"
-#include "tbb/concurrent_vector.h"
+#include <tbb/atomic.h>
+#include <tbb/concurrent_vector.h>
 
 NS_MAPMAP_BEGIN
 
@@ -133,6 +133,6 @@ protected:
 NS_MAPMAP_END
 
 /* include function implementations */
-#include "source/tree_sampler_instances/lock_free_tree_sampler.impl.h"
+#include <mapmap/source/tree_sampler_instances/lock_free_tree_sampler.impl.h>
 
 #endif /* __MAPMAP_LOCK_FREE_TREE_SAMPLER_H_ */

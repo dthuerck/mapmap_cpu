@@ -10,9 +10,9 @@
 #ifndef __MAPMAP_HEADER_DP_NODE_SOLVER_H_
 #define __MAPMAP_HEADER_DP_NODE_SOLVER_H_
 
-#include "header/defines.h"
-#include "header/vector_types.h"
-#include "header/optimizer_instances/dp_node.h"
+#include <mapmap/header/defines.h>
+#include <mapmap/header/vector_types.h>
+#include <mapmap/header/optimizer_instances/dp_node.h>
 
 NS_MAPMAP_BEGIN
 
@@ -109,6 +109,6 @@ protected:
 NS_MAPMAP_END
 
 /* include function implementations */
-#include "source/optimizer_instances/dp_node_solver.impl.h"
+#include <mapmap/source/optimizer_instances/dp_node_solver.impl.h>
 
 #endif /* __MAPMAP_HEADER_DP_NODE_SOLVER_H_ */

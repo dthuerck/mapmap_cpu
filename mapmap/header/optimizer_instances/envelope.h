@@ -10,7 +10,7 @@
 #ifndef __MAPMAP_ENVELOPE_H_
 #define __MAPMAP_ENVELOPE_H_
 
-#include "header/optimizer_instances/dp_node.h"
+#include <mapmap/header/optimizer_instances/dp_node.h>
 
 NS_MAPMAP_BEGIN
 

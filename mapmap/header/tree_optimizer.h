@@ -13,12 +13,12 @@
 #include <memory>
 #include <vector>
 
-#include "header/defines.h"
-#include "header/tree.h"
-#include "header/vector_types.h"
-#include "header/costs.h"
-#include "header/cost_bundle.h"
-#include "header/graph.h"
+#include <mapmap/header/defines.h>
+#include <mapmap/header/tree.h>
+#include <mapmap/header/vector_types.h>
+#include <mapmap/header/costs.h>
+#include <mapmap/header/cost_bundle.h>
+#include <mapmap/header/graph.h>
 
 NS_MAPMAP_BEGIN
 
@@ -67,6 +67,6 @@ protected:
 NS_MAPMAP_END
 
 /* include function implementations */
-#include "source/tree_optimizer.impl.h"
+#include <mapmap/source/tree_optimizer.impl.h>
 
 #endif /* __MAPMAP_TREE_OPTIMIZER_H_ */

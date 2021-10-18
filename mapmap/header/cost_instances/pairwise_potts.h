@@ -10,7 +10,7 @@
 #ifndef __MAPMAP_PAIRWISE_POTTS_H_
 #define __MAPMAP_PAIRWISE_POTTS_H_
 
-#include "header/costs.h"
+#include <mapmap/header/costs.h>
 
 NS_MAPMAP_BEGIN
 
@@ -47,6 +47,6 @@ using PairwisePotts_ptr = std::shared_ptr<PairwisePotts<COSTTYPE, SIMDWIDTH>>;
 NS_MAPMAP_END
 
 /* include function implementations */
-#include "source/cost_instances/pairwise_potts.impl.h"
+#include <mapmap/source/cost_instances/pairwise_potts.impl.h>
 
 #endif /* __MAPMAP_PAIRWISE_POTTS_H_ */

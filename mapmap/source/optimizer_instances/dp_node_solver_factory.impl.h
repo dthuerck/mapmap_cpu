@@ -7,24 +7,24 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#include "header/optimizer_instances/dp_node_solver_factory.h"
+#include <mapmap/header/optimizer_instances/dp_node_solver_factory.h>
 
-#include "header/cost_instances/unary_table.h"
+#include <mapmap/header/cost_instances/unary_table.h>
 
-#include "header/cost_instances/pairwise_antipotts.h"
-#include "header/optimizer_instances/envelope_instances/pairwise_antipotts_envelope.h"
+#include <mapmap/header/cost_instances/pairwise_antipotts.h>
+#include <mapmap/header/optimizer_instances/envelope_instances/pairwise_antipotts_envelope.h>
 
-#include "header/cost_instances/pairwise_linear_peak.h"
-#include "header/optimizer_instances/envelope_instances/pairwise_linear_peak_envelope.h"
+#include <mapmap/header/cost_instances/pairwise_linear_peak.h>
+#include <mapmap/header/optimizer_instances/envelope_instances/pairwise_linear_peak_envelope.h>
 
-#include "header/cost_instances/pairwise_potts.h"
-#include "header/optimizer_instances/envelope_instances/pairwise_potts_envelope.h"
+#include <mapmap/header/cost_instances/pairwise_potts.h>
+#include <mapmap/header/optimizer_instances/envelope_instances/pairwise_potts_envelope.h>
 
-#include "header/cost_instances/pairwise_truncated_linear.h"
-#include "header/optimizer_instances/envelope_instances/pairwise_truncated_linear_envelope.h"
+#include <mapmap/header/cost_instances/pairwise_truncated_linear.h>
+#include <mapmap/header/optimizer_instances/envelope_instances/pairwise_truncated_linear_envelope.h>
 
-#include "header/cost_instances/pairwise_truncated_quadratic.h"
-#include "header/optimizer_instances/envelope_instances/pairwise_truncated_quadratic_envelope.h"
+#include <mapmap/header/cost_instances/pairwise_truncated_quadratic.h>
+#include <mapmap/header/optimizer_instances/envelope_instances/pairwise_truncated_quadratic_envelope.h>
 
 NS_MAPMAP_BEGIN
 

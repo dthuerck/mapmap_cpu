@@ -12,7 +12,7 @@
 
 #include <vector>
 
-#include "header/costs.h"
+#include <mapmap/header/costs.h>
 
 NS_MAPMAP_BEGIN
 
@@ -47,6 +47,6 @@ protected:
 NS_MAPMAP_END
 
 /* include function implementations */
-#include "source/cost_instances/unary_table.impl.h"
+#include <mapmap/source/cost_instances/unary_table.impl.h>
 
 #endif /* __MAPMAP_UNARY_TABLE_H_ */

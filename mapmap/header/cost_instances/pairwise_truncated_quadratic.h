@@ -10,8 +10,8 @@
 #ifndef __MAPMAP_PAIRWISE_TRUNCATED_QUADRATIC_H_
 #define __MAPMAP_PAIRWISE_TRUNCATED_QUADRATIC_H_
 
-#include "header/defines.h"
-#include "header/costs.h"
+#include <mapmap/header/defines.h>
+#include <mapmap/header/costs.h>
 
 NS_MAPMAP_BEGIN
 
@@ -53,6 +53,6 @@ using PairwiseTruncatedQuadratic_ptr = std::shared_ptr<
 NS_MAPMAP_END
 
 /* include function implementations */
-#include "source/cost_instances/pairwise_truncated_quadratic.impl.h"
+#include <mapmap/source/cost_instances/pairwise_truncated_quadratic.impl.h>
 
 #endif /* __MAPMAP_PAIRWISE_TRUNCATED_QUADRATIC_H_ */

@@ -7,17 +7,17 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#include "header/tree_sampler_instances/lock_free_tree_sampler.h"
+#include <mapmap/header/tree_sampler_instances/lock_free_tree_sampler.h>
 
-#include "header/color.h"
+#include <mapmap/header/color.h>
 
 #include <random>
 #include <set>
 #include <algorithm>
 
-#include "tbb/parallel_reduce.h"
-#include "tbb/parallel_for.h"
-#include "tbb/blocked_range.h"
+#include <tbb/parallel_reduce.h>
+#include <tbb/parallel_for.h>
+#include <tbb/blocked_range.h>
 
 NS_MAPMAP_BEGIN
 

@@ -14,13 +14,13 @@
 #include <memory>
 #include <random>
 
-#include "tbb/concurrent_vector.h"
+#include <tbb/concurrent_vector.h>
 
-#include "header/defines.h"
-#include "header/graph.h"
-#include "header/tree.h"
-#include "header/vector_types.h"
-#include "header/tree_sampler.h"
+#include <mapmap/header/defines.h>
+#include <mapmap/header/graph.h>
+#include <mapmap/header/tree.h>
+#include <mapmap/header/vector_types.h>
+#include <mapmap/header/tree_sampler.h>
 
 NS_MAPMAP_BEGIN
 
@@ -103,6 +103,6 @@ using OptimisticTreeSampler_ptr =
 NS_MAPMAP_END
 
 /* include function implementations */
-#include "source/tree_sampler_instances/optimistic_tree_sampler.impl.h"
+#include <mapmap/source/tree_sampler_instances/optimistic_tree_sampler.impl.h>
 
 #endif /* __MAPMAP_HEADER_OPTIMISTIC_TREE_SAMPLER_H_ */

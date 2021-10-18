@@ -10,7 +10,7 @@
 #ifndef __MAPMAP_STOP_AFTER_ITERATIONS_H_
 #define __MAPMAP_STOP_AFTER_ITERATIONS_H_
 
-#include "header/termination_criterion.h"
+#include <mapmap/header/termination_criterion.h>
 
 NS_MAPMAP_BEGIN
 
@@ -38,6 +38,6 @@ protected:
 NS_MAPMAP_END
 
 /* include function implementations */
-#include "source/termination_instances/stop_after_iterations.impl.h"
+#include <mapmap/source/termination_instances/stop_after_iterations.impl.h>
 
 #endif /* __MAPMAP_STOP_AFTER_ITERATIONS_H_ */
