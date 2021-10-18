@@ -7,7 +7,7 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#include "header/optimizer_instances/envelope_instances/pairwise_potts_envelope.h"
+#include <mapmap/header/optimizer_instances/envelope_instances/pairwise_potts_envelope.h>
 
 NS_MAPMAP_BEGIN
 

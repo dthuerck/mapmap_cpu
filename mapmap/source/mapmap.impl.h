@@ -7,14 +7,14 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#include "header/mapmap.h"
+#include <mapmap/header/mapmap.h>
 
 #include <iostream>
 
-#include "header/multilevel_instances/group_same_label.h"
-#include "header/termination_instances/stop_when_flat.h"
-#include "header/optimizer_instances/dynamic_programming.h"
-#include "header/timer.h"
+#include <mapmap/header/multilevel_instances/group_same_label.h>
+#include <mapmap/header/termination_instances/stop_when_flat.h>
+#include <mapmap/header/optimizer_instances/dynamic_programming.h>
+#include <mapmap/header/timer.h>
 
 NS_MAPMAP_BEGIN
 

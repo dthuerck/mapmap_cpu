@@ -10,7 +10,7 @@
 #ifndef __MAPMAP_PAIRWISE_LINEAR_PEAK_H_
 #define __MAPMAP_PAIRWISE_LINEAR_PEAK_H_
 
-#include "header/costs.h"
+#include <mapmap/header/costs.h>
 
 NS_MAPMAP_BEGIN
 
@@ -52,6 +52,6 @@ using PairwiseLinearPeak_ptr =
 NS_MAPMAP_END
 
 /* include function implementations */
-#include "source/cost_instances/pairwise_linear_peak.impl.h"
+#include <mapmap/source/cost_instances/pairwise_linear_peak.impl.h>
 
 #endif /* __MAPMAP_PAIRWISE_LINEAR_PEAK_H_ */

@@ -10,9 +10,9 @@
 #ifndef __MAPMAP_HEADER_COST_BUNDLE_H_
 #define __MAPMAP_HEADER_COST_BUNDLE_H_
 
-#include "header/defines.h"
-#include "header/costs.h"
-#include "header/graph.h"
+#include <mapmap/header/defines.h>
+#include <mapmap/header/costs.h>
+#include <mapmap/header/graph.h>
 
 NS_MAPMAP_BEGIN
 
@@ -49,6 +49,6 @@ protected:
 NS_MAPMAP_END
 
 /* include template instances */
-#include "source/cost_bundle.impl.h"
+#include <mapmap/source/cost_bundle.impl.h>
 
 #endif /* __MAPMAP_HEADER_COST_BUNDLE_H_ */

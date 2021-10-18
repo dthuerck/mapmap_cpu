@@ -10,7 +10,7 @@
 #ifndef __MAPMAP_TIMER_H_
 #define __MAPMAP_TIMER_H_
 
-#include "header/defines.h"
+#include <mapmap/header/defines.h>
 
 NS_MAPMAP_BEGIN
 
@@ -38,6 +38,6 @@ extern _timer * __T;
 NS_MAPMAP_END
 
 /* include timer implementation */
-#include "source/timer.impl.h"
+#include <mapmap/source/timer.impl.h>
 
 #endif /* __MAPMAP_TIMER_H_ */

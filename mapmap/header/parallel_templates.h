@@ -18,8 +18,8 @@
 #include <tbb/blocked_range.h>
 #include <tbb/atomic.h>
 
-#include "header/defines.h"
-#include "header/vector_types.h"
+#include <mapmap/header/defines.h>
+#include <mapmap/header/vector_types.h>
 
 NS_MAPMAP_BEGIN
 
@@ -112,6 +112,6 @@ protected:
 NS_MAPMAP_END
 
 /* include templated implementation */
-#include "source/parallel_templates.impl.h"
+#include <mapmap/source/parallel_templates.impl.h>
 
 #endif /* __MAPMAP_PARALLEL_TEMPLATES_H_ */

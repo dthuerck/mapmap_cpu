@@ -10,9 +10,9 @@
 #ifndef __MAPMAP_PAIRWISE_TRUNCATED_LINEAR_ENVELOPE_H_
 #define __MAPMAP_PAIRWISE_TRUNCATED_LINEAR_ENVELOPE_H_
 
-#include "header/defines.h"
-#include "header/optimizer_instances/envelope.h"
-#include "header/cost_instances/pairwise_truncated_linear.h"
+#include <mapmap/header/defines.h>
+#include <mapmap/header/optimizer_instances/envelope.h>
+#include <mapmap/header/cost_instances/pairwise_truncated_linear.h>
 
 NS_MAPMAP_BEGIN
 
@@ -49,6 +49,6 @@ using PairwiseTruncatedLinearEnvelope_ptr =
 NS_MAPMAP_END
 
 /* include function implementations */
-#include "source/optimizer_instances/envelope_instances/pairwise_truncated_linear_envelope.impl.h"
+#include <mapmap/source/optimizer_instances/envelope_instances/pairwise_truncated_linear_envelope.impl.h>
 
 #endif /* __MAPMAP_PAIRWISE_TRUNCATED_LINEAR_ENVELOPE_H_ */

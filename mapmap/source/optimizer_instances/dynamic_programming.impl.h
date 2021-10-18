@@ -11,11 +11,11 @@
 #include <functional>
 #include <iostream>
 
-#include "tbb/tbb.h"
+#include <tbb/tbb.h>
 
-#include "header/optimizer_instances/dynamic_programming.h"
-#include "header/optimizer_instances/dp_node.h"
-#include "header/optimizer_instances/dp_node_solver_factory.h"
+#include <mapmap/header/optimizer_instances/dynamic_programming.h>
+#include <mapmap/header/optimizer_instances/dp_node.h>
+#include <mapmap/header/optimizer_instances/dp_node_solver_factory.h>
 
 NS_MAPMAP_BEGIN
 

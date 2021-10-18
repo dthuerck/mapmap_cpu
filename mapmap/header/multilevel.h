@@ -13,15 +13,15 @@
 #include <memory>
 #include <vector>
 
-#include "tbb/mutex.h"
+#include <tbb/mutex.h>
 
-#include "header/defines.h"
-#include "header/graph.h"
-#include "header/costs.h"
-#include "header/cost_bundle.h"
+#include <mapmap/header/defines.h>
+#include <mapmap/header/graph.h>
+#include <mapmap/header/costs.h>
+#include <mapmap/header/cost_bundle.h>
 
-#include "header/cost_instances/unary_table.h"
-#include "header/cost_instances/pairwise_table.h"
+#include <mapmap/header/cost_instances/unary_table.h>
+#include <mapmap/header/cost_instances/pairwise_table.h>
 
 NS_MAPMAP_BEGIN
 
@@ -173,6 +173,6 @@ protected:
 
 NS_MAPMAP_END
 
-#include "source/multilevel.impl.h"
+#include <mapmap/source/multilevel.impl.h>
 
 #endif /* __MAPMAP_MULTILEVEL_H_ */

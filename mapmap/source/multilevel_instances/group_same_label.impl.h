@@ -7,16 +7,16 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#include "header/multilevel_instances/group_same_label.h"
+#include <mapmap/header/multilevel_instances/group_same_label.h>
 
 #include <algorithm>
 #include <queue>
 #include <iostream>
 
-#include "tbb/atomic.h"
-#include "tbb/blocked_range.h"
-#include "tbb/parallel_for.h"
-#include "tbb/parallel_do.h"
+#include <tbb/atomic.h>
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
+#include <tbb/parallel_do.h>
 
 NS_MAPMAP_BEGIN
 
@@ -62,9 +62,14 @@ group_nodes(
 
     /* create seed "queue" */
     std::vector<luint_t> qu(num_nodes);
+#if __cplusplus > 201100L
     std::iota(std::begin(qu), std::end(qu), 0);
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(qu.begin(), qu.end(), g);
+#else
     std::random_shuffle(qu.begin(), qu.end());
-
+#endif
 
     /* do BFSes from randomly selected seeds */
     tbb::parallel_do(qu.begin(), qu.end(),

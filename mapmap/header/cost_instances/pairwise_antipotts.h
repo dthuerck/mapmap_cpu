@@ -10,7 +10,7 @@
 #ifndef __MAPMAP_PAIRWISE_ANTIPOTTS_H_
 #define __MAPMAP_PAIRWISE_ANTIPOTTS_H_
 
-#include "header/costs.h"
+#include <mapmap/header/costs.h>
 
 NS_MAPMAP_BEGIN
 
@@ -46,6 +46,6 @@ protected:
 NS_MAPMAP_END
 
 /* include function implementations */
-#include "source/cost_instances/pairwise_antipotts.impl.h"
+#include <mapmap/source/cost_instances/pairwise_antipotts.impl.h>
 
 #endif /* __MAPMAP_PAIRWISE_ANTIPOTTS_H_ */

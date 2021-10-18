@@ -7,12 +7,12 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#include "header/cost_instances/pairwise_table.h"
+#include <mapmap/header/cost_instances/pairwise_table.h>
 
 #include <limits>
 #include <iostream>
 
-#include "header/parallel_templates.h"
+#include <mapmap/header/parallel_templates.h>
 
 NS_MAPMAP_BEGIN
 

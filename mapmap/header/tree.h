@@ -14,9 +14,9 @@
 #include <vector>
 #include <iterator>
 
-#include "header/defines.h"
-#include "header/vector_types.h"
-#include "header/graph.h"
+#include <mapmap/header/defines.h>
+#include <mapmap/header/vector_types.h>
+#include <mapmap/header/graph.h>
 
 NS_MAPMAP_BEGIN
 
@@ -118,6 +118,6 @@ protected:
 
 NS_MAPMAP_END
 
-#include "source/tree.impl.h"
+#include <mapmap/source/tree.impl.h>
 
 #endif /* __MAPMAP_TREE_H_ */

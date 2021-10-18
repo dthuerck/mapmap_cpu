@@ -10,7 +10,7 @@
 #ifndef __MAPMAP_HEADER_TERMINATION_INSTANCES_STOP_WHEN_RETURNS_DIMINISH_IMPL_H_
 #define __MAPMAP_HEADER_TERMINATION_INSTANCES_STOP_WHEN_RETURNS_DIMINISH_IMPL_H_
 
-#include "header/termination_instances/stop_when_returns_diminish.h"
+#include <mapmap/header/termination_instances/stop_when_returns_diminish.h>
 
 #include <iostream>
 

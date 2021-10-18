@@ -7,7 +7,7 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#include "header/tree_sampler.h"
+#include <mapmap/header/tree_sampler.h>
 
 NS_MAPMAP_BEGIN
 

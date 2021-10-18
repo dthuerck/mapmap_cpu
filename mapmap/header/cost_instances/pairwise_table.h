@@ -13,11 +13,11 @@
 #include <memory>
 #include <vector>
 
-#include "header/defines.h"
-#include "header/costs.h"
-#include "header/graph.h"
-#include "header/vector_types.h"
-#include "header/vector_math.h"
+#include <mapmap/header/defines.h>
+#include <mapmap/header/costs.h>
+#include <mapmap/header/graph.h>
+#include <mapmap/header/vector_types.h>
+#include <mapmap/header/vector_math.h>
 
 NS_MAPMAP_BEGIN
 
@@ -71,6 +71,6 @@ protected:
 NS_MAPMAP_END
 
 /* include function implementations */
-#include "source/cost_instances/pairwise_table.impl.h"
+#include <mapmap/source/cost_instances/pairwise_table.impl.h>
 
 #endif /* __MAPMAP_PAIRWISE_TABLE_H_ */

@@ -14,8 +14,8 @@
 #include <memory>
 #include <exception>
 
-#include "header/defines.h"
-#include "header/vector_types.h"
+#include <mapmap/header/defines.h>
+#include <mapmap/header/vector_types.h>
 
 NS_MAPMAP_BEGIN
 
@@ -78,6 +78,6 @@ protected:
 
 NS_MAPMAP_END
 
-#include "source/graph.impl.h"
+#include <mapmap/source/graph.impl.h>
 
 #endif /* __MAPMAP_GRAPH_H_ */

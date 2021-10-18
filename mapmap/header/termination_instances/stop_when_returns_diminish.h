@@ -10,7 +10,7 @@
 #ifndef __MAPMAP_STOP_WHEN_RETURNS_DIMINISH_H_
 #define __MAPMAP_STOP_WHEN_RETURNS_DIMINISH_H_
 
-#include "header/termination_criterion.h"
+#include <mapmap/header/termination_criterion.h>
 
 NS_MAPMAP_BEGIN
 
@@ -32,6 +32,6 @@ protected:
 
 NS_MAPMAP_END
 
-#include "source/termination_instances/stop_when_returns_diminish.impl.h"
+#include <mapmap/source/termination_instances/stop_when_returns_diminish.impl.h>
 
 #endif /* __MAPMAP_STOP_WHEN_RETURNS_DIMINISH_H_ */

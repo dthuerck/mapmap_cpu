@@ -16,19 +16,19 @@
 #include <stdexcept>
 #include <chrono>
 
-#include "header/defines.h"
-#include "header/cost_bundle.h"
-#include "header/instance_factory.h"
-#include "header/vector_types.h"
-#include "header/optimizer_instances/dynamic_programming.h"
-#include "header/graph.h"
-#include "header/multilevel.h"
-#include "header/termination_criterion.h"
-#include "header/tree.h"
-#include "header/tree_optimizer.h"
-#include "header/instance_factory.h"
+#include <mapmap/header/defines.h>
+#include <mapmap/header/cost_bundle.h>
+#include <mapmap/header/instance_factory.h>
+#include <mapmap/header/vector_types.h>
+#include <mapmap/header/optimizer_instances/dynamic_programming.h>
+#include <mapmap/header/graph.h>
+#include <mapmap/header/multilevel.h>
+#include <mapmap/header/termination_criterion.h>
+#include <mapmap/header/tree.h>
+#include <mapmap/header/tree_optimizer.h>
+#include <mapmap/header/instance_factory.h>
 
-#include "tbb/tick_count.h"
+#include <tbb/tick_count.h>
 
 NS_MAPMAP_BEGIN
 
@@ -218,6 +218,6 @@ struct mapMAP_control
 
 NS_MAPMAP_END
 
-#include "source/mapmap.impl.h"
+#include <mapmap/source/mapmap.impl.h>
 
 #endif /* __MAPMAP_MAPMAP_H_ */

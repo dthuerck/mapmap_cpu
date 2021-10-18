@@ -15,18 +15,19 @@
 #include <iostream>
 #include <numeric>
 #include <algorithm>
+#include <random>
 
-#include "tbb/concurrent_queue.h"
-#include "tbb/concurrent_vector.h"
-#include "tbb/concurrent_unordered_set.h"
-#include "tbb/atomic.h"
-#include "tbb/task.h"
-#include "tbb/blocked_range.h"
-#include "tbb/parallel_for.h"
+#include <tbb/concurrent_queue.h>
+#include <tbb/concurrent_vector.h>
+#include <tbb/concurrent_unordered_set.h>
+#include <tbb/atomic.h>
+#include <tbb/task.h>
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
 
-#include "header/graph.h"
+#include <mapmap/header/graph.h>
 
-#include "dset.h"
+#include <mapmap/dset.h>
 
 NS_MAPMAP_BEGIN
 
@@ -351,8 +352,14 @@ update_components()
 
         /* find random oder for start nodes */
         std::vector<luint_t> nodes(m_nodes.size());
+#if __cplusplus > 201100L
         std::iota(nodes.begin(), nodes.end(), 0);
+        std::random_device rd;
+        std::mt19937 g(rd());
+        std::shuffle(nodes.begin(), nodes.end(), g);
+#else
         std::random_shuffle(nodes.begin(), nodes.end());
+#endif
 
         tbb::blocked_range<luint_t> node_range(0, m_nodes.size(), 32);
         while(nodes_left > 0)

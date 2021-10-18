@@ -7,19 +7,19 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#include "header/tree.h"
+#include <mapmap/header/tree.h>
 
 #include <exception>
 #include <functional>
 #include <numeric>
 #include <iostream>
 
-#include "tbb/parallel_for.h"
-#include "tbb/blocked_range.h"
-#include "tbb/parallel_reduce.h"
-#include "tbb/parallel_scan.h"
+#include <tbb/parallel_for.h>
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_reduce.h>
+#include <tbb/parallel_scan.h>
 
-#include "header/parallel_templates.h"
+#include <mapmap/header/parallel_templates.h>
 
 NS_MAPMAP_BEGIN
 

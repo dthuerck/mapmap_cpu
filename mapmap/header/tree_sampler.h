@@ -10,8 +10,8 @@
 #ifndef __MAPMAP_TREE_SAMPLER_H_
 #define __MAPMAP_TREE_SAMPLER_H_
 
-#include "header/defines.h"
-#include "header/tree.h"
+#include <mapmap/header/defines.h>
+#include <mapmap/header/tree.h>
 
 #include <random>
 
@@ -53,6 +53,6 @@ protected:
 NS_MAPMAP_END
 
 /* include function implementations */
-#include "source/tree_sampler.impl.h"
+#include <mapmap/source/tree_sampler.impl.h>
 
 #endif /* __MAPMAP_TREE_SAMPLER_H_ */

@@ -7,7 +7,7 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#include "header/optimizer_instances/envelope_instances/pairwise_linear_peak_envelope.h"
+#include <mapmap/header/optimizer_instances/envelope_instances/pairwise_linear_peak_envelope.h>
 
 NS_MAPMAP_BEGIN
 

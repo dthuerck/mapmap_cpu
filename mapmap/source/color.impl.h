@@ -7,14 +7,14 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#include "header/color.h"
+#include <mapmap/header/color.h>
 
 #include <algorithm>
 
-#include "tbb/atomic.h"
-#include "tbb/parallel_reduce.h"
-#include "tbb/parallel_for.h"
-#include "tbb/mutex.h"
+#include <tbb/atomic.h>
+#include <tbb/parallel_reduce.h>
+#include <tbb/parallel_for.h>
+#include <tbb/mutex.h>
 
 NS_MAPMAP_BEGIN
 

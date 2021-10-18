@@ -7,7 +7,7 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#include "header/termination_criterion.h"
+#include <mapmap/header/termination_criterion.h>
 
 NS_MAPMAP_BEGIN
 

@@ -12,7 +12,7 @@
 
 #include <cstdint>
 
-#include "header/defines.h"
+#include <mapmap/header/defines.h>
 
 #if defined(__SSE4_2__)
     #include <smmintrin.h>  

@@ -7,10 +7,10 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#include "header/instance_factory.h"
+#include <mapmap/header/instance_factory.h>
 
-#include "header/tree_sampler_instances/optimistic_tree_sampler.h"
-#include "header/tree_sampler_instances/lock_free_tree_sampler.h"
+#include <mapmap/header/tree_sampler_instances/optimistic_tree_sampler.h>
+#include <mapmap/header/tree_sampler_instances/lock_free_tree_sampler.h>
 
 NS_MAPMAP_BEGIN
 
