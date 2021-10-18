@@ -352,8 +352,14 @@ update_components()
 
         /* find random oder for start nodes */
         std::vector<luint_t> nodes(m_nodes.size());
+#if __cplusplus > 201100L
         std::iota(nodes.begin(), nodes.end(), 0);
+        std::random_device rd;
+        std::mt19937 g(rd());
+        std::shuffle(nodes.begin(), nodes.end(), g);
+#else
         std::random_shuffle(nodes.begin(), nodes.end());
+#endif
 
         tbb::blocked_range<luint_t> node_range(0, m_nodes.size(), 32);
         while(nodes_left > 0)
