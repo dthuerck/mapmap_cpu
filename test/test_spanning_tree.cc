@@ -12,7 +12,6 @@
 
 #include <gtest/gtest.h>
 #include <gtest/gtest_prod.h>
-#include <tbb/tbb.h>
 
 #include "header/defines.h"
 #include "header/vector_types.h"
