@@ -7,16 +7,16 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#include <mapmap/header/multilevel_instances/group_same_label.h>
-
+#include <atomic>
 #include <algorithm>
 #include <queue>
 #include <iostream>
 
-#include <tbb/atomic.h>
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
 #include <tbb/parallel_do.h>
+
+#include <mapmap/header/multilevel_instances/group_same_label.h>
 
 NS_MAPMAP_BEGIN
 
@@ -56,7 +56,8 @@ group_nodes(
     tbb::blocked_range<luint_t> node_range(0, num_nodes);
 
     /* use atomic locks for synchronizing access to nodes */
-    std::vector<tbb::atomic<char>> node_locks(num_nodes, 0u);
+    std::vector<std::atomic<char>> node_locks(num_nodes);
+    std::fill(node_locks.begin(), node_locks.end(), 0);
     node_in_group.resize(num_nodes);
     std::fill(node_in_group.begin(), node_in_group.end(), invalid_luint_t);
 
@@ -92,7 +93,11 @@ group_nodes(
                 bfs.pop();
 
                 /* lock node */
-                while(node_locks[cur].compare_and_swap(1u, 0u) != 0u);
+                char atomic_lock = 0;
+                while(!node_locks[cur].compare_exchange_strong(atomic_lock, 1u))
+                {
+                    atomic_lock = 0;
+                };
 
                 /**
                  * smaller marker: another thread is already here or this

@@ -7,6 +7,7 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
+#include <atomic>
 #include <vector>
 #include <queue>
 #include <utility>
@@ -20,14 +21,12 @@
 #include <tbb/concurrent_queue.h>
 #include <tbb/concurrent_vector.h>
 #include <tbb/concurrent_unordered_set.h>
-#include <tbb/atomic.h>
 #include <tbb/task.h>
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
 
 #include <mapmap/header/graph.h>
-
-#include <dset.h>
+#include <ext/dset/dset.h>
 
 NS_MAPMAP_BEGIN
 
@@ -50,9 +49,9 @@ public:
     LazyBFSTask(
         const luint_t start_node,
         Graph<COSTTYPE> * graph,
-        std::vector<tbb::atomic<uint_t>> * visited,
+        std::vector<std::atomic<uint_t>> * visited,
         std::vector<luint_t> * components,
-        tbb::atomic<luint_t> * nodes_left,
+        std::atomic<luint_t> * nodes_left,
         tbb::concurrent_vector<complet> * complet_out)
     : tbb::task(),
       m_graph(graph),
@@ -74,6 +73,7 @@ public:
     {
         std::vector<luint_t> my_path;
         std::set<luint_t> my_neighbors;
+        uint_t atomic_tmp;
 
         /**
          * do a standard BFS, stop once all neighbours have been visited
@@ -84,8 +84,9 @@ public:
             const luint_t cur_node = my_queue.front();
             my_queue.pop();
 
-            if((*m_visited)[cur_node].compare_and_swap(
-                (luint_t) 1, (luint_t) 0) == (luint_t) 0)
+            atomic_tmp = (uint_t) 0;
+            if((*m_visited)[cur_node].compare_exchange_strong(
+                atomic_tmp, (uint_t) 1))
             {
                 /**
                  * first thread to visit that node, hence iterate over
@@ -99,7 +100,7 @@ public:
                  * Exploit m_visited as spinlock - 1 means currently
                  * visited, 2 means finished processing.
                  */
-                (*m_visited)[cur_node] = (luint_t) 2;
+                (*m_visited)[cur_node] = (uint_t) 2;
 
                 for(const luint_t e_id : m_graph->inc_edges(cur_node))
                 {
@@ -136,9 +137,9 @@ protected:
     Graph<COSTTYPE> * m_graph;
     luint_t m_start_node;
     std::queue<luint_t> my_queue;
-    std::vector<tbb::atomic<uint_t>> * m_visited;
+    std::vector<std::atomic<uint_t>> * m_visited;
     std::vector<luint_t> * m_components;
-    tbb::atomic<luint_t> * m_nodes_left;
+    std::atomic<luint_t> * m_nodes_left;
     tbb::concurrent_vector<complet> * m_complet_out;
 };
 
@@ -344,10 +345,10 @@ update_components()
          */
 
         tbb::concurrent_vector<complet> accrued_complets;
-        std::vector<tbb::atomic<uint_t>> visited(m_nodes.size());
+        std::vector<std::atomic<uint_t>> visited(m_nodes.size());
         for (uint_t i = 0; i < m_nodes.size(); ++i)
             visited[i] = 0;
-        tbb::atomic<luint_t> nodes_left;
+        std::atomic<luint_t> nodes_left;
         nodes_left = (luint_t) m_nodes.size();
 
         /* find random oder for start nodes */
@@ -366,7 +367,7 @@ update_components()
         {
             /* select start nodes for this round of BFS */
             std::vector<luint_t> start_nodes(BFS_ROOTS);
-            tbb::atomic<luint_t> start_nodes_selected;
+            std::atomic<luint_t> start_nodes_selected;
             start_nodes_selected = (luint_t) 0;
 
             tbb::parallel_for(node_range,

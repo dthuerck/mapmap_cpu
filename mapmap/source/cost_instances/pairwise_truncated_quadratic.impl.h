@@ -93,7 +93,7 @@ const
 {
     std::unique_ptr<PairwiseCosts<COSTTYPE, SIMDWIDTH>> uptr(new
         PairwiseTruncatedQuadratic<COSTTYPE, SIMDWIDTH>(m_c, m_label_diff_cap));
-    return std::move(uptr);
+    return uptr;
 }
 
 /* ************************************************************************** */

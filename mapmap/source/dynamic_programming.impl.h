@@ -519,7 +519,7 @@ CombinatorialDynamicProgramming<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
 bottom_up_opt()
 {
     /* mark the number of unprocessed children atomically per node */
-    std::vector<tbb::atomic<luint_t>> unproc_children(
+    std::vector<std::atomic<luint_t>> unproc_children(
         this->m_tree->num_graph_nodes(), 0);
 
     /* fill child counter for all node's parents */

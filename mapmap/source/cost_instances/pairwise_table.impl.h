@@ -137,7 +137,7 @@ const
         pwtab->get_raw_costs());
 
     std::unique_ptr<PairwiseCosts<COSTTYPE, SIMDWIDTH>> uptr(pwtab);
-    return std::move(uptr);
+    return uptr;
 }
 
 /* ************************************************************************** */

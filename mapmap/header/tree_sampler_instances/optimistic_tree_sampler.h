@@ -90,10 +90,10 @@ protected:
 
     std::unique_ptr<Tree<COSTTYPE>> m_tree;
     std::vector<luint_t> m_rem_degrees;
-    std::vector<tbb::atomic<luint_t>> m_markers;
-    std::vector<tbb::atomic<unsigned char>> m_node_locks;
-    std::vector<tbb::atomic<unsigned char>> m_in_queue;
-    tbb::atomic<luint_t> m_rem_nodes;
+    std::vector<std::atomic<luint_t>> m_markers;
+    std::vector<std::atomic<unsigned char>> m_node_locks;
+    std::vector<std::atomic<unsigned char>> m_in_queue;
+    std::atomic<luint_t> m_rem_nodes;
 };
 
 template<typename COSTTYPE, bool ACYCLIC>

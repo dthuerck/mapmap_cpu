@@ -341,8 +341,9 @@ CombinatorialDynamicProgramming<COSTTYPE, SIMDWIDTH>::
 bottom_up_opt()
 {
     /* mark the number of unprocessed children atomically per node */
-    std::vector<tbb::atomic<luint_t>> unproc_children(
-        this->m_tree->num_graph_nodes(), 0);
+    std::vector<std::atomic<luint_t>> unproc_children(
+        this->m_tree->num_graph_nodes());
+    std::fill(unproc_children.begin(), unproc_children.end(), 0);
 
     /* fill child counter for all node's parents */
     tbb::blocked_range<luint_t> node_range(0, this->m_graph->num_nodes());
@@ -397,7 +398,7 @@ bottom_up_opt()
             /* decrement parent's unprocessed children counter */
             const luint_t parent_id = this->m_tree->node(n).parent_id;
             if(parent_id != n && unproc_children[parent_id].
-                fetch_and_decrement() == (luint_t) 1)
+                fetch_sub((luint_t) 1) == (luint_t) 1)
             {
                 /* last child processed: push parent into next level */
                 feeder.add(parent_id);

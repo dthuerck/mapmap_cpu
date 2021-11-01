@@ -10,13 +10,13 @@
 #ifndef __MAPMAP_PARALLEL_TEMPLATES_H_
 #define __MAPMAP_PARALLEL_TEMPLATES_H_
 
+#include <atomic>
 #include <vector>
 
 #include <tbb/parallel_for.h>
 #include <tbb/parallel_reduce.h>
 #include <tbb/parallel_scan.h>
 #include <tbb/blocked_range.h>
-#include <tbb/atomic.h>
 
 #include <mapmap/header/defines.h>
 #include <mapmap/header/vector_types.h>
@@ -105,7 +105,7 @@ protected:
     VALTYPE m_max_val;
     INDEXTYPE m_length;
 
-    std::vector<tbb::atomic<VALTYPE>> m_histogram;
+    std::vector<std::atomic<VALTYPE>> m_histogram;
     std::vector<VALTYPE> m_final_histogram;
 };
 

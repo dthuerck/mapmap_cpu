@@ -10,12 +10,13 @@
 #ifndef __MAPMAP_LOCK_FREE_TREE_SAMPLER_H_
 #define __MAPMAP_LOCK_FREE_TREE_SAMPLER_H_
 
+#include <atomic>
+
 #include <mapmap/header/defines.h>
 #include <mapmap/header/graph.h>
 #include <mapmap/header/tree.h>
 #include <mapmap/header/tree_sampler.h>
 
-#include <tbb/atomic.h>
 #include <tbb/concurrent_vector.h>
 
 NS_MAPMAP_BEGIN
@@ -55,9 +56,9 @@ protected:
     luint_t m_num_qu;
     std::vector<luint_t> m_data;
     std::vector<luint_t *> m_qu_start;
-    std::vector<tbb::atomic<luint_t>> m_qu_pos;
+    std::vector<std::atomic<luint_t>> m_qu_pos;
 
-    tbb::atomic<luint_t> m_size;
+    std::atomic<luint_t> m_size;
 };
 
 /**
@@ -101,21 +102,21 @@ protected:
     luint_t m_cur_col;
 
     /* markers for acyclic growing */
-    std::vector<tbb::atomic<luint_t>> m_markers;
+    std::vector<std::atomic<luint_t>> m_markers;
 
     /* determine which nodes have been added to the respective queue */
-    std::vector<tbb::atomic<char>> m_queued;
+    std::vector<std::atomic<char>> m_queued;
 
     /* saves nodes added in last iteration */
     std::vector<luint_t> m_new;
-    tbb::atomic<luint_t> m_new_size;
+    std::atomic<luint_t> m_new_size;
 
     /* temporary single-color ouput queue */
     std::vector<luint_t> m_qu_out;
-    tbb::atomic<luint_t> m_qu_out_pos;
+    std::atomic<luint_t> m_qu_out_pos;
 
     /* counter: nodes remaining */
-    tbb::atomic<luint_t> m_rem_nodes;
+    std::atomic<luint_t> m_rem_nodes;
 
     /* counter: remaining degree per node */
     std::vector<luint_t> m_rem_degrees;
