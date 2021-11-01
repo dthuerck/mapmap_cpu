@@ -12,7 +12,6 @@
 
 #include <tbb/parallel_reduce.h>
 #include <tbb/parallel_for.h>
-#include <tbb/mutex.h>
 
 #include <mapmap/header/color.h>
 

@@ -497,7 +497,7 @@ compute_level_graph_from_node_groups()
                  * (serially).
                  */
                 {
-                    tbb::mutex::scoped_lock lock(m_graph_write_mutex);
+                    std::lock_guard<std::mutex> lock(m_graph_write_mutex);
 
                     /* enlarge storage for edge table */
                     m_superedge_sizes.reserve(m_superedge_sizes.size() +
@@ -626,7 +626,7 @@ compute_level_label_set()
 
                 /* create label set from incidence vector - serial access */
                 {
-                    tbb::mutex::scoped_lock lock(m_graph_write_mutex);
+                    std::lock_guard<std::mutex> lock(m_graph_write_mutex);
 
                     m_storage_label_set.back()->set_label_set_for_node(
                         s_n, lset);
