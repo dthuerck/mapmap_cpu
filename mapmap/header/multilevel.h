@@ -10,10 +10,9 @@
 #ifndef __MAPMAP_MULTILEVEL_H_
 #define __MAPMAP_MULTILEVEL_H_
 
+#include <mutex>
 #include <memory>
 #include <vector>
-
-#include <tbb/mutex.h>
 
 #include <mapmap/header/defines.h>
 #include <mapmap/header/graph.h>
@@ -161,7 +160,7 @@ protected:
     std::vector<_iv_st<COSTTYPE, SIMDWIDTH>> m_labels;
 
     /* mutex for writing access to the graph */
-    tbb::mutex m_graph_write_mutex;
+    std::mutex m_graph_write_mutex;
 
     /* allocator for working tables */
     std::unique_ptr<tbb::tbb_allocator<_s_t<COSTTYPE, SIMDWIDTH>>>

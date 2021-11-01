@@ -7,8 +7,7 @@
  * of the BSD license. See the LICENSE file for details.
  */
 
-#include <mapmap/header/multilevel.h>
-
+#include <atomic>
 #include <stdexcept>
 #include <utility>
 #include <map>
@@ -18,12 +17,13 @@
 #include <tbb/parallel_for.h>
 #include <tbb/blocked_range.h>
 #include <tbb/concurrent_vector.h>
-#include <tbb/atomic.h>
 
 #include <mapmap/header/parallel_templates.h>
 #include <mapmap/header/costs.h>
 #include <mapmap/header/cost_instances/unary_table.h>
 #include <mapmap/header/cost_instances/pairwise_table.h>
+
+#include <mapmap/header/multilevel.h>
 
 NS_MAPMAP_BEGIN
 
@@ -319,7 +319,8 @@ compute_contiguous_ids(
     tbb::blocked_range<luint_t> supernode_range(0, m_num_supernodes);
 
     /* assign new IDs to all nodes and count supernode sizes */
-    std::vector<tbb::atomic<luint_t>> supernode_sizes(m_num_supernodes, 0);
+    std::vector<std::atomic<luint_t>> supernode_sizes(m_num_supernodes);
+    std::fill(supernode_sizes.begin(), supernode_sizes.end(), 0);
     tbb::parallel_for(node_range,
         [&](const tbb::blocked_range<luint_t>& r)
         {
@@ -365,7 +366,7 @@ compute_contiguous_ids(
             {
                 const luint_t supernode = m_current->prev_node_in_group[n];
                 const luint_t loc_offset = supernode_sizes[supernode].
-                    fetch_and_increment();
+                    fetch_add((luint_t) 1);
                 m_supernode_list[m_supernode_offsets[supernode] + loc_offset] =
                     n;
             }
@@ -496,7 +497,7 @@ compute_level_graph_from_node_groups()
                  * (serially).
                  */
                 {
-                    tbb::mutex::scoped_lock lock(m_graph_write_mutex);
+                    std::lock_guard<std::mutex> lock(m_graph_write_mutex);
 
                     /* enlarge storage for edge table */
                     m_superedge_sizes.reserve(m_superedge_sizes.size() +
@@ -625,7 +626,7 @@ compute_level_label_set()
 
                 /* create label set from incidence vector - serial access */
                 {
-                    tbb::mutex::scoped_lock lock(m_graph_write_mutex);
+                    std::lock_guard<std::mutex> lock(m_graph_write_mutex);
 
                     m_storage_label_set.back()->set_label_set_for_node(
                         s_n, lset);

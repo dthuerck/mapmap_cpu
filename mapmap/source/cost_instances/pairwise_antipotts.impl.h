@@ -85,7 +85,7 @@ const
 {
     std::unique_ptr<PairwiseCosts<COSTTYPE, SIMDWIDTH>> uptr(new
         PairwiseAntipotts<COSTTYPE, SIMDWIDTH>(m_c));
-    return std::move(uptr);
+    return uptr;
 }
 
 /* ************************************************************************** */

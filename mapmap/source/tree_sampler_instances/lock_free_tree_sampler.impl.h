@@ -213,7 +213,8 @@ init()
     m_qu_start[m_num_qu] = m_data.data() + offset;
 
     /* initailize queue pos counters to zero */
-    m_qu_pos.resize(m_num_qu);
+    m_qu_pos = std::vector<std::atomic<luint_t>>(m_num_qu);
+    std::fill(m_qu_pos.begin(), m_qu_pos.end(), 0);
     reset();
 }
 
@@ -365,7 +366,7 @@ sample(
     m_qu_out_pos = 0;
 
     /* initialize queue for nodes */
-    m_queued.resize(n);
+    m_queued = std::vector<std::atomic<char>>(n);
     std::fill(m_queued.begin(), m_queued.end(), 0);
 
     /* copy original degrees and initialize locks */
@@ -374,7 +375,7 @@ sample(
         m_rem_degrees[i] = this->m_graph->nodes()[i].incident_edges.size();
 
     /* initialize markers */
-    m_markers.resize(n);
+    m_markers = std::vector<std::atomic<luint_t>>(n);
     std::fill(m_markers.begin(), m_markers.end(), 0);
 
     /* initialize new-queue */
@@ -557,18 +558,19 @@ sample_phase_II()
 
                 /* update marker, if now == 2, stop considering node */
                 if(ACYCLIC)
-                    if(m_markers[o_node].fetch_and_increment() == 1)
+                    if(m_markers[o_node].fetch_add((luint_t) 1) == 1)
                         --m_rem_nodes;
 
                 /* marker < 2 && not queued -> put in queue */
+                char atomic_queued = 0;
                 if(m_markers[o_node] < 2 &&
-                    m_queued[o_node].compare_and_swap(1u, 0u) == 0u)
+                    m_queued[o_node].compare_exchange_strong(atomic_queued, 1u))
                 {
                     const luint_t o_color =
                         this->m_graph->get_coloring()[o_node];
 
                     if(o_color == m_cur_col)
-                        m_qu_out[m_qu_out_pos.fetch_and_increment()] =
+                        m_qu_out[m_qu_out_pos.fetch_add((luint_t) 1)] =
                             o_node;
                     else
                         m_qu.push_to(o_color, o_node);
@@ -592,7 +594,7 @@ LockFreeTreeSampler<COSTTYPE, ACYCLIC>::
 sample_rescue()
 {
     /* find nodes with marker 0 of the same color */
-    tbb::atomic<luint_t> rescue_color = invalid_luint_t;
+    std::atomic<luint_t> rescue_color(invalid_luint_t);
     m_new_size = 0;
 
     tbb::blocked_range<luint_t> node_range(0, this->m_graph->num_nodes());
@@ -606,7 +608,8 @@ sample_rescue()
             if(!is_in_tree && m_markers[i] == 0)
             {
                 const luint_t my_color = this->m_graph->get_coloring()[i];
-                rescue_color.compare_and_swap(my_color, invalid_luint_t);
+                luint_t atomic_expect = invalid_luint_t;
+                rescue_color.compare_exchange_strong(atomic_expect, my_color);
 
                 if(my_color == rescue_color && m_new_size < m_max_rescue)
                 {

@@ -15,8 +15,6 @@
 
 #include <mapmap/header/multilevel.h>
 
-#include <tbb/mutex.h>
-
 NS_MAPMAP_BEGIN
 
 template<typename COSTTYPE, uint_t SIMDWIDTH>
