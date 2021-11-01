@@ -22,7 +22,7 @@
 #include <memory>
 
 #include "mapmap/full.h"
-#include "tbb/task_scheduler_init.h"
+#include "tbb/task_arena.h"
 
 using namespace NS_MAPMAP;
 
@@ -39,7 +39,7 @@ main(
     std::cout << "Using number of threads: " << num_threads << std::endl;
 
     /* TBB control */
-    tbb::task_scheduler_init schedule(num_threads);
+    tbb::task_arena schedule(num_threads);
 
     /* mapMAP template parameters */
     using cost_t = float;
