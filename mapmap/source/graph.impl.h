@@ -27,7 +27,7 @@
 
 #include <mapmap/header/graph.h>
 
-#include <mapmap/dset.h>
+#include <dset.h>
 
 NS_MAPMAP_BEGIN
 
