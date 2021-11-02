@@ -1,0 +1,30 @@
+name: 'build'
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [ opened, reopened ]
+
+jobs:
+  build-artifacts:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Build
+        run: |
+          a=`pwd`
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get update
+          sudo apt-get --allow-unauthenticated install -qq gcc-9
+          sudo apt-get --allow-unauthenticated install -qq g++-9
+          sudo apt-get --allow-unauthenticated install -qq git
+          export CXX="g++-9"
+          export CC="gcc-9"
+          sudo apt-get --allow-unauthenticated install -qq libtbb-dev libtbb2
+          cd $a
+          git clone https://github.com/dthuerck/mapmap_cpu.git .
+          mkdir build
+          cd build
+          cmake -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DBUILD_MEMSAVE=OFF -DBUILD_TEST=ON -DBUILD_DEMO=ON .. && make && ./mapmap_test
+          cmake -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DBUILD_MEMSAVE=ON -DBUILD_TEST=ON -DBUILD_DEMO=ON .. && make && ./mapmap_test

@@ -1,4 +1,4 @@
-mapMAP MRF MAP Solver [![Build Status](https://travis-ci.org/dthuerck/mapmap_cpu.svg?branch=master)](https://travis-ci.org/dthuerck/mapmap_cpu)
+mapMAP MRF MAP Solver [![Build Status](https://github.com/dthuerck/mapmap_cpu/actions/workflows/master.yml/badge.svg)](https://github.com/dthuerck/mapmap_cpu/actions)
 ======
 
 Change Log
