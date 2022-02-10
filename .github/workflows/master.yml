@@ -28,6 +28,7 @@ jobs:
           sudo apt-get --allow-unauthenticated install -qq intel-basekit
           cd $a
           git clone https://github.com/dthuerck/mapmap_cpu.git .
+          git checkout ${GITHUB_REF##*/}
           mkdir build
           cd build
           cmake -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DBUILD_MEMSAVE=OFF -DBUILD_TEST=ON -DBUILD_DEMO=ON .. && make && ./mapmap_test

@@ -213,7 +213,7 @@ source_group("Test" FILES
 # CMake as dependency: download and build
 externalproject_add(googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG release-1.11.0
+    GIT_TAG main
     CMAKE_ARGS -DBUILD_GTEST=ON -DBUILD_SHARED_LIBS=ON
     INSTALL_COMMAND ""
     LOG_DOWNLOAD ON
