@@ -10,7 +10,7 @@
 #ifndef __MAPMAP_COLOR_H_
 #define __MAPMAP_COLOR_H_
 
-#include <tbb/concurrent_vector.h>
+#include <oneapi/tbb/concurrent_vector.h>
 #include <mapmap/header/defines.h>
 
 #include <mapmap/header/graph.h>

@@ -8,7 +8,7 @@ Compared with the development version from our HPG paper (cf. below).
 * v1.5 (6/25/2018):
   - Added tech report for new tree selection algorithm (from v1.2) in doc/.
   - Added novel envelopes for supermodular cost function types ("Antipotts",
-    "LinearPeak"). A tech report will follow.
+    "LinearPeak"). A tech report _may_ follow.
   - Several bugfixes.
 * v1.4 (1/10/2018):
   - Deterministic solver path with user-provided seed.
@@ -84,18 +84,17 @@ Prerequisites
 
 * CMake building system (>= 3.0.2)
 * C++11 compatible compiler (e.g. gcc-5, MSVC 13, icc 17)
-* Intel TBB (>= 4.4, see [Webpage](https://www.threadingbuildingblocks.org/))
+* Intel OneTBB (see [Installation instructions for different package managers](https://www.intel.com/content/www/us/en/develop/documentation/installation-guide-for-intel-oneapi-toolkits-linux/top/installation/install-using-package-managers.html#install-using-package-managers))
 
 The code has been tested (and compiles without issues) on an Ubuntu 16.04
-system with an AVX-compliant Intel i7-3930K CPU with 64 GB RAM and
-using gcc/g++ 5.4.0 and Intel TBB (v2017u3). The latter is
+system with an AVX2-compliant Intel CPU
+using gcc/g++ 9.3.0 and Intel OneTBB (2021.5.0). The latter is
 licensed under the 3BSD-compatible Apache 2.0 licence (see
 [ASF legal FAQ](http://www.apache.org/legal/resolved.html#category-a)).
 Please make sure to use an C++11-comptabile compiler and activate the
 necessary options.
-If you are a Ubuntu user, please install the packages
-`libtbb2 libtbb-dev` (see also Travis CI-script). Google Test will automatically
-be downloaded and built.
+If you are a Ubuntu user, please click on `APT` on the OneTBB page linked above. 
+Google Test will automatically be downloaded and built.
 
 The provided FindTBB.cmake is taken from [justusc](https://github.com/justusc/FindTBB)
 and licensed under the MIT license.
@@ -114,10 +113,7 @@ should be somewhat similar, though GUI-based.
   * `CMAKE_C_COMPILER` - command for your C-compiler, e.g. `gcc-5`
   * `CMAKE_CXX_COMPILER` - command for your C++-compiler,
     e.g. `g++-5`
-  * `TBB_INCLUDE_DIRS` - path containing the `tbb/` folder with
-    include files, e.g. `/usr/include`
-  * `TBB_LIBRARY` - path containing the TBB library files, e.g.
-    `/lib`
+  * `TBB_DIR` - path containing `TBBConfig.cmake`
   * `BUILD_MEMSAVE` - determines if the dynamic programming should
     allocate memory as needed (`ON`), saving memory but causing
     slightly longer execution times or preallocate the whole table

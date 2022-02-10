@@ -65,6 +65,8 @@ public:
         {
             m_v_in[i] = (_s_t<COSTTYPE, SIMDWIDTH>) i;
             m_iv_in[i] = (_iv_st<COSTTYPE, SIMDWIDTH>) i;
+            m_v_ref[i] = 0;
+            m_iv_ref[i] = 0; 
         }
 
         /* fill in mask: [0xFF, 0x0, 0xFF, 0x0, ...] */
@@ -396,9 +398,11 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestLogical)
     v_store<COSTTYPE, SIMDWIDTH>(result, this->m_v_out);
 
     for(uint_t i = 0; i < SIMDWIDTH; ++i)
+    {
         ASSERT_TRUE((std::isnan(this->m_v_ref[i]) &&
             std::isnan(this->m_v_out[i])) ||
             this->m_v_out[i] == this->m_v_in[i]);
+    }
 
     /* test v_convert_iv */
     this->fill_input();
@@ -573,7 +577,7 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestLogical)
     {
         v_i_mask[i] = (_iv_st<COSTTYPE, SIMDWIDTH>) (i % 2 == 1 ? ~0x0 : 0x0);
 
-        this->m_iv_ref[i] = (v_i_mask == 0x0 ?
+        this->m_iv_ref[i] = (v_i_mask[i] == 0x0 ?
             this->m_iv_in[i] : v_i_second[i]);
     }
 
@@ -585,8 +589,8 @@ TYPED_TEST_P(mapMAPTestVectorMath, TestLogical)
 
     for(uint_t i = 0; i < SIMDWIDTH; ++i)
         ASSERT_TRUE((std::isnan(this->m_iv_ref[i]) &&
-                std::isnan(this->m_v_out[i])) ||
-                this->m_v_ref[i] == this->m_v_out[i]);
+                std::isnan(this->m_iv_out[i])) ||
+                this->m_iv_ref[i] == this->m_iv_out[i]);
 
     /* test iv_extract */
     this->fill_input();

@@ -14,9 +14,9 @@
 #include <set>
 #include <iostream>
 
-#include <tbb/parallel_for.h>
-#include <tbb/blocked_range.h>
-#include <tbb/concurrent_vector.h>
+#include <oneapi/tbb/parallel_for.h>
+#include <oneapi/tbb/blocked_range.h>
+#include <oneapi/tbb/concurrent_vector.h>
 
 #include <mapmap/header/parallel_templates.h>
 #include <mapmap/header/costs.h>

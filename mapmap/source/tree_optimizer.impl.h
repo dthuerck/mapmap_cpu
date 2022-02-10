@@ -8,8 +8,8 @@
  */
 #include <mapmap/header/tree_optimizer.h>
 
-#include <tbb/blocked_range.h>
-#include <tbb/parallel_reduce.h>
+#include <oneapi/tbb/blocked_range.h>
+#include <oneapi/tbb/parallel_reduce.h>
 
 #include <iostream>
 

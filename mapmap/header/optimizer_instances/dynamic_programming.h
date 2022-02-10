@@ -13,9 +13,9 @@
 #include <memory>
 #include <vector>
 
-#include <tbb/blocked_range.h>
-#include <tbb/concurrent_vector.h>
-#include <tbb/tbb_allocator.h>
+#include <oneapi/tbb/blocked_range.h>
+#include <oneapi/tbb/concurrent_vector.h>
+#include <oneapi/tbb/tbb_allocator.h>
 
 #include <mapmap/header/defines.h>
 #include <mapmap/header/tree.h>

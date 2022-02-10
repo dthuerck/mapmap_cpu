@@ -28,7 +28,7 @@
 #include <mapmap/header/tree_optimizer.h>
 #include <mapmap/header/instance_factory.h>
 
-#include <tbb/tick_count.h>
+#include <oneapi/tbb/tick_count.h>
 
 NS_MAPMAP_BEGIN
 
