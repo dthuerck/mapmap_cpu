@@ -19,33 +19,31 @@ option(BUILD_DEMO "Build a demo, reading SHIMF datasets into mapMAP." ON)
 set(CMAKE_CXX_STANDARD 11)
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
-endif(NOT CMAKE_BUILD_TYPE)
+endif()
 
 # set optimization options for GCC on unixoid systems
 # uses -march=native to make the compiler set __SSE4_2__, __AVX__ and
 # __AVX2__ to fit to the computer
 set(CMAKE_CXX_FLAGS "-Wall -march=native -Wfatal-errors")
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g")
-elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -funroll-loops -mfpmath=sse -flto -g")
-else(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -funroll-loops -mfpmath=sse -flto")
-endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -mfpmath=sse -flto")
+else(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -mfpmath=sse -flto")
+endif()
 
 # augment build parameters for optional builds
 if(BUILD_TEST)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_FOR_TEST")
-endif(BUILD_TEST)
+endif()
 
 if(BUILD_MEMSAVE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_MEMORY_SAVE")
-endif(BUILD_MEMSAVE)
+endif()
 
 # if DEMO is built, download a demo dataset (planesweep)
 if(BUILD_DEMO)
 	file(DOWNLOAD http://download.hrz.tu-darmstadt.de/media/FB20/GCC/project_files/mapmap/planesweep_320_256_96.bin ${PROJECT_SOURCE_DIR}/demo/planesweep_320_256_96.bin)
-endif(BUILD_DEMO)
+endif()
 
 # find location to TBB and set variables
 find_package(TBB COMPONENTS tbb tbbmalloc REQUIRED)
@@ -250,9 +248,9 @@ add_executable(mapmap_demo
 
 if(BUILD_TEST)
     add_dependencies(mapmap_demo googletest)
-endif(BUILD_TEST)
+endif()
 
 target_link_libraries(mapmap_demo
     TBB::tbb
     TBB::tbbmalloc)
-endif(BUILD_DEMO)
+endif()
