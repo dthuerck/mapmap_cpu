@@ -1719,10 +1719,7 @@ _v_t<float, 8>
 v_load<float, 8>(
 	const _s_t<float, 8>* ptr)
 {
-	if (!((uintptr_t) ptr & v_get_mask<float, 8>())) 
-		return _mm256_load_ps(ptr);
-	else
-		return _mm256_loadu_ps(ptr);
+	return _mm256_loadu_ps(ptr);
 }
 
 /* ************************************************************************** */
@@ -1733,10 +1730,7 @@ _iv_t<float, 8>
 iv_load<float, 8>(
 	const _iv_st<float, 8>* ptr)
 {
-	if (!((uintptr_t) ptr & iv_get_mask<float, 8>())) 
-		return _mm256_load_si256((__m256i*) ptr);
-	else
-		return _mm256_loadu_si256((__m256i*) ptr);
+	return _mm256_loadu_si256((__m256i*) ptr);
 }
 
 /* ************************************************************************** */
@@ -1748,10 +1742,7 @@ v_store<float, 8>(
 	const _v_t<float, 8>& a,
 	_s_t<float, 8>* ptr)
 {
-	if(!((uintptr_t) ptr & v_get_mask<float, 8>()))
-		_mm256_store_ps(ptr, a);
-	else
-		_mm256_storeu_ps(ptr, a);
+	return _mm256_storeu_ps(ptr, a);
 }
 
 /* ************************************************************************** */
@@ -3575,8 +3566,7 @@ _v_t<double, 4>
 v_load<double, 4>(
 	const _s_t<double, 4>* ptr)
 {
-	return (!((uintptr_t) ptr & v_get_mask<double, 4>()) ? 
-		_mm256_load_pd(ptr) : _mm256_loadu_pd(ptr));
+	return _mm256_loadu_pd(ptr);
 }
 
 /* ************************************************************************** */
@@ -3587,9 +3577,7 @@ _iv_t<double, 4>
 iv_load<double, 4>(
 	const _iv_st<double, 4>* ptr)
 {
-	return (!((uintptr_t) ptr & iv_get_mask<double, 4>()) ? 
-		_mm256_load_si256((__m256i *) ptr) : _mm256_loadu_si256((__m256i *) 
-		ptr));  
+	return _mm256_loadu_si256((__m256i*) ptr);
 }
 
 /* ************************************************************************** */
@@ -3601,10 +3589,7 @@ v_store<double, 4>(
 	const _v_t<double, 4>& a,
 	_s_t<double, 4>* ptr)
 {
-	if(!((uintptr_t) ptr & v_get_mask<double, 4>()))
-		_mm256_store_pd(ptr, a);
-	else
-		_mm256_storeu_pd(ptr, a);
+	return _mm256_storeu_pd(ptr, a);
 }
 
 /* ************************************************************************** */

@@ -243,7 +243,7 @@ TYPED_TEST_P(mapMAPTestDynamicProgramming, TestPairwisePotts)
             _iv_t<COSTTYPE, SIMDWIDTH> l = iv_load<COSTTYPE, SIMDWIDTH>(
                 &this->m_labels[c * SIMDWIDTH]);
 
-            _v_t<COSTTYPE, SIMDWIDTH> cost = pairwise->get_pairwise_costs(l,
+            _v_t<COSTTYPE, SIMDWIDTH> cost = pairwise->get_pairwise_costs(l, 
                 iv_init<COSTTYPE, SIMDWIDTH>(l_i));
             v_store<COSTTYPE, SIMDWIDTH>(cost,
                 &this->m_cost_out[c * SIMDWIDTH]);

@@ -3,9 +3,9 @@ cmake_minimum_required(VERSION 3.0)
 set(CMAKE_C_COMPILER "gcc")
 set(CMAKE_CXX_COMPILER "g++")
 
-# include included FindTBB module
-list(APPEND CMAKE_MODULE_PATH "$ENV{CMAKE_MODULE_PATH}")
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+# point to location of CMAKE module files for oneAPI, see
+# https://www.intel.com/content/www/us/en/develop/documentation/oneapi-programming-guide/top/oneapi-development-environment-setup/use-cmake-with-oneapi-applications.html
+set(TBB_DIR "/opt/intel/oneapi/tbb/latest/lib/cmake/tbb/")
 
 project(mapMAP)
 include(ExternalProject)
@@ -15,43 +15,38 @@ option(BUILD_MEMSAVE "Use memory-saving mode. Might influence performance negati
 option(BUILD_TEST "Build Google Tests for mapMAP modules." ON)
 option(BUILD_DEMO "Build a demo, reading SHIMF datasets into mapMAP." ON)
 
-set(TBB_INCLUDE_DIRS "/usr/include" CACHE PATH "Path to where the TBB include files (tbb/) reside")
-set(TBB_LIBRARY "/usr/lib" CACHE PATH "Path to where the TBB library files (libtbb.so etc.) reside")
-
 # default to Release build and C++11 mode
 set(CMAKE_CXX_STANDARD 11)
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
-endif(NOT CMAKE_BUILD_TYPE)
+endif()
 
 # set optimization options for GCC on unixoid systems
 # uses -march=native to make the compiler set __SSE4_2__, __AVX__ and
 # __AVX2__ to fit to the computer
-set(CMAKE_CXX_FLAGS "-Wall -march=native")
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g")
-elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -funroll-loops -mfpmath=sse -flto -g")
-else(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -funroll-loops -mfpmath=sse -flto")
-endif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+set(CMAKE_CXX_FLAGS "-Wall -march=native -Wfatal-errors")
+if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -mfpmath=sse -flto")
+else(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -mfpmath=sse -flto")
+endif()
 
 # augment build parameters for optional builds
 if(BUILD_TEST)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_FOR_TEST")
-endif(BUILD_TEST)
+endif()
 
 if(BUILD_MEMSAVE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_MEMORY_SAVE")
-endif(BUILD_MEMSAVE)
+endif()
 
 # if DEMO is built, download a demo dataset (planesweep)
 if(BUILD_DEMO)
 	file(DOWNLOAD http://download.hrz.tu-darmstadt.de/media/FB20/GCC/project_files/mapmap/planesweep_320_256_96.bin ${PROJECT_SOURCE_DIR}/demo/planesweep_320_256_96.bin)
-endif(BUILD_DEMO)
+endif()
 
 # find location to TBB and set variables
-find_package(TBB COMPONENTS tbbmalloc_proxy tbbmalloc tbb REQUIRED)
+find_package(TBB COMPONENTS tbb tbbmalloc REQUIRED)
 
 # include headers
 include_directories(
@@ -216,7 +211,7 @@ source_group("Test" FILES
 # CMake as dependency: download and build
 externalproject_add(googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG master
+    GIT_TAG main
     CMAKE_ARGS -DBUILD_GTEST=ON -DBUILD_SHARED_LIBS=ON
     INSTALL_COMMAND ""
     LOG_DOWNLOAD ON
@@ -238,7 +233,8 @@ add_executable(mapmap_test
     ${src_test})
 add_dependencies(mapmap_test googletest)
 target_link_libraries(mapmap_test
-    ${TBB_LIBRARIES}
+    TBB::tbb
+    TBB::tbbmalloc
     gtest
     gtest_main
     pthread)
@@ -252,8 +248,9 @@ add_executable(mapmap_demo
 
 if(BUILD_TEST)
     add_dependencies(mapmap_demo googletest)
-endif(BUILD_TEST)
+endif()
 
 target_link_libraries(mapmap_demo
-    ${TBB_LIBRARIES})
-endif(BUILD_DEMO)
+    TBB::tbb
+    TBB::tbbmalloc)
+endif()

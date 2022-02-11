@@ -12,9 +12,8 @@
 #include <queue>
 #include <iostream>
 
-#include <tbb/blocked_range.h>
-#include <tbb/parallel_for.h>
-#include <tbb/parallel_do.h>
+#include <oneapi/tbb/blocked_range.h>
+#include <oneapi/tbb/parallel_for_each.h>
 
 #include <mapmap/header/multilevel_instances/group_same_label.h>
 
@@ -73,7 +72,7 @@ group_nodes(
 #endif
 
     /* do BFSes from randomly selected seeds */
-    tbb::parallel_do(qu.begin(), qu.end(),
+    tbb::parallel_for_each(qu.begin(), qu.end(),
         [&](const luint_t& seed)
         {
             /* retrieve label common to this group */

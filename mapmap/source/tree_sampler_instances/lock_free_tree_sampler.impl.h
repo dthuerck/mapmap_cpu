@@ -15,9 +15,9 @@
 #include <set>
 #include <algorithm>
 
-#include <tbb/parallel_reduce.h>
-#include <tbb/parallel_for.h>
-#include <tbb/blocked_range.h>
+#include <oneapi/tbb/parallel_reduce.h>
+#include <oneapi/tbb/parallel_for.h>
+#include <oneapi/tbb/blocked_range.h>
 
 NS_MAPMAP_BEGIN
 

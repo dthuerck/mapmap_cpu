@@ -543,8 +543,8 @@ bottom_up_opt()
     queue.assign(m_leaf_ids.begin(), m_leaf_ids.end());
 
     int processed = 0;
-    tbb::parallel_do(queue.begin(), queue.end(),
-        [&](const luint_t n, tbb::parallel_do_feeder<luint_t>& feeder)
+    tbb::parallel_for_each(queue.begin(), queue.end(),
+        [&](const luint_t n, tbb::feeder<luint_t>& feeder)
         {
                 /* allocate memory */
 #if defined(BUILD_MEMORY_SAVE)
@@ -629,8 +629,8 @@ top_down_opt(
         });
 
     /* continue traversal */
-    tbb::parallel_do(queue.begin(), queue.end(),
-        [&](const luint_t n, tbb::parallel_do_feeder<luint_t>& feeder)
+    tbb::parallel_for_each(queue.begin(), queue.end(),
+        [&](const luint_t n, tbb::feeder<luint_t>& feeder)
         {
             /* retrieve current node */
             const TreeNode<COSTTYPE>& node =

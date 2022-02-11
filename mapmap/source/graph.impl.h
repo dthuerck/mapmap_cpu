@@ -18,15 +18,18 @@
 #include <algorithm>
 #include <random>
 
-#include <tbb/concurrent_queue.h>
-#include <tbb/concurrent_vector.h>
-#include <tbb/concurrent_unordered_set.h>
-#include <tbb/task.h>
-#include <tbb/blocked_range.h>
-#include <tbb/parallel_for.h>
+#include <oneapi/tbb//task_group.h>
+
+#include <oneapi/tbb//concurrent_queue.h>
+#include <oneapi/tbb//concurrent_vector.h>
+#include <oneapi/tbb//concurrent_unordered_set.h>
+#include <oneapi/tbb//blocked_range.h>
+#include <oneapi/tbb//parallel_for.h>
 
 #include <mapmap/header/graph.h>
 #include <ext/dset/dset.h>
+
+using namespace oneapi;
 
 NS_MAPMAP_BEGIN
 
@@ -43,7 +46,7 @@ NS_MAPMAP_BEGIN
 using complet = std::tuple<std::vector<luint_t>, luint_t, std::set<luint_t>>;
 
 template<typename COSTTYPE>
-class LazyBFSTask : public tbb::task
+class LazyBFSTask
 {
 public:
     LazyBFSTask(
@@ -53,8 +56,7 @@ public:
         std::vector<luint_t> * components,
         std::atomic<luint_t> * nodes_left,
         tbb::concurrent_vector<complet> * complet_out)
-    : tbb::task(),
-      m_graph(graph),
+    : m_graph(graph),
       m_start_node(start_node),
       my_queue(),
       m_visited(visited),
@@ -69,7 +71,7 @@ public:
     {
     }
 
-    tbb::task* execute()
+    void operator()() const
     {
         std::vector<luint_t> my_path;
         std::set<luint_t> my_neighbors;
@@ -129,18 +131,16 @@ public:
         if (my_path.size() > 0)
             m_complet_out->push_back(complet(my_path, m_start_node,
                 my_neighbors));
-
-        return NULL;
     }
 
 protected:
-    Graph<COSTTYPE> * m_graph;
-    luint_t m_start_node;
-    std::queue<luint_t> my_queue;
-    std::vector<std::atomic<uint_t>> * m_visited;
-    std::vector<luint_t> * m_components;
-    std::atomic<luint_t> * m_nodes_left;
-    tbb::concurrent_vector<complet> * m_complet_out;
+    const Graph<COSTTYPE> * m_graph;
+    const luint_t m_start_node;
+    mutable std::queue<luint_t> my_queue;
+    mutable std::vector<std::atomic<uint_t>> * m_visited;
+    mutable std::vector<luint_t> * m_components;
+    mutable std::atomic<luint_t> * m_nodes_left;
+    mutable tbb::concurrent_vector<complet> * m_complet_out;
 };
 
 /**
@@ -394,21 +394,26 @@ update_components()
             /* create tasks */
             const luint_t s_nodes = start_nodes_selected;
             const luint_t real_tasks = (std::min)((luint_t) BFS_ROOTS, s_nodes);
-            tbb::task_list round_tasks;
+
+            std::vector<std::unique_ptr<LazyBFSTask<COSTTYPE>>> tasks;
             for(uint_t i = 0; i < real_tasks; ++i)
             {
-                round_tasks.push_back(*new(tbb::task::allocate_root())
-                    LazyBFSTask<COSTTYPE>(
+                tasks.emplace_back(std::unique_ptr<LazyBFSTask<COSTTYPE>>(
+                        new LazyBFSTask<COSTTYPE>(
                         start_nodes[i],
                         this,
                         &visited,
                         &m_components,
                         &nodes_left,
-                        &accrued_complets));
+                        &accrued_complets)));
             }
 
-            /* spawn tasks and wait for completion */
-            tbb::task::spawn_root_and_wait(round_tasks);
+            /* run tasks */
+            tbb::task_group tg;
+            for(uint_t i = 0; i < real_tasks; ++i)
+                tg.run(*tasks[i]);
+            
+            tg.wait();
         }
 
         /* find unique ID mapping for components */
