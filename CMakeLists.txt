@@ -3,12 +3,17 @@ cmake_minimum_required(VERSION 3.0)
 set(CMAKE_C_COMPILER "gcc")
 set(CMAKE_CXX_COMPILER "g++")
 
-# point to location of CMAKE module files for oneAPI, see
-# https://www.intel.com/content/www/us/en/develop/documentation/oneapi-programming-guide/top/oneapi-development-environment-setup/use-cmake-with-oneapi-applications.html
-set(TBB_DIR "/opt/intel/oneapi/tbb/latest/lib/cmake/tbb/")
-
 project(mapMAP)
+
 include(ExternalProject)
+include(FetchContent)
+
+# add TBB (build locally))
+set(TBB_TEST OFF CACHE BOOL "Build TBB tests.")
+FetchContent_Declare(oneTBB
+    GIT_REPOSITORY https://github.com/oneapi-src/oneTBB.git
+    GIT_TAG v2021.5.0)
+FetchContent_MakeAvailable(oneTBB)
 
 # selection what to build
 option(BUILD_MEMSAVE "Use memory-saving mode. Might influence performance negatively." OFF)
@@ -45,16 +50,11 @@ if(BUILD_DEMO)
 	file(DOWNLOAD http://download.hrz.tu-darmstadt.de/media/FB20/GCC/project_files/mapmap/planesweep_320_256_96.bin ${PROJECT_SOURCE_DIR}/demo/planesweep_320_256_96.bin)
 endif()
 
-# find location to TBB and set variables
-find_package(TBB COMPONENTS tbb tbbmalloc REQUIRED)
-
 # include headers
 include_directories(
     ${PROJECT_SOURCE_DIR}
     ${PROJECT_SOURCE_DIR}/mapmap
     ${PROJECT_SOURCE_DIR}/ext)
-include_directories(SYSTEM
-    ${TBB_INCLUDE_DIR})
 
 set(header_dir "mapmap/header")
 set(impl_dir "mapmap/source")
