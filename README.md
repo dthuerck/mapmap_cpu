@@ -87,6 +87,24 @@ tipi . -t <platform>
 ```
 Where platform is either one of linux, windows, macos or any of the supported environments.
 
+Using mapMAP in your project with tipi.build 
+------
+
+`mapMAP` can be easily used with the [tipi.build](https://tipi.build) dependency manager, by adding the following to a `.tipi/deps`:
+
+```json
+{
+    "dthuerck/mapmap_cpu": { }
+}
+```
+
+An example to start with is available in [example-mapmap_cpu](https://github.com/tipi-deps/example-mapmap_cpu) (change the target name appropriately to `linux` or `macos` or `windows`):
+
+```bash
+tipi . -t <target>
+```
+
+
 Prerequisites
 ------
 
