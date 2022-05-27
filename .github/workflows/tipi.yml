@@ -14,4 +14,8 @@ jobs:
         run: |
           export HOME=/root
           mkdir -p ~/.tipi
+
+          mkdir -p build/linux/bin/demo \
+            && curl http://download.hrz.tu-darmstadt.de/media/FB20/GCC/project_files/mapmap/planesweep_320_256_96.bin --output build/linux/bin/demo/planesweep_320_256_96.bin          
+
           tipi . -t linux --dont-upgrade --verbose --test all 
