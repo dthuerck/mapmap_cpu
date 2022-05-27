@@ -79,6 +79,14 @@ In the future, we will add:
 
 For the license and terms of usage, please see "License, Terms of usage & Reference".
 
+Quickstart with tipi.build
+------
+All prerequisites are provided by tipi.build and the `.tipi/deps` file, to compile this project simply run : 
+```
+tipi . -t <platform>
+```
+Where platform is either one of linux, windows, macos or any of the supported environments.
+
 Prerequisites
 ------
 
