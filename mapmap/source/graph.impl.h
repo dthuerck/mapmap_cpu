@@ -29,8 +29,6 @@
 #include <mapmap/header/graph.h>
 #include <ext/dset/dset.h>
 
-using namespace oneapi;
-
 NS_MAPMAP_BEGIN
 
 /**
