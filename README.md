@@ -1,43 +1,6 @@
 mapMAP MRF MAP Solver [![Build Status](https://github.com/dthuerck/mapmap_cpu/actions/workflows/master.yml/badge.svg)](https://github.com/dthuerck/mapmap_cpu/actions)
 ======
 
-Change Log
-------
-Compared with the development version from our HPG paper (cf. below).
-
-* v1.5 (6/25/2018):
-  - Added tech report for new tree selection algorithm (from v1.2) in doc/.
-  - Added novel envelopes for supermodular cost function types ("Antipotts",
-    "LinearPeak"). A tech report _may_ follow.
-  - Several bugfixes.
-* v1.4 (1/10/2018):
-  - Deterministic solver path with user-provided seed.
-  - Several bugfixes and smaller improvements.
-* v1.3 (10/18/2017):
-  - Envelope optimization for Potts, TruncatedLinear, TruncatedQuadratic.
-  - Ability to have individual cost functions per edge.
-  - Removed UNARY/PAIRWISE template parameters from solver, hiding these
-    internally.
-  - Improved multilevel performance, even in the case of individual costs.
-  - Added GTest for automatic built instead of a hard dependency.
-* v1.2 (5/29/2017):
-  - Introduced a new, multicoloring-based tree selection algorithm -
-    lock-free.
-* v1.1 (4/12/2017):
-  - Tuned the tree growing implementation for early termination and
-  - option for relaxing the maximality requirement.
-* v1.0 (2/8/2017):
-  - Stable release.
-  - Logging callbacks for use as library.
-  - Clean, documented interface and documentation.
-  - Added a demo for correct usage.
-* beta (12/6/2016):
-  - Initial release, mirrors functionality outlined in the paper.
-  - Automated vectorization (compile-time detection) for float/double.
-  - Supporting scalar/SSE2-4/AVX/AVX2.
-  - Added cost function instances.
-  - Added unit tests.
-
 Overview
 ------
 
@@ -74,36 +37,15 @@ Currently, this code implements the following modules and features:
 - [x] Finding and exploiting connected components in the topology
 - [x] Test suite for each individual module
 
-In the future, we will add:
+What it lacks:
 - [ ] Capability to process label costs as outlined in the paper
 
 For the license and terms of usage, please see "License, Terms of usage & Reference".
 
-Quickstart with tipi.build
-------
-All prerequisites are provided by tipi.build and the `.tipi/deps` file, to compile this project simply run : 
-```
-tipi . -t <platform>
-```
-Where platform is either one of linux, windows, macos or any of the supported environments.
-
-Using mapMAP in your project with tipi.build 
-------
-
-`mapMAP` can be easily used with the [tipi.build](https://tipi.build) dependency manager, by adding the following to a `.tipi/deps`:
-
-```json
-{
-    "dthuerck/mapmap_cpu": { }
-}
-```
-
-An example to start with is available in [example-mapmap_cpu](https://github.com/tipi-deps/example-mapmap_cpu) (change the target name appropriately to `linux` or `macos` or `windows`):
-
-```bash
-tipi . -t <target>
-```
-
+In addition to a "classical", CMake-based workflow, the great folks at [`tipi.build`](https://tipi.build/)
+contributed (optional) support for their C++ build and dependency manager. With `tipi`,
+building `mapmap` or using it as a library in your own projects just happens
+by a snap of your finger.
 
 Prerequisites
 ------
@@ -131,6 +73,8 @@ Quickstart
 The following instructions are provided for linux; the Windows workflow
 should be somewhat similar, though GUI-based.
 
+#### The classical way
+
 *Step-by-step* instructions:
 
 1. `git clone https://github.com/dthuerck/mapmap_cpu`
@@ -154,8 +98,18 @@ should be somewhat similar, though GUI-based.
 6. Depending on your configuration, you can now run `mapmap_test` and/or
    `mapmap_demo` (assuming you activated `BUILD_TEST` and `BUILD_DEMO`).
 
+#### Using `tipi.build`
+
+All prerequisites are provided by tipi.build and the `.tipi/deps` file, to compile this project simply run : 
+```
+tipi . -t <platform>
+```
+Where platform is either one of linux, windows, macos or any of the supported environments.
+
 Using mapMAP as a library in your own projects
 ------
+
+#### The classical way
 
 mapMAP is implemented as a templated, header only library. A simple
 ```
@@ -173,12 +127,29 @@ performance:
 As a good starting point, we recommend studying `mapmap_demo.cc` closely,
 which is mostly self-explanatory.
 
+#### Using `tipi.build`
+
+`mapMAP` can be easily used with the [tipi.build](https://tipi.build) dependency manager, by adding the following to a `.tipi/deps`:
+
+```json
+{
+    "dthuerck/mapmap_cpu": { }
+}
+```
+
 Documentation
 ------
 
 For extended documentation on building, using and extending mapMAP, please
 see the
 [integrated wiki](https://github.com/dthuerck/mapmap_cpu/wiki).
+```
+
+An example to start with is available in [example-mapmap_cpu](https://github.com/tipi-deps/example-mapmap_cpu) (change the target name appropriately to `linux` or `macos` or `windows`):
+
+```bash
+tipi . -t <target>
+```
 
 License, Terms of Usage & Reference
 ------
@@ -206,3 +177,41 @@ Contact
 For any trouble with building, using or extending this software, please use
 the project's integrated issue tracker. We'll be happy to help you there or
 discuss feature requests.
+
+
+Change Log
+------
+Compared with the development version from our HPG paper (cf. below).
+
+* v1.5 (6/25/2018):
+  - Added tech report for new tree selection algorithm (from v1.2) in doc/.
+  - Added novel envelopes for supermodular cost function types ("Antipotts",
+    "LinearPeak"). A tech report _may_ follow.
+  - Several bugfixes.
+* v1.4 (1/10/2018):
+  - Deterministic solver path with user-provided seed.
+  - Several bugfixes and smaller improvements.
+* v1.3 (10/18/2017):
+  - Envelope optimization for Potts, TruncatedLinear, TruncatedQuadratic.
+  - Ability to have individual cost functions per edge.
+  - Removed UNARY/PAIRWISE template parameters from solver, hiding these
+    internally.
+  - Improved multilevel performance, even in the case of individual costs.
+  - Added GTest for automatic built instead of a hard dependency.
+* v1.2 (5/29/2017):
+  - Introduced a new, multicoloring-based tree selection algorithm -
+    lock-free.
+* v1.1 (4/12/2017):
+  - Tuned the tree growing implementation for early termination and
+  - option for relaxing the maximality requirement.
+* v1.0 (2/8/2017):
+  - Stable release.
+  - Logging callbacks for use as library.
+  - Clean, documented interface and documentation.
+  - Added a demo for correct usage.
+* beta (12/6/2016):
+  - Initial release, mirrors functionality outlined in the paper.
+  - Automated vectorization (compile-time detection) for float/double.
+  - Supporting scalar/SSE2-4/AVX/AVX2.
+  - Added cost function instances.
+  - Added unit tests.
