@@ -29,7 +29,7 @@ endif()
 # set optimization options for GCC on unixoid systems
 # uses -march=native to make the compiler set __SSE4_2__, __AVX__ and
 # __AVX2__ to fit to the computer
-set(CMAKE_CXX_FLAGS "-Wall -march=native -Wfatal-errors")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -march=native -Wfatal-errors")
 if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -mfpmath=sse -flto")
 else(CMAKE_BUILD_TYPE STREQUAL "Release")
