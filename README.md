@@ -1,4 +1,5 @@
-mapMAP MRF MAP Solver [![Build Status](https://github.com/dthuerck/mapmap_cpu/actions/workflows/master.yml/badge.svg)](https://github.com/dthuerck/mapmap_cpu/actions)
+mapMAP MRF MAP Solver [![Build Status](https://github.com/dthuerck/mapmap_cpu/actions/workflows/master.yml/badge.svg)](https://github.com/dthuerck/mapmap_cpu/actions) 
+[![tipi.build](https://github.com/tipi-deps/mapmap_cpu/workflows/tipi.build/badge.svg) <img src="https://tipi.build/logo/tipi.build%20logo.svg" height="23" /> ](https://github.com/tipi-deps/mapmap_cpu/actions/workflows/ci.yml)
 ======
 
 Overview
