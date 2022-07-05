@@ -1,0 +1,4 @@
+{
+  "google/googletest": { "u": true, "packages": ["GTest"], "targets": ["GTest::gtest", "GTest::gmock"] }
+  ,  "oneapi-src/oneTBB" : { "@" : "v2021.5.0" , "u" : true, "packages": ["TBB"], "targets": ["TBB::tbb", "TBB::tbbmalloc"] }
+}

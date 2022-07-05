@@ -1,0 +1,2 @@
+set (TBB_TEST OFF CACHE BOOL "")
+add_compile_definitions(BUILD_FOR_TEST)
