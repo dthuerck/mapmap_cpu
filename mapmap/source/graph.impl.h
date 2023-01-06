@@ -351,8 +351,8 @@ update_components()
 
         /* find random oder for start nodes */
         std::vector<luint_t> nodes(m_nodes.size());
-#if __cplusplus > 201100L
         std::iota(nodes.begin(), nodes.end(), 0);
+#if __cplusplus > 201100L
         std::random_device rd;
         std::mt19937 g(rd());
         std::shuffle(nodes.begin(), nodes.end(), g);

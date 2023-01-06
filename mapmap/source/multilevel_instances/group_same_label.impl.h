@@ -62,8 +62,8 @@ group_nodes(
 
     /* create seed "queue" */
     std::vector<luint_t> qu(num_nodes);
-#if __cplusplus > 201100L
     std::iota(std::begin(qu), std::end(qu), 0);
+#if __cplusplus > 201100L
     std::random_device rd;
     std::mt19937 g(rd());
     std::shuffle(qu.begin(), qu.end(), g);
