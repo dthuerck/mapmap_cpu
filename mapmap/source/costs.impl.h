@@ -324,7 +324,7 @@ hash(
      * i.e. OR over all label's modulo-32 bit position
      */
     uint_t hash = 0;
-    for(const uint_t& l : label_set)
+    for(const _iv_st<COSTTYPE, SIMDWIDTH>& l : label_set)
     {
         hash |= (1 << (l & 0x1f));
     }
