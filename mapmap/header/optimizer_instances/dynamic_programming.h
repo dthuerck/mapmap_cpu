@@ -67,7 +67,7 @@ public:
     ~CombinatorialDynamicProgramming();
 
     _s_t<COSTTYPE, SIMDWIDTH> optimize(
-        std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& solution) throw();
+        std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& solution);
 
 protected:
     void discover_leaves();

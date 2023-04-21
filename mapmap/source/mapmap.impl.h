@@ -92,7 +92,6 @@ void
 mapMAP<COSTTYPE, SIMDWIDTH>::
 set_graph(
     Graph<COSTTYPE> * graph)
-throw()
 {
     if(m_construct_graph)
         throw std::runtime_error("Setting the graph is not allowed "
@@ -111,7 +110,6 @@ void
 mapMAP<COSTTYPE, SIMDWIDTH>::
 set_label_set(
     const LabelSet<COSTTYPE, SIMDWIDTH> * label_set)
-throw()
 {
     if(m_construct_graph)
         throw std::runtime_error("Setting the label set is not allowed "
@@ -131,7 +129,6 @@ add_edge(
     const luint_t node_a,
     const luint_t node_b,
     const _s_t<COSTTYPE, SIMDWIDTH> weight)
-throw()
 {
     if(!m_construct_graph)
         throw std::runtime_error("Adding edges is only allowed "
@@ -149,7 +146,6 @@ mapMAP<COSTTYPE, SIMDWIDTH>::
 set_node_label_set(
     const luint_t node_id,
     const std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& label_set)
-throw()
 {
     if(!m_construct_graph)
         throw std::runtime_error("Setting a label set is only allowed "
@@ -278,7 +274,6 @@ _s_t<COSTTYPE, SIMDWIDTH>
 mapMAP<COSTTYPE, SIMDWIDTH>::
 optimize(
     std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& solution)
-throw()
 {
     /* initialize control flow with standard values */
     mapMAP_control std_control;
@@ -305,7 +300,6 @@ mapMAP<COSTTYPE, SIMDWIDTH>::
 optimize(
     std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& solution,
     const mapMAP_control& control_flow)
-throw()
 {
     _s_t<COSTTYPE, SIMDWIDTH> obj;
 
