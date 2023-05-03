@@ -132,7 +132,7 @@ public:
     ModeNotSupportedException(const std::string& err_msg);
     ~ModeNotSupportedException();
 
-    const char* what() const throw();
+    const char* what() const noexcept;
 
 protected:
     std::string m_err_msg;

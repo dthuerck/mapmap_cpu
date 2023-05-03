@@ -373,7 +373,7 @@ FORCEINLINE
 const char*
 ModeNotSupportedException::
 what()
-const throw()
+const noexcept
 {
     return m_err_msg.c_str();
 }

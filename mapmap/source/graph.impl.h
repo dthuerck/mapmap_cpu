@@ -185,7 +185,6 @@ add_edge(
     const luint_t node_a,
     const luint_t node_b,
     const COSTTYPE weight)
-throw()
 {
     if(std::max(node_a, node_b) >= m_num_nodes)
         throw std::runtime_error("Graph::add_edge: "

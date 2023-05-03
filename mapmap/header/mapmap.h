@@ -66,15 +66,14 @@ public:
     ~mapMAP();
 
     /* set graph and label set */
-    void set_graph(Graph<COSTTYPE> * graph) throw();
-    void set_label_set(const LabelSet<COSTTYPE, SIMDWIDTH> * label_set)
-        throw();
+    void set_graph(Graph<COSTTYPE> * graph);
+    void set_label_set(const LabelSet<COSTTYPE, SIMDWIDTH> * label_set);
 
     /* alternatively - construct graph and label set */
     void add_edge(const luint_t node_a, const luint_t node_b,
-        const _s_t<COSTTYPE, SIMDWIDTH> weight = 1.0) throw();
+        const _s_t<COSTTYPE, SIMDWIDTH> weight = 1.0);
     void set_node_label_set(const luint_t node_id, const
-        std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& label_set) throw();
+        std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& label_set);
 
     /* set MRF cost functions (compatibility mode) */
     void set_unaries(const UnaryCosts<COSTTYPE, SIMDWIDTH> * unaries);
@@ -100,11 +99,11 @@ public:
 
     /* start optimization */
     _s_t<COSTTYPE, SIMDWIDTH> optimize(std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>&
-        solution) throw();
+        solution);
 
     /* start optimization with customized control flow */
     _s_t<COSTTYPE, SIMDWIDTH> optimize(std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>&
-        solution, const mapMAP_control& control_flow) throw();
+        solution, const mapMAP_control& control_flow);
 
 protected:
     /* setup, sanity checks and tools */

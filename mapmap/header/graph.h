@@ -40,7 +40,7 @@ public:
     ~Graph();
 
     void add_edge(const luint_t node_a, const luint_t node_b,
-        const scalar_t<COSTTYPE> weight) throw();
+        const scalar_t<COSTTYPE> weight);
     const std::vector<GraphNode>& nodes() const;
     const luint_t num_nodes() const;
     const std::vector<luint_t>& inc_edges(const luint_t node) const;

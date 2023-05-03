@@ -335,7 +335,6 @@ _s_t<COSTTYPE, SIMDWIDTH>
 CombinatorialDynamicProgramming<COSTTYPE, SIMDWIDTH, UNARY, PAIRWISE>::
 optimize(
     std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& solution)
-throw()
 {
     if(!this->data_complete())
         throw std::domain_error("Data for optimization problem "

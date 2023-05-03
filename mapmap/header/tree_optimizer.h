@@ -43,7 +43,7 @@ public:
 
     /* optimization procedure - returns new objective value and solution */
     virtual _s_t<COSTTYPE, SIMDWIDTH> optimize(
-        std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& solution) throw() = 0;
+        std::vector<_iv_st<COSTTYPE, SIMDWIDTH>>& solution) = 0;
 
 protected:
     bool data_complete();
