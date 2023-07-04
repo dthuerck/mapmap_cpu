@@ -98,9 +98,12 @@ set_costs(
 
     /* expand table into aligned storage */
     for(_iv_st<COSTTYPE, SIMDWIDTH> li_a = 0; li_a < len_a; ++li_a)
-        std::copy(&packed_table[li_a * len_b], 
-            &packed_table[(li_a + 1) * len_b],
-            &m_packed_table[li_a * padded_b]);
+    {
+        std::copy(
+            packed_table.begin() + (li_a * len_b), 
+            packed_table.begin() + ((li_a + 1) * len_b),
+            m_packed_table + (li_a * padded_b));
+    }
 }
 
 /* ************************************************************************** */
