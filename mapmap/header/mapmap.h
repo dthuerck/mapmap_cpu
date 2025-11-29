@@ -27,6 +27,7 @@
 #include <mapmap/header/tree.h>
 #include <mapmap/header/tree_optimizer.h>
 #include <mapmap/header/instance_factory.h>
+#include <mapmap/header/settings.h>
 
 #include <oneapi/tbb/tick_count.h>
 
@@ -50,9 +51,6 @@ const char * const UNIX_COLOR_PINK = "\033[1;35m";
 const char * const UNIX_COLOR_YELLOW = "\033[1;33m";
 const char * const UNIX_COLOR_WHITE = "\033[1;37m";
 const char * const UNIX_COLOR_RESET = "\033[0m";
-
-/* forward declarations */
-struct mapMAP_control;
 
 /* MAPMAP main class */
 template<typename COSTTYPE, uint_t SIMDWIDTH>
@@ -183,36 +181,6 @@ protected:
     bool m_use_callback;
     std::function<void (const luint_t, const _s_t<COSTTYPE, SIMDWIDTH>)>
         m_callback;
-};
-
-/**
- * control flow struct (default values for flowgraph in paper)
- *
- * NOTE: despite settings concerning minimum iteration numbers, early
- * termination may be forced by a user-defined termination criterion
- */
-struct mapMAP_control
-{
-    /* switch modes on/off */
-    bool use_multilevel;
-    bool use_spanning_tree;
-    bool use_acyclic;
-
-    /* multilevel settings */
-    /* none */
-
-    /* spanning tree settings */
-    uint_t spanning_tree_multilevel_after_n_iterations;
-
-    /* acyclic settings */
-    bool force_acyclic; /* force using acyclic even if terminated */
-    uint_t min_acyclic_iterations;
-    bool relax_acyclic_maximal;
-
-    /* settings for tree sampling */
-    TREE_SAMPLER_ALGORITHM tree_algorithm;
-    bool sample_deterministic;
-    uint_t initial_seed;
 };
 
 NS_MAPMAP_END

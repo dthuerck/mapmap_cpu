@@ -14,17 +14,11 @@
 #include <mapmap/header/graph.h>
 
 #include <mapmap/header/tree_sampler.h>
+#include <mapmap/header/settings.h>
 
 #include <memory>
 
 NS_MAPMAP_BEGIN
-
-/* 0s mark the default algorithm */
-enum TREE_SAMPLER_ALGORITHM
-{
-    OPTIMISTIC_TREE_SAMPLER = 0,
-    LOCK_FREE_TREE_SAMPLER = 1
-};
 
 /* ************************************************************************** */
 
